@@ -143,9 +143,12 @@ backup*.sql
 分析.txt
 已修复清单.txt
 
-# Temporary planning docs
+# Local-only directories (not pushed to GitHub)
 docs/
+scripts/
+.githooks/
+GIT_WORKFLOW.md
 
-scripts/ 
+
 # Database exports (may contain sensitive data)
 sql/idle_items_school.sql
