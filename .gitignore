@@ -144,7 +144,8 @@ backup*.sql
 已修复清单.txt
 
 # Temporary planning docs
-doc/
+docs/
 
+scripts/ 
 # Database exports (may contain sensitive data)
 sql/idle_items_school.sql
