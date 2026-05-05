@@ -1,0 +1,239 @@
+.statistics {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.page-intro {
+  margin-bottom: var(--space-2);
+}
+
+.section-title {
+  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--content-primary);
+  margin: 0 0 var(--space-1);
+}
+
+.section-desc {
+  font-size: 14px;
+  color: var(--content-secondary);
+  margin: 0;
+}
+
+.date-range-bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: var(--space-4) var(--space-5);
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.date-range {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.date-label {
+  font-size: 13px;
+  color: var(--content-secondary);
+}
+
+.date-separator {
+  font-size: 13px;
+  color: var(--content-tertiary);
+  margin-left: var(--space-3);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 150ms var(--ease-out-quart);
+}
+
+.btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--content-secondary);
+  border-color: var(--border-default);
+}
+
+.btn-ghost:hover {
+  background: var(--surface-section);
+  color: var(--content-primary);
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-4);
+}
+
+.stat-card {
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  box-shadow: var(--shadow-sm);
+}
+
+.stat-card-primary {
+  border-top: 3px solid var(--color-primary);
+}
+
+.stat-card-success {
+  border-top: 3px solid var(--color-success);
+}
+
+.stat-card-warning {
+  border-top: 3px solid var(--color-warning);
+}
+
+.stat-card-info {
+  border-top: 3px solid var(--color-info);
+}
+
+.stat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-2);
+}
+
+.stat-label {
+  font-size: 13px;
+  color: var(--content-secondary);
+}
+
+.stat-value {
+  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--content-primary);
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-16);
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--border-default);
+  border-top: 3px solid var(--color-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: var(--space-4);
+}
+
+.loading-text {
+  font-size: 14px;
+  color: var(--content-secondary);
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-4);
+}
+
+.chart-card {
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.chart-card-wide {
+  grid-column: span 2;
+}
+
+.chart-card-full {
+  grid-column: span 3;
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.chart-title {
+  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--content-primary);
+  margin: 0;
+}
+
+.chart-body {
+  padding: var(--space-5);
+}
+
+@media (max-width: 1200px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .charts-grid {
+    grid-template-columns: 1fr;
+  }
+  .chart-card-wide,
+  .chart-card-full {
+    grid-column: span 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  .date-range-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-3);
+  }
+  .date-range {
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loading-spinner {
+    transition: none;
+    animation: none;
+  }
+}

@@ -1,0 +1,102 @@
+.profile-page {
+  padding: var(--space-6);
+}
+
+.profile-card {
+  max-width: 700px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-header h3 {
+  margin: 0;
+  font-size: 18px;
+  color: var(--text-primary);
+}
+
+.header-tip {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.avatar-section {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--space-6);
+}
+
+.avatar-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.avatar-wrapper .el-avatar {
+  background: linear-gradient(
+    135deg,
+    var(--primary-color),
+    var(--secondary-color)
+  );
+  font-size: 36px;
+  font-weight: 700;
+}
+
+.form-divider {
+  height: 1px;
+  background: var(--border-subtle);
+  margin: var(--space-4) 0;
+}
+
+.credit-score {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+}
+
+.credit-score .el-progress {
+  flex: 1;
+}
+
+.score-text {
+  font-weight: 600;
+  color: var(--text-primary);
+  min-width: 60px;
+}
+
+.transaction-stats {
+  display: flex;
+  gap: var(--space-6);
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stat-item .stat-value {
+  font-size: var(--text-xl);
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+.stat-item .stat-label {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+@media (max-width: 768px) {
+  .profile-page {
+    padding: var(--space-4);
+  }
+
+  .transaction-stats {
+    gap: var(--space-4);
+  }
+}

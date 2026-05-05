@@ -1,0 +1,101 @@
+# =========================================
+# 生产环境配置 (Production Environment)
+# =========================================
+server:
+  port: 7000
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 20MB
+  tomcat:
+    max-http-form-post-size: 20MB
+    max-swallow-size: 20MB
+    connection-timeout: 30000
+    uri-encoding: UTF-8
+
+spring:
+  application:
+    name: idle-items-school-prod
+
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/idle_items_school?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=true&allowPublicKeyRetrieval=true}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:root}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      minimum-idle: 10
+      maximum-pool-size: 50
+      auto-commit: true
+      idle-timeout: 300000
+      pool-name: IdleItemsHikariCP-Prod
+      max-lifetime: 3600000
+      connection-timeout: 10000
+      connection-test-query: SELECT 1
+      leak-detection-threshold: 30000
+      slow-query-threshold-millis: 200
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        dialect: org.hibernate.dialect.MySQLDialect
+        session:
+          events:
+            log:
+              LOG_QUERIES_SLOWER_THAN_MS: 200
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    validate-on-migrate: true
+    clean-disabled: true
+    repair-on-migrate: true
+
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 20MB
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6380}
+      password: ${REDIS_PASSWORD}
+      database: 0
+
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION:3600000}
+  refresh-expiration: ${JWT_REFRESH_EXPIRATION:86400000}
+
+file:
+  upload-path: /var/data/uploads/
+
+springdoc:
+  swagger-ui:
+    enabled: false
+  api-docs:
+    enabled: false
+
+knife4j:
+  enable: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when_authorized
+    metrics:
+      enabled: true
+    prometheus:
+      enabled: true
+  prometheus:
+    metrics:
+      export:
+        enabled: true

@@ -1,0 +1,131 @@
+# --- Java/Spring Boot ---
+*.class
+*.jar
+*.war
+*.ear
+target/
+*.tmp
+*.bak
+
+# --- Logs ---
+*.log
+logs/
+!logs/.gitkeep
+!**/logs/.gitkeep
+
+# --- IDE & OS Files ---
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+.vscode/
+
+# VSCode
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# Eclipse
+.classpath
+.project
+.settings/
+
+# NetBeans
+nbproject/private/
+build/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+
+# --- Environment Variables ---
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# --- Compiled Files ---
+*.class
+*.pyc
+__pycache__/
+
+# --- Maven ---
+.mvn/
+mvnw
+mvnw.cmd
+target/
+
+# --- Gradle ---
+.gradle/
+build/
+
+# --- Docker ---
+docker-compose.override.yml
+
+# --- Temporary ---
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# --- Backup Files ---
+*.bak
+*.backup
+*.old
+
+# --- Sensitive Files ---
+*.p12
+*.key
+*.pem
+*.jks
+
+# --- Database ---
+*.db
+*.sqlite3
+
+# --- Backend Specific ---
+backend/logs/
+backend/target/
+
+# --- Frontend Specific ---
+frontend/node_modules/
+frontend/dist/
+frontend/test-results/
+frontend/.next/
+frontend/out/
+
+# --- Artifacts ---
+*.zip
+*.tar.gz
+*.rar
+
+# --- Project Specific ---
+Vibe-Skills/
+*.sql~
+console.txt
+log.txt
+backup*.sql
+
+# --- External Files ---
+*.png~
+*.jpg~
+*.jpeg~
+*.gif~
+
+# --- Trae Specific ---
+.trae/agent/
+.trae/workspace/
+.trae/cache/
+.trae/history/

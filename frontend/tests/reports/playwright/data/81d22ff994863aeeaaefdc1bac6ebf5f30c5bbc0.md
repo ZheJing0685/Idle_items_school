@@ -1,0 +1,223 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: user-flows.spec.js >> 发布物品流程测试 >> 未登录访问发布页应跳转到登录页
+- Location: tests\e2e\user-flows.spec.js:128:3
+
+# Error details
+
+```
+Error: page.evaluate: SecurityError: The operation is insecure.
+```
+
+# Test source
+
+```ts
+  29  | 
+  30  |     // 找到搜索框并输入关键词
+  31  |     const searchInput = page.locator('input[placeholder*="搜索"]').first()
+  32  |     if (await searchInput.isVisible()) {
+  33  |       await searchInput.fill('手机')
+  34  |       await searchInput.press('Enter')
+  35  |       await page.waitForTimeout(1000)
+  36  | 
+  37  |       // 应该跳转到搜索结果页或显示结果
+  38  |       const body = await page.textContent('body')
+  39  |       expect(body).toBeTruthy()
+  40  |     }
+  41  |   })
+  42  | 
+  43  |   test('首页导航到登录页', async ({ page }) => {
+  44  |     await page.goto('/')
+  45  |     await page.waitForLoadState('networkidle')
+  46  | 
+  47  |     const loginBtn = page.getByRole('button', { name: /登录/ }).first()
+  48  |     if (await loginBtn.isVisible()) {
+  49  |       await loginBtn.click()
+  50  |       await expect(page).toHaveURL(/\/login/)
+  51  |     }
+  52  |   })
+  53  | })
+  54  | 
+  55  | test.describe('浏览物品流程测试', () => {
+  56  |   test('物品列表页正常加载', async ({ page }) => {
+  57  |     await page.goto('/items')
+  58  |     await page.waitForLoadState('networkidle')
+  59  | 
+  60  |     // 检查页面主要元素
+  61  |     await expect(page.locator('body')).toBeVisible()
+  62  |   })
+  63  | 
+  64  |   test('物品分类筛选功能', async ({ page }) => {
+  65  |     await page.goto('/items')
+  66  |     await page.waitForLoadState('networkidle')
+  67  |     await page.waitForTimeout(1000)
+  68  | 
+  69  |     // 检查页面不崩溃即可
+  70  |     await expect(page.locator('body')).toBeVisible()
+  71  |   })
+  72  | 
+  73  |   test('物品详情页可访问', async ({ page }) => {
+  74  |     // 先访问物品列表
+  75  |     await page.goto('/items')
+  76  |     await page.waitForLoadState('networkidle')
+  77  | 
+  78  |     // 尝试找一个物品链接
+  79  |     const itemLinks = page.locator('a[href*="/item/"]')
+  80  |     const itemCount = await itemLinks.count()
+  81  | 
+  82  |     if (itemCount > 0) {
+  83  |       await itemLinks.first().click()
+  84  |       await page.waitForLoadState('networkidle')
+  85  |       await expect(page.locator('body')).toBeVisible()
+  86  |     } else {
+  87  |       // 直接测试详情页 URL（如果有测试数据 ID）
+  88  |       await page.goto('/item/1')
+  89  |       await page.waitForTimeout(1000)
+  90  |       // 页面不应崩溃
+  91  |       expect(page.locator('body')).toBeVisible()
+  92  |     }
+  93  |   })
+  94  | })
+  95  | 
+  96  | test.describe('个人中心流程测试', () => {
+  97  |   test('未登录访问个人中心应跳转到登录页', async ({ page }) => {
+  98  |     // 清除登录状态
+  99  |     await page.goto('/')
+  100 |     await page.evaluate(() => localStorage.clear())
+  101 | 
+  102 |     // 尝试访问个人中心
+  103 |     await page.goto('/user')
+  104 |     await page.waitForTimeout(1000)
+  105 | 
+  106 |     // 应该跳转到登录页
+  107 |     await expect(page).toHaveURL(/\/login/)
+  108 |   })
+  109 | 
+  110 |   test('个人中心页面正常加载（需登录）', async ({ page }) => {
+  111 |     // 模拟登录状态
+  112 |     await page.goto('/login')
+  113 |     await page.evaluate(() => {
+  114 |       localStorage.setItem('idle_items_token', 'mock-token')
+  115 |       localStorage.setItem('idle_items_user', JSON.stringify({ id: 1, username: 'testuser' }))
+  116 |     })
+  117 | 
+  118 |     await page.goto('/user')
+  119 |     await page.waitForLoadState('networkidle')
+  120 |     await page.waitForTimeout(500)
+  121 | 
+  122 |     // 检查页面加载
+  123 |     await expect(page.locator('body')).toBeVisible()
+  124 |   })
+  125 | })
+  126 | 
+  127 | test.describe('发布物品流程测试', () => {
+  128 |   test('未登录访问发布页应跳转到登录页', async ({ page }) => {
+> 129 |     await page.evaluate(() => localStorage.clear())
+      |                ^ Error: page.evaluate: SecurityError: The operation is insecure.
+  130 |     await page.goto('/publish')
+  131 |     await page.waitForTimeout(1000)
+  132 | 
+  133 |     await expect(page).toHaveURL(/\/login/)
+  134 |   })
+  135 | 
+  136 |   test('发布页正常加载（需登录）', async ({ page }) => {
+  137 |     await page.goto('/login')
+  138 |     await page.evaluate(() => {
+  139 |       localStorage.setItem('idle_items_token', 'mock-token')
+  140 |       localStorage.setItem('idle_items_user', JSON.stringify({ id: 1, username: 'testuser' }))
+  141 |     })
+  142 | 
+  143 |     await page.goto('/publish')
+  144 |     await page.waitForLoadState('networkidle')
+  145 |     await page.waitForTimeout(500)
+  146 | 
+  147 |     // 页面不应崩溃
+  148 |     await expect(page.locator('body')).toBeVisible()
+  149 |   })
+  150 | })
+  151 | 
+  152 | test.describe('订单流程测试', () => {
+  153 |   test('未登录访问订单页应跳转到登录页', async ({ page }) => {
+  154 |     await page.evaluate(() => localStorage.clear())
+  155 |     await page.goto('/orders')
+  156 |     await page.waitForTimeout(1000)
+  157 | 
+  158 |     await expect(page).toHaveURL(/\/login/)
+  159 |   })
+  160 | })
+  161 | 
+  162 | test.describe('管理后台流程测试', () => {
+  163 |   test('普通用户访问管理后台应被拒绝', async ({ page }) => {
+  164 |     await page.goto('/login')
+  165 |     await page.evaluate(() => {
+  166 |       localStorage.setItem('idle_items_token', 'user-token')
+  167 |       localStorage.setItem('idle_items_user', JSON.stringify({ id: 1, username: 'user', role: 'USER' }))
+  168 |     })
+  169 | 
+  170 |     await page.goto('/admin')
+  171 |     await page.waitForTimeout(1000)
+  172 | 
+  173 |     // 应该跳转到首页或被拒绝
+  174 |     const currentUrl = page.url()
+  175 |     const isRejected = !currentUrl.includes('/admin')
+  176 |     expect(isRejected).toBe(true)
+  177 |   })
+  178 | 
+  179 |   test('管理员访问管理后台应正常加载', async ({ page }) => {
+  180 |     await page.goto('/login')
+  181 |     await page.evaluate(() => {
+  182 |       localStorage.setItem('idle_items_token', 'admin-token')
+  183 |       localStorage.setItem('idle_items_user', JSON.stringify({ id: 1, username: 'admin', role: 'ADMIN' }))
+  184 |     })
+  185 | 
+  186 |     await page.goto('/admin')
+  187 |     await page.waitForLoadState('networkidle')
+  188 |     await page.waitForTimeout(500)
+  189 | 
+  190 |     // 页面不应崩溃
+  191 |     await expect(page.locator('body')).toBeVisible()
+  192 |   })
+  193 | })
+  194 | 
+  195 | test.describe('404 页面测试', () => {
+  196 |   test('访问不存在的页面应显示 404', async ({ page }) => {
+  197 |     await page.goto('/this-page-does-not-exist-12345')
+  198 |     await page.waitForLoadState('networkidle')
+  199 | 
+  200 |     // 应该显示 404 页面
+  201 |     const body = await page.textContent('body')
+  202 |     expect(body).toContainTruthy()
+  203 |   })
+  204 | 
+  205 |   test('404 页面应有返回首页链接', async ({ page }) => {
+  206 |     await page.goto('/nonexistent-page')
+  207 |     await page.waitForLoadState('networkidle')
+  208 | 
+  209 |     // 查找返回首页的链接
+  210 |     const homeLink = page.locator('a[href="/"], a:has-text("首页"), a:has-text("返回首页")').first()
+  211 |     if (await homeLink.count() > 0) {
+  212 |       await expect(homeLink).toBeVisible()
+  213 |     }
+  214 |   })
+  215 | })
+  216 | 
+  217 | test.describe('页面性能测试', () => {
+  218 |   test('首页加载时间应小于 3 秒', async ({ page }) => {
+  219 |     const startTime = Date.now()
+  220 |     await page.goto('/')
+  221 |     await page.waitForLoadState('networkidle')
+  222 |     const loadTime = Date.now() - startTime
+  223 | 
+  224 |     expect(loadTime).toBeLessThan(3000)
+  225 |   })
+  226 | 
+  227 |   test('登录页加载时间应小于 2 秒', async ({ page }) => {
+  228 |     const startTime = Date.now()
+  229 |     await page.goto('/login')
+```

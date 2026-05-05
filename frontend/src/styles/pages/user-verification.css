@@ -1,0 +1,185 @@
+.verification-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-4);
+}
+
+.verification-header {
+  text-align: center;
+  margin-bottom: var(--space-8);
+}
+
+.verification-header h2 {
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: var(--space-2);
+}
+
+.verification-subtitle {
+  color: var(--text-secondary);
+  font-size: var(--text-base);
+}
+
+.status-section {
+  margin-bottom: var(--space-8);
+}
+
+.status-card {
+  padding: var(--space-6);
+  border-radius: var(--radius-lg);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.status-card.status-pending {
+  border-left: 4px solid var(--warning-color);
+}
+
+.status-card.status-approved {
+  border-left: 4px solid var(--success-color);
+}
+
+.status-card.status-rejected {
+  border-left: 4px solid var(--error-color);
+}
+
+.status-icon {
+  flex-shrink: 0;
+}
+
+.status-icon svg {
+  width: 48px;
+  height: 48px;
+}
+
+.status-pending .status-icon svg {
+  color: var(--warning-color);
+}
+
+.status-approved .status-icon svg {
+  color: var(--success-color);
+}
+
+.status-rejected .status-icon svg {
+  color: var(--error-color);
+}
+
+.status-info {
+  flex: 1;
+}
+
+.status-info h3 {
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--space-2);
+}
+
+.status-info p {
+  color: var(--text-secondary);
+  margin-bottom: var(--space-2);
+}
+
+.status-reason {
+  color: var(--error-color) !important;
+  font-size: var(--text-sm);
+}
+
+.status-actions {
+  flex-shrink: 0;
+}
+
+.form-section {
+  background: var(--bg-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-subtle);
+}
+
+.upload-section {
+  margin-top: var(--space-2);
+}
+
+.avatar-uploader {
+  display: block;
+  text-align: center;
+  margin-bottom: var(--space-2);
+}
+
+.avatar {
+  width: 200px;
+  height: 150px;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+}
+
+.upload-placeholder {
+  width: 200px;
+  height: 150px;
+  border: 2px dashed var(--border-subtle);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  background: var(--bg-muted);
+  margin: 0 auto;
+}
+
+.upload-placeholder:hover {
+  border-color: var(--primary-color);
+  background: oklch(62% 0.14 195 / 0.08);
+}
+
+.upload-placeholder svg {
+  color: var(--text-muted);
+  margin-bottom: var(--space-2);
+}
+
+.upload-placeholder span {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.upload-hint {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  text-align: center;
+  margin-top: var(--space-2);
+}
+
+.privacy-link {
+  color: var(--primary-color);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .verification-container {
+    padding: var(--space-4) var(--space-2);
+  }
+
+  .status-card {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .avatar {
+    width: 100%;
+    max-width: 200px;
+  }
+
+  .upload-placeholder {
+    width: 100%;
+    max-width: 200px;
+  }
+}
