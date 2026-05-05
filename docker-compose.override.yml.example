@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  mysql:
+    environment:
+      MYSQL_ROOT_PASSWORD: your_secure_password_here
+      MYSQL_DATABASE: idle_items_school
+
+  backend:
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/idle_items_school
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: your_secure_password_here
