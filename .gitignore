@@ -1,25 +1,50 @@
-# --- Java/Spring Boot ---
+# ============================================
+# 闲置物品校园交易平台 .gitignore
+# ============================================
+
+# ==================== Java / Spring Boot ====================
 *.class
 *.jar
 *.war
 *.ear
-target/
-*.tmp
-*.bak
+*.pyc
+__pycache__/
 
-# --- Logs ---
+# ==================== Build Tools ====================
+# Maven
+.mvn/
+mvnw
+mvnw.cmd
+target/
+
+# Gradle
+.gradle/
+build/
+dist/
+nbbuild/
+nbdist/
+.nb-gradle/
+
+# ==================== Frontend ====================
+frontend/node_modules/
+frontend/dist/
+frontend/.next/
+frontend/out/
+node_modules/
+
+# ==================== Logs ====================
 *.log
 logs/
 !logs/.gitkeep
 !**/logs/.gitkeep
+backend/logs/
 
-# --- IDE & OS Files ---
+# ==================== IDE & Editor ====================
 # IntelliJ IDEA
 .idea/
 *.iws
 *.iml
 *.ipr
-.vscode/
 
 # VSCode
 .vscode/*
@@ -33,12 +58,8 @@ logs/
 
 # NetBeans
 nbproject/private/
-build/
-nbbuild/
-dist/
-nbdist/
-.nb-gradle/
 
+# ==================== OS Files ====================
 # macOS
 .DS_Store
 .AppleDouble
@@ -48,117 +69,84 @@ nbdist/
 Thumbs.db
 ehthumbs.db
 
-# --- Environment Variables ---
+# ==================== Environment Variables ====================
 .env
 .env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.*.local
+!.env.example
 
-# --- Compiled Files ---
-*.class
-*.pyc
-__pycache__/
+# Frontend environment configs
+frontend/.env.development
+frontend/.env.production
+frontend/.env.staging
 
-# --- Maven ---
-.mvn/
-mvnw
-mvnw.cmd
-target/
-
-# --- Gradle ---
-.gradle/
-build/
-
-# --- Docker ---
+# ==================== Docker ====================
 docker-compose.override.yml
 
-# --- Temporary ---
+# ==================== Temporary Files ====================
 *.tmp
 *.temp
 *.swp
 *.swo
 *~
 
-# --- Backup Files ---
+# ==================== Backup Files ====================
 *.bak
 *.backup
 *.old
 
-# --- Sensitive Files ---
+# ==================== Sensitive Files ====================
 *.p12
 *.key
 *.pem
 *.jks
 
-# --- Database ---
+# ==================== Database Files ====================
 *.db
 *.sqlite3
 
-# --- Backend Specific ---
-backend/logs/
-backend/target/
-
-# --- Frontend Specific ---
-frontend/node_modules/
-frontend/dist/
-frontend/test-results/
-frontend/.next/
-frontend/out/
-
-# --- Artifacts ---
+# ==================== Compressed Files ====================
 *.zip
 *.tar.gz
 *.rar
 
-# --- Project Specific ---
+# ==================== AI Agent Tools ====================
+.agents/
 Vibe-Skills/
+
+# ==================== Trae IDE ====================
+.trae/
+
+# ==================== User Uploads (Runtime Data) ====================
+backend/uploads/
+uploads/
+
+# ==================== Test Reports & Coverage ====================
+frontend/test-results/
+frontend/tests/reports/
+coverage/
+
+# ==================== Runtime Outputs ====================
+outputs/
+
+# ==================== Project Specific ====================
 *.sql~
 console.txt
 log.txt
 backup*.sql
 
-# --- AI Agent Skills (Third-party, not project source) ---
-.agents/
-
-# --- External Files ---
+# Image editor temp files
 *.png~
 *.jpg~
 *.jpeg~
 *.gif~
 
-# --- Trae Specific ---
-.trae/agent/
-.trae/workspace/
-.trae/cache/
-.trae/history/
-.trae/specs/
-.trae/rules/
-.trae/skills/
-
-# --- User Uploads (Runtime Data) ---
-backend/uploads/
-uploads/
-
-# --- Test Reports & Coverage ---
-frontend/tests/reports/
-coverage/
-
-# --- Frontend Environment Configs ---
-frontend/.env.development
-frontend/.env.production
-frontend/.env.staging
-!.env.example
-
-# --- Runtime Outputs ---
-outputs/
-
-# --- Temporary Notes ---
+# Temporary notes
 分析.txt
 已修复清单.txt
 
-# --- Temporary Planning Docs ---
+# Temporary planning docs
 doc/
 
-# --- Database Exports (may contain sensitive data) ---
+# Database exports (may contain sensitive data)
 sql/idle_items_school.sql
