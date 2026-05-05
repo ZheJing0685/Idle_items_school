@@ -36,6 +36,13 @@ public class OrderService {
     private final ItemRepository itemRepository;
     private final ReviewRepository reviewRepository;
 
+    private static final List<Order.OrderStatus> ACTIVE_STATUSES = List.of(
+            Order.OrderStatus.PENDING_PAYMENT,
+            Order.OrderStatus.PENDING_SHIPMENT,
+            Order.OrderStatus.SHIPPED,
+            Order.OrderStatus.REFUND_REQUESTED
+    );
+
     @Transactional
     public Order createOrder(Long buyerId, CreateOrderRequest request) {
         log.info("创建订单，用户ID: {}, 物品ID: {}", buyerId, request.getItemId());
@@ -51,13 +58,7 @@ public class OrderService {
             throw new IllegalArgumentException("不能购买自己的物品");
         }
 
-        List<Order.OrderStatus> activeStatuses = List.of(
-                Order.OrderStatus.PENDING_PAYMENT,
-                Order.OrderStatus.PENDING_SHIPMENT,
-                Order.OrderStatus.SHIPPED,
-                Order.OrderStatus.REFUND_REQUESTED
-        );
-        if (orderRepository.existsByBuyerIdAndItemIdAndOrderStatusIn(buyerId, request.getItemId(), activeStatuses)) {
+        if (orderRepository.existsByBuyerIdAndItemIdAndOrderStatusIn(buyerId, request.getItemId(), ACTIVE_STATUSES)) {
             throw new IllegalArgumentException("您已购买过该物品的订单");
         }
 
@@ -379,13 +380,7 @@ public class OrderService {
     }
 
     private boolean hasOtherActiveOrdersForItem(Long itemId, Long excludeOrderId) {
-        List<Order.OrderStatus> activeStatuses = List.of(
-                Order.OrderStatus.PENDING_PAYMENT,
-                Order.OrderStatus.PENDING_SHIPMENT,
-                Order.OrderStatus.SHIPPED,
-                Order.OrderStatus.REFUND_REQUESTED
-        );
-        return orderRepository.existsByItemIdAndOrderStatusInAndIdNot(itemId, activeStatuses, excludeOrderId);
+        return orderRepository.existsByItemIdAndOrderStatusInAndIdNot(itemId, ACTIVE_STATUSES, excludeOrderId);
     }
 
     @Transactional

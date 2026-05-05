@@ -853,12 +853,12 @@ const handleReject = (item) => {
     .then(async ({ value }) => {
       try {
         const res = await api.admin.items.reject(item.id, value);
-        if (res.data.code === 200) {
+        if (res.code === 200) {
           item.status = 'REJECTED';
           item.rejectReason = value;
           ElMessage.success('已驳回');
         } else {
-          ElMessage.error(res.data.message || '操作失败');
+          ElMessage.error(res.message || '操作失败');
         }
       } catch {
         ElMessage.error('网络错误');
