@@ -61,7 +61,7 @@ spring:
       database: 0
 
 jwt:
-  secret: ${JWT_SECRET:idle-items-school-staging-secret-key-2024-for-jwt-token}
+  secret: ${JWT_SECRET:please-set-jwt-secret-in-env}
   expiration: ${JWT_EXPIRATION:3600000}
   refresh-expiration: ${JWT_REFRESH_EXPIRATION:86400000}
 

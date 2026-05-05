@@ -129,3 +129,33 @@ backup*.sql
 .trae/workspace/
 .trae/cache/
 .trae/history/
+.trae/specs/
+.trae/rules/
+.trae/skills/
+
+# --- User Uploads (Runtime Data) ---
+backend/uploads/
+uploads/
+
+# --- Test Reports & Coverage ---
+frontend/tests/reports/
+coverage/
+
+# --- Frontend Environment Configs ---
+frontend/.env.development
+frontend/.env.production
+frontend/.env.staging
+!.env.example
+
+# --- Runtime Outputs ---
+outputs/
+
+# --- Temporary Notes ---
+分析.txt
+已修复清单.txt
+
+# --- Temporary Planning Docs ---
+doc/
+
+# --- Database Exports (may contain sensitive data) ---
+sql/idle_items_school.sql
