@@ -5,7 +5,7 @@ services:
     image: mysql:8.0
     container_name: mysql-idle-items
     environment:
-      MYSQL_ROOT_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: idle_items_school
     ports:
       - "3306:3306"
