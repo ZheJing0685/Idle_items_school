@@ -164,7 +164,16 @@ INSERT IGNORE INTO categories (name, description, parent_id, sort_order, icon, l
 ('电子产品', '其他电子产品', 6, 1, '📱', 2, 1),
 ('其他物品', '其他闲置物品', 6, 2, '📦', 2, 1);
 
+-- ==========================================================================
 -- 初始化管理员用户（如果不存在）
+-- ==========================================================================
+-- !! 安全警告 !!
+-- 以下密码哈希对应明文密码 'admin123'，仅用于开发/测试环境初始化。
+-- 部署到生产环境前，必须：
+--   1. 使用 BCrypt 生成新的密码哈希替换下方哈希值
+--   2. 或在首次登录后立即修改管理员密码
+--   3. 确保通过环境变量或密钥管理服务注入凭据
+-- ==========================================================================
 INSERT IGNORE INTO users (username, password, email, phone, nickname, avatar, role, status, verified) VALUES
 ('admin', '$2a$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW', 'admin@example.com', '13800138000', '管理员', '/uploads/avatars/admin.png', 3, 1, 1);
 

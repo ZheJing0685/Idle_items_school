@@ -118,6 +118,9 @@ console.txt
 log.txt
 backup*.sql
 
+# --- AI Agent Skills (Third-party, not project source) ---
+.agents/
+
 # --- External Files ---
 *.png~
 *.jpg~
