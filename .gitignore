@@ -47,9 +47,7 @@ backend/logs/
 *.ipr
 
 # VSCode
-.vscode/*
-!.vscode/extensions.json
-!.vscode/settings.json
+.vscode/
 
 # Eclipse
 .classpath
