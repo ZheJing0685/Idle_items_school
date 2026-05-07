@@ -51,6 +51,8 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       JWT_SECRET: ${JWT_SECRET}
+    volumes:
+      - uploads_data:/var/data/uploads
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:7000/actuator/health || exit 1"]
       interval: 15s
@@ -72,3 +74,5 @@ services:
 volumes:
   mysql-data:
   redis-data:
+  uploads_data:
+    driver: local
