@@ -2,8 +2,7 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { userStore as createUserStore } from '@/store/index'
 
-// 创建可重置的 mockStorage
-const createMockStorage = () => {
+const mockStorage = vi.hoisted(() => {
   const data = {}
   return {
     _data: data,
@@ -12,14 +11,20 @@ const createMockStorage = () => {
     remove: (key) => { delete data[key] },
     clear: () => { Object.keys(data).forEach(k => delete data[k]) }
   }
-}
+})
 
-const mockStorage = createMockStorage()
+const mockSetToken = vi.hoisted(() => vi.fn())
+const mockClearToken = vi.hoisted(() => vi.fn())
+const mockGetToken = vi.hoisted(() => vi.fn().mockReturnValue(''))
 
 vi.mock('@/utils/storage', () => ({
-  default: {
-    getStorage: () => mockStorage
-  }
+  default: () => mockStorage
+}))
+
+vi.mock('@/api/config/axios', () => ({
+  setToken: (...args) => mockSetToken(...args),
+  clearToken: (...args) => mockClearToken(...args),
+  getToken: (...args) => mockGetToken(...args),
 }))
 
 vi.mock('@/api', () => ({
@@ -28,28 +33,25 @@ vi.mock('@/api', () => ({
       login: vi.fn(),
       register: vi.fn(),
       getCurrentUser: vi.fn(),
-      refreshToken: vi.fn()
+    },
+    user: {
+      updateProfile: vi.fn(),
     }
   },
-  setToken: vi.fn(),
-  getToken: vi.fn()
 }))
 
-vi.mock('@/utils/errorHandler', () => ({
-  default: {
-    classifyError: vi.fn().mockReturnValue({ type: 'UNKNOWN_ERROR' }),
-    handleError: vi.fn(),
-    handleLoginError: vi.fn()
-  }
+const ErrorHandlerMock = vi.hoisted(() => ({
+  handle: vi.fn(),
 }))
 
-// 在 mock 后导入 store
-let api, setToken, ErrorHandler
+vi.mock('@/utils/error', () => ({
+  ErrorHandler: ErrorHandlerMock
+}))
+
+let api
 beforeAll(async () => {
   const apiModule = await import('@/api')
   api = apiModule.default
-  setToken = apiModule.setToken
-  ErrorHandler = (await import('@/utils/errorHandler')).default
 })
 
 describe('User Store', () => {
@@ -59,6 +61,7 @@ describe('User Store', () => {
     setActivePinia(createPinia())
     mockStorage.clear()
     vi.clearAllMocks()
+    mockGetToken.mockReturnValue('')
     store = createUserStore()
   })
 
@@ -67,8 +70,8 @@ describe('User Store', () => {
   })
 
   describe('状态初始化', () => {
-    it('should initialize with empty token', () => {
-      expect(store.token).toBe('')
+    it('should initialize with empty refreshToken', () => {
+      expect(store.refreshToken).toBe('')
     })
 
     it('should initialize with null user', () => {
@@ -82,6 +85,10 @@ describe('User Store', () => {
     it('should initialize with rememberMe as false', () => {
       expect(store.rememberMe).toBe(false)
     })
+
+    it('should initialize isLoggedIn from getToken', () => {
+      expect(store.isLoggedIn).toBe(false)
+    })
   })
 
   describe('计算属性', () => {
@@ -89,8 +96,12 @@ describe('User Store', () => {
       expect(store.isLoggedIn).toBe(false)
     })
 
-    it('isLoggedIn should be true when token exists', () => {
-      store.token = 'mock-token'
+    it('isLoggedIn should be true after login', async () => {
+      api.auth.login.mockResolvedValue({
+        code: 200,
+        data: { token: 't', refreshToken: 'rt', user: { id: 1 } }
+      })
+      await store.login('u', 'p')
       expect(store.isLoggedIn).toBe(true)
     })
 
@@ -99,20 +110,28 @@ describe('User Store', () => {
       expect(store.isAdmin).toBe(true)
     })
 
+    it('isAdmin should be true when user role is SUPER_ADMIN', () => {
+      store.user = { id: 1, username: 'admin', role: 'SUPER_ADMIN' }
+      expect(store.isAdmin).toBe(true)
+    })
+
     it('isAdmin should be falsy when user role is USER', () => {
       store.user = { id: 1, username: 'user', role: 'USER' }
-      // 注意：computed(() => user.value && user.value.role === 'ADMIN')
-      // user.value 为 truthy 但 role !== 'ADMIN'，结果为 undefined
       expect(store.isAdmin).toBeFalsy()
     })
 
     it('isAdmin should be falsy when no user', () => {
-      // user.value 为 null，null && ... 结果为 null
       expect(store.isAdmin).toBeFalsy()
     })
 
-    it('loginDuration should be 0 when no lastLoginTime', () => {
-      expect(store.loginDuration).toBe(0)
+    it('isVerified should be true when user is verified', () => {
+      store.user = { id: 1, verified: true }
+      expect(store.isVerified).toBe(true)
+    })
+
+    it('isVerified should be false when user is not verified', () => {
+      store.user = { id: 1, verified: false }
+      expect(store.isVerified).toBe(false)
     })
   })
 
@@ -131,7 +150,7 @@ describe('User Store', () => {
       const result = await store.login('testuser', 'password123')
 
       expect(result).toEqual(mockResponse)
-      expect(store.token).toBe('mock-token-123')
+      expect(mockSetToken).toHaveBeenCalledWith('mock-token-123')
       expect(store.user).toEqual(mockResponse.data.user)
       expect(store.isLoggedIn).toBe(true)
     })
@@ -149,8 +168,9 @@ describe('User Store', () => {
 
       await store.login('user2', 'pass')
 
-      expect(setToken).toHaveBeenCalledWith('token-456')
+      expect(mockSetToken).toHaveBeenCalledWith('token-456')
       expect(mockStorage.get('user')).toEqual(mockResponse.data.user)
+      expect(mockStorage.get('refreshToken')).toBe('refresh-token-456')
     })
 
     it('should set loading to true during login', async () => {
@@ -170,30 +190,45 @@ describe('User Store', () => {
       api.auth.login.mockRejectedValue(new Error('用户名或密码错误'))
 
       await expect(store.login('wrong', 'wrong')).rejects.toThrow('用户名或密码错误')
+      expect(ErrorHandlerMock.handle).toHaveBeenCalled()
+    })
+
+    it('should pass remember flag to storage', async () => {
+      api.auth.login.mockResolvedValue({
+        code: 200,
+        data: { token: 't', refreshToken: 'rt', user: { id: 1 } }
+      })
+
+      await store.login('u', 'p', true)
+      expect(store.rememberMe).toBe(true)
+      expect(mockStorage.get('rememberMe')).toBe(true)
     })
   })
 
   describe('logout()', () => {
-    it('should clear token and user on logout', () => {
-      store.token = 'some-token'
+    it('should clear state on logout', () => {
+      store.isLoggedIn = true
       store.user = { id: 1 }
       store.lastLoginTime = new Date().toISOString()
 
       store.logout()
 
-      expect(store.token).toBe('')
+      expect(mockClearToken).toHaveBeenCalled()
       expect(store.user).toBeNull()
       expect(store.isLoggedIn).toBe(false)
+      expect(store.lastLoginTime).toBeNull()
     })
 
     it('should remove data from storage on logout', () => {
-      mockStorage.set('token', 'some-token')
+      mockStorage.set('refreshToken', 'some-token')
       mockStorage.set('user', { id: 1 })
+      mockStorage.set('lastLoginTime', '2026-01-01')
 
       store.logout()
 
-      expect(setToken).toHaveBeenCalledWith('')
+      expect(mockStorage.get('refreshToken')).toBeNull()
       expect(mockStorage.get('user')).toBeNull()
+      expect(mockStorage.get('lastLoginTime')).toBeNull()
     })
 
     it('should preserve rememberMe if rememberMe was true', () => {
@@ -202,13 +237,23 @@ describe('User Store', () => {
 
       store.logout()
 
-      // rememberMe 应该保留
       expect(store.rememberMe).toBe(true)
+      expect(mockStorage.get('rememberMe')).toBe(true)
+    })
+
+    it('should remove rememberMe if rememberMe was false', () => {
+      store.rememberMe = false
+      mockStorage.set('rememberMe', false)
+
+      store.logout()
+
+      expect(mockStorage.get('rememberMe')).toBeNull()
     })
   })
 
   describe('getCurrentUser()', () => {
     it('should return null when no token', async () => {
+      mockGetToken.mockReturnValue('')
       const result = await store.getCurrentUser()
       expect(result).toBeNull()
       expect(api.auth.getCurrentUser).not.toHaveBeenCalled()
@@ -216,77 +261,34 @@ describe('User Store', () => {
 
     it('should fetch and update user when token exists', async () => {
       const mockUser = { id: 1, username: 'testuser', nickname: '测试' }
+      mockGetToken.mockReturnValue('valid-token')
       api.auth.getCurrentUser.mockResolvedValue({ code: 200, data: mockUser })
 
-      store.token = 'valid-token'
       const result = await store.getCurrentUser()
 
       expect(result).toEqual(mockUser)
       expect(store.user).toEqual(mockUser)
+      expect(mockStorage.get('user')).toEqual(mockUser)
     })
 
-    it('should logout on AUTHENTICATION_ERROR', async () => {
-      ErrorHandler.classifyError.mockReturnValue({ type: 'AUTHENTICATION_ERROR' })
-      api.auth.getCurrentUser.mockRejectedValue(new Error('Unauthorized'))
+    it('should return null on error', async () => {
+      mockGetToken.mockReturnValue('valid-token')
+      api.auth.getCurrentUser.mockRejectedValue(new Error('Network error'))
 
-      store.token = 'expired-token'
+      const result = await store.getCurrentUser()
+      expect(result).toBeNull()
+    })
+
+    it('should logout on 401 error', async () => {
+      mockGetToken.mockReturnValue('valid-token')
       store.user = { id: 1 }
-      mockStorage.set('token', 'expired-token')
-      mockStorage.set('user', { id: 1 })
+      const error = new Error('Unauthorized')
+      error.code = 401
+      api.auth.getCurrentUser.mockRejectedValue(error)
 
-      await expect(store.getCurrentUser()).rejects.toThrow()
-      expect(store.token).toBe('')
+      await store.getCurrentUser()
       expect(store.user).toBeNull()
-    })
-  })
-
-  describe('checkTokenExpiry()', () => {
-    it('should return true when lastLoginTime is null', () => {
-      expect(store.checkTokenExpiry()).toBe(true)
-    })
-
-    it('should return true when login duration > 24 hours', () => {
-      // 直接修改 store 状态
-      const oldTime = new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString()
-      store.lastLoginTime = oldTime
-      // loginDuration 计算依赖 lastLoginTime
-      expect(store.checkTokenExpiry()).toBe(true)
-    })
-
-    it('should return false when login duration < 24 hours', () => {
-      const recentTime = new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString()
-      store.lastLoginTime = recentTime
-      expect(store.checkTokenExpiry()).toBe(false)
-    })
-
-    it('should return true for exactly 24 hours', () => {
-      // 25小时前，确保一定超过 24h 阈值
-      const exactTime = new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString()
-      store.lastLoginTime = exactTime
-      expect(store.checkTokenExpiry()).toBe(true)
-    })
-  })
-
-  describe('refreshToken()', () => {
-    it('should refresh token successfully', async () => {
-      const newToken = 'new-refreshed-token'
-      api.auth.refreshToken.mockResolvedValue({ code: 200, data: { token: newToken } })
-
-      store.token = 'old-token'
-      store.lastLoginTime = null
-
-      const result = await store.refreshToken()
-
-      expect(result).toBe(newToken)
-      expect(store.token).toBe(newToken)
-    })
-
-    it('should throw and log error on refresh failure', async () => {
-      api.auth.refreshToken.mockRejectedValue(new Error('Refresh failed'))
-
-      store.token = 'expired-token'
-
-      await expect(store.refreshToken()).rejects.toThrow('Refresh failed')
+      expect(store.isLoggedIn).toBe(false)
     })
   })
 
@@ -301,19 +303,53 @@ describe('User Store', () => {
       }
       const mockResponse = {
         code: 200,
-        data: {
-          token: 'register-token',
-          refreshToken: 'register-refresh-token',
-          user: { id: 3, ...userData }
-        }
+        data: { message: '注册成功' }
       }
       api.auth.register.mockResolvedValue(mockResponse)
 
       const result = await store.register(userData)
 
       expect(result).toEqual(mockResponse)
-      expect(store.token).toBe('register-token')
-      expect(store.user.username).toBe('newuser')
+      expect(store.loading).toBe(false)
+    })
+
+    it('should throw error on registration failure', async () => {
+      api.auth.register.mockRejectedValue(new Error('注册失败'))
+
+      await expect(store.register({ username: 'test' })).rejects.toThrow('注册失败')
+      expect(ErrorHandlerMock.handle).toHaveBeenCalled()
+    })
+  })
+
+  describe('updateProfile()', () => {
+    it('should update profile successfully', async () => {
+      store.user = { id: 1, username: 'test' }
+      const mockResponse = {
+        code: 200,
+        data: { nickname: '新昵称' }
+      }
+      api.user.updateProfile.mockResolvedValue(mockResponse)
+
+      const result = await store.updateProfile({ nickname: '新昵称' })
+
+      expect(result).toEqual(mockResponse)
+      expect(store.user.nickname).toBe('新昵称')
+      expect(mockStorage.get('user')).toEqual(store.user)
+    })
+
+    it('should throw error on update failure', async () => {
+      api.user.updateProfile.mockRejectedValue(new Error('更新失败'))
+
+      await expect(store.updateProfile({})).rejects.toThrow('更新失败')
+      expect(ErrorHandlerMock.handle).toHaveBeenCalled()
+    })
+  })
+
+  describe('setRefreshToken()', () => {
+    it('should update refreshToken in state and storage', () => {
+      store.setRefreshToken('new-refresh-token')
+      expect(store.refreshToken).toBe('new-refresh-token')
+      expect(mockStorage.get('refreshToken')).toBe('new-refresh-token')
     })
   })
 })

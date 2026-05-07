@@ -10,6 +10,7 @@ import com.idleitems.school.repository.OrderRepository;
 import com.idleitems.school.repository.UserRepository;
 import com.idleitems.school.repository.VerificationRecordRepository;
 import com.idleitems.school.service.AdminLogService;
+import com.idleitems.school.service.CategoryService;
 import com.idleitems.school.service.OrderService;
 import com.idleitems.school.util.CacheManager;
 import com.idleitems.school.security.JwtUtil;
@@ -70,6 +71,9 @@ class AdminOrderControllerTest {
 
     @MockBean
     private OrderService orderService;
+
+    @MockBean
+    private CategoryService categoryService;
 
     @MockBean
     private JwtUtil jwtUtil;

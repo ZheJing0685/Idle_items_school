@@ -1,5 +1,5 @@
 import {
-  ORDER_VIEWS,
+  OrderStatus,
   getOrderActions,
   getOrderHint,
   getOrderStatusClass,
@@ -8,16 +8,16 @@ import {
   normalizeOrder,
   sanitizeOrderStatus,
   sanitizeOrderView,
-} from '@/utils/orderFlow';
+} from '@/utils/business/orderFlow';
 
 describe('orderFlow', () => {
   it('normalizes legacy order fields to the new contract', () => {
     expect(
       normalizeOrder({
         id: 1,
-        status: 'SHIPPED',
-        totalAmount: 99,
-        itemImage: 'cover.jpg',
+        orderStatus: 'SHIPPED',
+        price: 99,
+        itemCover: 'cover.jpg',
         itemTitle: 'Desk Lamp',
       })
     ).toEqual(
@@ -31,52 +31,49 @@ describe('orderFlow', () => {
     );
   });
 
-  it('returns buyer actions based on the new state machine', () => {
+  it('returns buyer actions based on order status', () => {
     expect(
-      getOrderActions({ orderStatus: 'PENDING_PAYMENT' }, ORDER_VIEWS.BUYER).map(
-        (action) => action.key
+      getOrderActions(OrderStatus.PENDING_PAYMENT, 'buyer').map(
+        (action) => action.name
       )
-    ).toEqual(['pay', 'cancel']);
+    ).toEqual(['付款', '取消订单']);
 
     expect(
-      getOrderActions(
-        { orderStatus: 'COMPLETED', reviewed: false },
-        ORDER_VIEWS.BUYER
-      ).map((action) => action.key)
-    ).toEqual(['review']);
+      getOrderActions(OrderStatus.COMPLETED, 'buyer').map((action) => action.name)
+    ).toEqual(['评价']);
 
     expect(
-      getOrderActions(
-        { orderStatus: 'COMPLETED', reviewed: true },
-        ORDER_VIEWS.BUYER
-      )
+      getOrderActions(OrderStatus.CANCELLED, 'buyer')
     ).toEqual([]);
   });
 
   it('returns seller actions and hints correctly', () => {
     expect(
-      getOrderActions(
-        { orderStatus: 'PENDING_SHIPMENT' },
-        ORDER_VIEWS.SELLER
-      ).map((action) => action.key)
-    ).toEqual(['ship']);
+      getOrderActions(OrderStatus.PENDING_SHIPMENT, 'seller').map(
+        (action) => action.name
+      )
+    ).toEqual(['发货']);
 
     expect(
-      getOrderHint({ orderStatus: 'SHIPPED' }, ORDER_VIEWS.SELLER)
-    ).toBe('等待买家确认收货');
+      getOrderHint(OrderStatus.SHIPPED, 'seller')
+    ).toBe('');
+    
+    expect(
+      getOrderHint(OrderStatus.PENDING_SHIPMENT, 'seller')
+    ).toBe('请尽快发货，避免影响买家体验');
   });
 
   it('sanitizes views and statuses', () => {
     expect(sanitizeOrderView('seller')).toBe('seller');
     expect(sanitizeOrderView('unknown')).toBe('buyer');
-    expect(sanitizeOrderStatus('SHIPPED', ORDER_VIEWS.BUYER)).toBe('SHIPPED');
-    expect(sanitizeOrderStatus('PENDING_PAYMENT', ORDER_VIEWS.SELLER)).toBe('ALL');
+    expect(sanitizeOrderStatus('SHIPPED')).toBe('SHIPPED');
+    expect(sanitizeOrderStatus('INVALID')).toBe(OrderStatus.PENDING_PAYMENT);
   });
 
   it('exposes consistent status labels and classes', () => {
     expect(getOrderStatusText('PENDING_SHIPMENT')).toBe('待发货');
     expect(getOrderStatusClass('SHIPPED')).toBe('status-shipped');
-    expect(getOrderStatusOptions(ORDER_VIEWS.BUYER)[0]).toEqual({
+    expect(getOrderStatusOptions('buyer')[0]).toEqual({
       value: 'ALL',
       label: '全部',
     });

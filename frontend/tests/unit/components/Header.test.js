@@ -109,7 +109,7 @@ describe('Header Component', () => {
 
     it('renders logo section', () => {
       const wrapper = mountHeader()
-      expect(wrapper.text()).toContain('闲置物品')
+      expect(wrapper.text()).toContain('闲置好物')
     })
 
     it('renders search input', () => {
@@ -176,12 +176,12 @@ describe('Header Component', () => {
       expect(wrapper.text()).toContain('测试用户')
     })
 
-    it('calls getCurrentUser on mount when logged in', async () => {
+    it('does not call getCurrentUser on mount', async () => {
       storeState.isLoggedIn = true
       storeState.user = { id: 1 }
       mountHeader()
       await new Promise(r => setTimeout(r, 10))
-      expect(storeState.getCurrentUser).toHaveBeenCalled()
+      expect(storeState.getCurrentUser).not.toHaveBeenCalled()
     })
   })
 })
