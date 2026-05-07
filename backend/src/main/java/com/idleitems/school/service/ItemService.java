@@ -157,6 +157,15 @@ public class ItemService {
             return (Page<ItemSummaryDTO>) cachedObject;
         }
         
+        Item.ItemCondition itemCondition = null;
+        if (condition != null && !condition.isEmpty()) {
+            try {
+                itemCondition = Item.ItemCondition.valueOf(condition);
+            } catch (IllegalArgumentException e) {
+                // 无效的 condition 值，忽略筛选条件
+            }
+        }
+        
         Pageable pageable = createPageable(page, size, sortBy);
         Page<Item> itemsPage;
         
@@ -177,7 +186,7 @@ public class ItemService {
                 itemsPage = itemRepository.findByCategoryIdsAndFilters(
                     Item.ItemStatus.ON_SALE, 
                     categoryIds, 
-                    condition, 
+                    itemCondition, 
                     deliveryMethod, 
                     pageable
                 );
@@ -185,7 +194,7 @@ public class ItemService {
                 itemsPage = itemRepository.findByFilters(
                     Item.ItemStatus.ON_SALE, 
                     categoryId, 
-                    condition, 
+                    itemCondition, 
                     deliveryMethod, 
                     pageable
                 );
@@ -194,7 +203,7 @@ public class ItemService {
             itemsPage = itemRepository.findByFilters(
                 Item.ItemStatus.ON_SALE, 
                 null, 
-                condition, 
+                itemCondition, 
                 deliveryMethod, 
                 pageable
             );

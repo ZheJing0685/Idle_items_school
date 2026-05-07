@@ -70,4 +70,16 @@
   --el-border-radius-base: 8px;
   --el-border-radius-small: 4px;
   --el-border-radius-round: 9999px;
+
+  --el-input-bg-color: var(--el-fill-color-blank);
+  --el-input-text-color: var(--el-text-color-regular);
+  --el-input-border-color: var(--el-border-color);
+  --el-input-hover-border-color: oklch(62% 0.14 195);
+  --el-input-focus-border-color: oklch(62% 0.14 195);
+  --el-input-border-radius: 8px;
+  --el-input-height: 40px;
+  --el-input-placeholder-color: var(--el-text-color-placeholder);
+  --el-input-icon-color: var(--el-text-color-placeholder);
+  --el-input-clear-icon-color: var(--el-text-color-secondary);
+  --el-input-focus-box-shadow: 0 0 0 3px oklch(62% 0.14 195 / 0.12);
 }

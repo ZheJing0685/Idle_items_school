@@ -31,7 +31,7 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
            "AND (:deliveryMethod IS NULL OR i.deliveryMethod = :deliveryMethod)")
     Page<Item> findByFilters(@Param("status") Item.ItemStatus status,
                               @Param("categoryId") Long categoryId,
-                              @Param("condition") String condition,
+                              @Param("condition") Item.ItemCondition condition,
                               @Param("deliveryMethod") Integer deliveryMethod,
                               Pageable pageable);
     
@@ -41,7 +41,7 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
            "AND (:deliveryMethod IS NULL OR i.deliveryMethod = :deliveryMethod)")
     Page<Item> findByCategoryIdsAndFilters(@Param("status") Item.ItemStatus status,
                                             @Param("categoryIds") List<Long> categoryIds,
-                                            @Param("condition") String condition,
+                                            @Param("condition") Item.ItemCondition condition,
                                             @Param("deliveryMethod") Integer deliveryMethod,
                                             Pageable pageable);
 

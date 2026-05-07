@@ -21,28 +21,28 @@
             placeholder="全部分类"
             clearable
             @change="handleCategoryChange"
-            class="filter-select"
+            class="filter-select filter-select--wide"
           />
 
           <el-select
             v-model="condition"
             placeholder="成色"
             @change="handleFilter"
-            class="filter-select"
+            class="filter-select filter-select--narrow"
           >
             <el-option label="全部" value="" />
-            <el-option label="全新" value="1" />
-            <el-option label="九成新" value="2" />
-            <el-option label="八成新" value="3" />
-            <el-option label="七成新" value="4" />
-            <el-option label="六成新及以下" value="5" />
+            <el-option label="全新" value="NEW" />
+            <el-option label="九成新" value="LIKE_NEW" />
+            <el-option label="八成新" value="GOOD" />
+            <el-option label="七成新" value="FAIR" />
+            <el-option label="六成新及以下" value="POOR" />
           </el-select>
 
           <el-select
             v-model="deliveryMethod"
             placeholder="配送方式"
             @change="handleFilter"
-            class="filter-select"
+            class="filter-select filter-select--narrow"
           >
             <el-option label="全部" value="" />
             <el-option label="自提" value="1" />
@@ -412,3 +412,11 @@ onMounted(async () => {
 </script>
 
 <style scoped src="../styles/pages/items.css"></style>
+
+<style>
+.items-page .filter-left > .el-cascader.filter-select--wide {
+  width: 180px;
+  min-width: 0;
+  overflow: hidden;
+}
+</style>
