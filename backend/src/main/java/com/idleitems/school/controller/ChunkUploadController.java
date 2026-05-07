@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
 
@@ -104,6 +103,8 @@ public class ChunkUploadController {
 
             Map<String, Object> result = fileService.uploadImage(multipartFile);
 
+            mergedFile.delete();
+
             chunkUploadService.deleteChunks(fileHash);
 
             return Result.success(result);
@@ -114,55 +115,54 @@ public class ChunkUploadController {
     }
 
     private MultipartFile fileToMultipartFile(File file, String originalFileName) throws IOException {
-        try (FileInputStream fis = new FileInputStream(file)) {
-            return new MultipartFile() {
-                @Override
-                public String getName() {
-                    return "file";
-                }
+        byte[] fileBytes = java.nio.file.Files.readAllBytes(file.toPath());
+        return new MultipartFile() {
+            @Override
+            public String getName() {
+                return "file";
+            }
 
-                @Override
-                public String getOriginalFilename() {
-                    return originalFileName;
-                }
+            @Override
+            public String getOriginalFilename() {
+                return originalFileName;
+            }
 
-                @Override
-                public String getContentType() {
-                    String ext = originalFileName.substring(originalFileName.lastIndexOf(".") + 1).toLowerCase();
-                    return switch (ext) {
-                        case "jpg", "jpeg" -> "image/jpeg";
-                        case "png" -> "image/png";
-                        case "webp" -> "image/webp";
-                        default -> "application/octet-stream";
-                    };
-                }
+            @Override
+            public String getContentType() {
+                String ext = originalFileName.substring(originalFileName.lastIndexOf(".") + 1).toLowerCase();
+                return switch (ext) {
+                    case "jpg", "jpeg" -> "image/jpeg";
+                    case "png" -> "image/png";
+                    case "webp" -> "image/webp";
+                    default -> "application/octet-stream";
+                };
+            }
 
-                @Override
-                public boolean isEmpty() {
-                    return file.length() == 0;
-                }
+            @Override
+            public boolean isEmpty() {
+                return fileBytes.length == 0;
+            }
 
-                @Override
-                public long getSize() {
-                    return file.length();
-                }
+            @Override
+            public long getSize() {
+                return fileBytes.length;
+            }
 
-                @Override
-                public byte[] getBytes() throws IOException {
-                    return java.nio.file.Files.readAllBytes(file.toPath());
-                }
+            @Override
+            public byte[] getBytes() {
+                return fileBytes;
+            }
 
-                @Override
-                public java.io.InputStream getInputStream() throws IOException {
-                    return fis;
-                }
+            @Override
+            public java.io.InputStream getInputStream() {
+                return new java.io.ByteArrayInputStream(fileBytes);
+            }
 
-                @Override
-                public void transferTo(File dest) throws IOException, IllegalStateException {
-                    java.nio.file.Files.copy(file.toPath(), dest.toPath(),
-                        java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-                }
-            };
-        }
+            @Override
+            public void transferTo(File dest) throws IOException {
+                java.nio.file.Files.copy(file.toPath(), dest.toPath(),
+                    java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            }
+        };
     }
 }

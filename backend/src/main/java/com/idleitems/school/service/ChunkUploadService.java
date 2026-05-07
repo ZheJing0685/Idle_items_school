@@ -1,5 +1,6 @@
 package com.idleitems.school.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -9,6 +10,7 @@ import java.nio.file.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class ChunkUploadService {
 
@@ -38,11 +40,12 @@ public class ChunkUploadService {
             return new ArrayList<>();
         }
 
-        return Files.list(chunkDir)
-                .filter(Files::isRegularFile)
+        try (java.util.stream.Stream<Path> paths = Files.list(chunkDir)) {
+            return paths.filter(Files::isRegularFile)
                 .map(p -> Integer.parseInt(p.getFileName().toString()))
                 .sorted()
                 .collect(Collectors.toList());
+        }
     }
 
     public boolean isUploadComplete(String fileHash, int totalChunks) throws IOException {
@@ -76,7 +79,9 @@ public class ChunkUploadService {
             Files.walk(chunkDir)
                 .sorted(Comparator.reverseOrder())
                 .forEach(path -> {
-                    try { Files.deleteIfExists(path); } catch (IOException e) { }
+                    try { Files.deleteIfExists(path); } catch (IOException e) {
+                        log.warn("Failed to delete chunk: {}", path, e);
+                    }
                 });
         }
 
@@ -89,7 +94,9 @@ public class ChunkUploadService {
             Files.walk(chunkDir)
                 .sorted(Comparator.reverseOrder())
                 .forEach(path -> {
-                    try { Files.deleteIfExists(path); } catch (IOException e) { }
+                    try { Files.deleteIfExists(path); } catch (IOException e) {
+                        log.warn("Failed to delete chunk: {}", path, e);
+                    }
                 });
         }
     }
