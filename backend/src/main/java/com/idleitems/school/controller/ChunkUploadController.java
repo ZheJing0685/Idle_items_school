@@ -97,13 +97,17 @@ public class ChunkUploadController {
             try {
                 fileValidationService.validateImage(multipartFile);
             } catch (IllegalArgumentException e) {
-                mergedFile.delete();
+                if (!mergedFile.delete()) {
+                    log.warn("Failed to delete merged file: {}", mergedFile.getAbsolutePath());
+                }
                 return Result.error(ErrorCode.BAD_REQUEST, "合并后的文件验证失败: " + e.getMessage());
             }
 
             Map<String, Object> result = fileService.uploadImage(multipartFile);
 
-            mergedFile.delete();
+            if (!mergedFile.delete()) {
+                log.warn("Failed to delete merged file: {}", mergedFile.getAbsolutePath());
+            }
 
             chunkUploadService.deleteChunks(fileHash);
 

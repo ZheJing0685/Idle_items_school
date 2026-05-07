@@ -147,6 +147,7 @@ public class ItemService {
             try {
                 categoryId = Long.parseLong(categoryIdStr);
             } catch (NumberFormatException e) {
+                log.warn("Invalid categoryId format: {}", categoryIdStr);
             }
         }
         

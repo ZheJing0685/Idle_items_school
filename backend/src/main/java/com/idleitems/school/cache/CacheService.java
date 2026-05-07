@@ -2,6 +2,8 @@ package com.idleitems.school.cache;
 
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.stereotype.Service;
 
 import java.util.Set;
@@ -43,11 +45,14 @@ public class CacheService {
 
     public void deletePattern(String pattern) {
         ScanOptions options = ScanOptions.scanOptions().match(pattern).count(100).build();
-        try (var cursor = redisTemplate.getConnectionFactory().getConnection().scan(options)) {
-            while (cursor.hasNext()) {
-                redisTemplate.delete(new String(cursor.next()));
+        redisTemplate.execute((RedisConnection connection) -> {
+            try (Cursor<byte[]> cursor = connection.scan(options)) {
+                while (cursor.hasNext()) {
+                    redisTemplate.delete(new String(cursor.next()));
+                }
             }
-        }
+            return null;
+        });
     }
 
     public void expire(String key, long timeout, TimeUnit unit) {
@@ -92,10 +97,13 @@ public class CacheService {
 
     public void clearAll() {
         ScanOptions options = ScanOptions.scanOptions().match("*").count(100).build();
-        try (var cursor = redisTemplate.getConnectionFactory().getConnection().scan(options)) {
-            while (cursor.hasNext()) {
-                redisTemplate.delete(new String(cursor.next()));
+        redisTemplate.execute((RedisConnection connection) -> {
+            try (Cursor<byte[]> cursor = connection.scan(options)) {
+                while (cursor.hasNext()) {
+                    redisTemplate.delete(new String(cursor.next()));
+                }
             }
-        }
+            return null;
+        });
     }
 }

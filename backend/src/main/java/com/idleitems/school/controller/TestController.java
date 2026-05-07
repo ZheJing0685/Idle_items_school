@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.nio.charset.Charset;
+
 @RestController
 @RequestMapping("/api/test")
 @Slf4j
@@ -30,7 +32,7 @@ public class TestController {
 
     @GetMapping("/system")
     public Result<String> testSystemEncoding() {
-        log.info("系统编码: {}", System.getProperty("file.encoding"));
+        log.info("系统编码: {}", Charset.defaultCharset().name());
         log.info("JNU编码: {}", System.getProperty("sun.jnu.encoding"));
         log.info("中文测试: 你好，世界！");
         return Result.success("系统编码测试成功");

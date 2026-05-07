@@ -76,13 +76,14 @@ public class ChunkUploadService {
 
         Path chunkDir = Paths.get(getChunkDir(fileHash));
         if (Files.exists(chunkDir)) {
-            Files.walk(chunkDir)
-                .sorted(Comparator.reverseOrder())
-                .forEach(path -> {
-                    try { Files.deleteIfExists(path); } catch (IOException e) {
-                        log.warn("Failed to delete chunk: {}", path, e);
-                    }
-                });
+            try (var stream = Files.walk(chunkDir)) {
+                stream.sorted(Comparator.reverseOrder())
+                    .forEach(path -> {
+                        try { Files.deleteIfExists(path); } catch (IOException e) {
+                            log.warn("Failed to delete chunk: {}", path, e);
+                        }
+                    });
+            }
         }
 
         return targetPath.toFile();
@@ -91,13 +92,14 @@ public class ChunkUploadService {
     public void deleteChunks(String fileHash) throws IOException {
         Path chunkDir = Paths.get(getChunkDir(fileHash));
         if (Files.exists(chunkDir)) {
-            Files.walk(chunkDir)
-                .sorted(Comparator.reverseOrder())
-                .forEach(path -> {
-                    try { Files.deleteIfExists(path); } catch (IOException e) {
-                        log.warn("Failed to delete chunk: {}", path, e);
-                    }
-                });
+            try (var stream = Files.walk(chunkDir)) {
+                stream.sorted(Comparator.reverseOrder())
+                    .forEach(path -> {
+                        try { Files.deleteIfExists(path); } catch (IOException e) {
+                            log.warn("Failed to delete chunk: {}", path, e);
+                        }
+                    });
+            }
         }
     }
 }

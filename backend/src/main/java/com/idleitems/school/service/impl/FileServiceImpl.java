@@ -52,6 +52,9 @@ public class FileServiceImpl implements FileService {
         StorageAdapter storageAdapter = storageServiceFactory.getStorageAdapter();
 
         String originalFilename = file.getOriginalFilename();
+        if (originalFilename == null || originalFilename.isBlank()) {
+            originalFilename = "unknown";
+        }
         String extension = fileValidationService.getFileExtension(originalFilename);
         String fileName = UUID.randomUUID().toString() + "." + extension;
         String contentType = file.getContentType();
@@ -82,10 +85,14 @@ public class FileServiceImpl implements FileService {
 
                 return result;
             } finally {
-                processedFile.delete();
+                if (!processedFile.delete()) {
+                    log.warn("Failed to delete processed temp file: {}", processedFile.getAbsolutePath());
+                }
             }
         } finally {
-            tempFile.delete();
+            if (!tempFile.delete()) {
+                log.warn("Failed to delete temp file: {}", tempFile.getAbsolutePath());
+            }
         }
     }
 

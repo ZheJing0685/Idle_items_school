@@ -75,7 +75,7 @@ public class AdminController {
                 direction = Sort.Direction.ASC;
             }
             
-            String sortField = "createdAt";
+            String sortField;
             switch (sortBy) {
                 case "id":
                     sortField = "id";
@@ -84,8 +84,6 @@ public class AdminController {
                     sortField = "username";
                     break;
                 case "createdAt":
-                    sortField = "createdAt";
-                    break;
                 default:
                     sortField = "createdAt";
             }
@@ -178,7 +176,7 @@ public class AdminController {
         }
         
         // 支持的排序字段
-        String sortField = "createdAt";
+        String sortField;
         switch (sortBy) {
             case "id":
                 sortField = "id";
@@ -190,8 +188,6 @@ public class AdminController {
                 sortField = "price";
                 break;
             case "createdAt":
-                sortField = "createdAt";
-                break;
             default:
                 sortField = "createdAt";
         }
