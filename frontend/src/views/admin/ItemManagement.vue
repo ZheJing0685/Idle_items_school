@@ -919,8 +919,13 @@ const handleDelete = (item) => {
         } else {
           ElMessage.error(res.message || '操作失败');
         }
-      } catch {
-        ElMessage.error('网络错误');
+      } catch (err) {
+        // 处理后端返回的业务错误
+        if (err && err.message) {
+          ElMessage.error(err.message);
+        } else {
+          ElMessage.error('操作失败');
+        }
       }
     })
     .catch(() => {});

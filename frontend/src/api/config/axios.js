@@ -129,13 +129,23 @@ instance.interceptors.response.use(
           });
           break;
         default:
-          ErrorHandler.showErrorMessage({
-            type: 'CLIENT_ERROR',
-            message: data?.message || '请求失败',
-          });
-          break;}
+          // 400 等其他客户端错误，直接返回后端错误信息
+          if (data && data.message) {
+            ErrorHandler.showErrorMessage({
+              type: 'CLIENT_ERROR',
+              message: data.message,
+            });
+          } else {
+            ErrorHandler.showErrorMessage({
+              type: 'CLIENT_ERROR',
+              message: '请求失败',
+            });
+          }
+          break;
+      }
 
-      return Promise.reject(data || error);
+      // 返回后端错误信息，而不是抛出异常
+      return Promise.reject(data || { message: '请求失败' });
     }
 
     if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
