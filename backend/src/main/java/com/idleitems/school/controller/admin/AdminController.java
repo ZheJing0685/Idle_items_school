@@ -310,6 +310,11 @@ public class AdminController {
         Item item = itemRepository.findById(id.longValue())
                 .orElseThrow(() -> new IllegalArgumentException("物品不存在"));
         
+        // 检查是否有相关订单
+        if (orderRepository.existsByItemId(id)) {
+            throw new IllegalArgumentException("该物品存在关联订单，无法删除");
+        }
+        
         // 记录操作日志
         Map<String, Object> details = new HashMap<>();
         details.put("itemId", id);

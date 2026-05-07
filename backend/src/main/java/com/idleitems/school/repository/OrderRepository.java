@@ -74,6 +74,8 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     boolean existsByItemIdAndOrderStatusInAndIdNot(Long itemId, java.util.List<Order.OrderStatus> statuses, Long excludeOrderId);
 
+    boolean existsByItemId(Long itemId);
+
     @Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
     @QueryHints({@QueryHint(name = "jakarta.persistence.lock.timeout", value = "5000")})
     @Query("SELECT o FROM Order o WHERE o.id = :orderId")
