@@ -140,36 +140,54 @@
           </div>
         </div>
         <div class="categories-grid">
-          <router-link
+          <div
             v-for="(category, index) in categories"
             :key="category.id"
-            :to="`/items?category=${category.id}`"
-            class="category-card"
-            :style="{ animationDelay: `${index * 0.1}s` }"
+            class="category-card-wrapper"
           >
+            <router-link
+              :to="`/items?category=${category.id}`"
+              class="category-card"
+              :style="{ animationDelay: `${index * 0.1}s` }"
+            >
+              <div
+                class="category-icon"
+                :style="{ background: category.bgColor }"
+              >
+                {{ getCategoryIcon(category.id) }}
+              </div>
+              <div class="category-info">
+                <h3 class="category-name">{{ category.name }}</h3>
+                <span class="category-count">{{ category.count }} 件物品</span>
+              </div>
+              <svg
+                class="category-arrow"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M5 12H19" />
+                <path d="M12 5L19 12L12 19" />
+              </svg>
+            </router-link>
             <div
-              class="category-icon"
-              :style="{ background: category.bgColor }"
+              class="category-submenu"
+              v-if="category.children && category.children.length > 0"
             >
-              {{ getCategoryIcon(category.id) }}
+              <router-link
+                v-for="child in category.children"
+                :key="child.id"
+                :to="`/items?category=${child.id}`"
+                class="submenu-item"
+              >
+                <span class="submenu-name">{{ child.name }}</span>
+                <span class="submenu-count">{{ child.count }} 件</span>
+              </router-link>
             </div>
-            <div class="category-info">
-              <h3 class="category-name">{{ category.name }}</h3>
-              <span class="category-count">{{ category.count }} 件物品</span>
-            </div>
-            <svg
-              class="category-arrow"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path d="M5 12H19" />
-              <path d="M12 5L19 12L12 19" />
-            </svg>
-          </router-link>
+          </div>
         </div>
       </div>
     </section>
@@ -394,16 +412,18 @@ const loading = ref({
 const fetchCategories = async () => {
   loading.value.categories = true;
   try {
-    const response = await api.category.getCategories();
-    // 只显示一级分类（parentId为null）
-    categories.value = response.data
-      .filter((category) => category.parentId === null)
-      .map((category) => ({
-        id: category.id,
-        name: category.name,
-        count: category.itemCount || 0,
-        bgColor: getCategoryColor(category.id),
-      }));
+    const response = await api.category.getCategoryTree();
+    categories.value = response.data.map((category) => ({
+      id: category.id,
+      name: category.name,
+      count: category.itemCount || 0,
+      bgColor: getCategoryColor(category.id),
+      children: (category.children || []).map((child) => ({
+        id: child.id,
+        name: child.name,
+        count: child.itemCount || 0,
+      })),
+    }));
   } catch (error) {
     console.error('获取分类失败', error);
   } finally {

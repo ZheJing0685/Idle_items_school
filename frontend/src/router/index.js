@@ -104,7 +104,25 @@ const router = createRouter({
             title: '实名认证',
           },
         },
+        {
+          path: 'feedback',
+          name: 'MyFeedbacks',
+          component: () => import('../views/user/MyFeedbacks.vue'),
+          meta: {
+            requiresAuth: true,
+            title: '我的反馈',
+          },
+        },
       ],
+    },
+    {
+      path: '/feedback',
+      name: 'CategoryFeedback',
+      component: () => import('../views/CategoryFeedback.vue'),
+      meta: {
+        requiresAuth: true,
+        title: '分类反馈',
+      },
     },
     {
       path: '/publish',
@@ -166,6 +184,16 @@ const router = createRouter({
           },
         },
         {
+          path: 'category-feedbacks',
+          name: 'CategoryFeedbackManagement',
+          component: () => import('../views/admin/CategoryFeedbackManagement.vue'),
+          meta: {
+            requiresAuth: true,
+            requiresAdmin: true,
+            title: '分类反馈管理',
+          },
+        },
+        {
           path: 'orders',
           name: 'OrderManagement',
           component: () => import('../views/admin/OrderManagement.vue'),
@@ -224,9 +252,10 @@ router.beforeEach(async (to, from, next) => {
     } else {
       // 检查是否需要管理员权限
       if (to.matched.some((record) => record.meta.requiresAdmin)) {
-        // 管理员路由始终刷新用户信息，验证 token 和角色是否仍有效
         try {
-          await store.getCurrentUser();
+          if (!store.user) {
+            await store.getCurrentUser();
+          }
         } catch (error) {
           console.error('获取用户信息失败', error);
         }

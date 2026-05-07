@@ -1,11 +1,11 @@
 package com.idleitems.school.cache;
 
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.stereotype.Service;
 
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 @Service
 public class CacheService {
@@ -42,16 +42,11 @@ public class CacheService {
     }
 
     public void deletePattern(String pattern) {
-        Set<String> keys = redisTemplate.keys(pattern);
-        if (keys != null && !keys.isEmpty()) {
-            // 使用 SCAN 代替 KEYS 以避免阻塞 Redis
-            deleteKeys(keys);
-        }
-    }
-
-    private void deleteKeys(Set<String> keys) {
-        for (String key : keys) {
-            redisTemplate.delete(key);
+        ScanOptions options = ScanOptions.scanOptions().match(pattern).count(100).build();
+        try (var cursor = redisTemplate.getConnectionFactory().getConnection().scan(options)) {
+            while (cursor.hasNext()) {
+                redisTemplate.delete(new String(cursor.next()));
+            }
         }
     }
 
@@ -96,9 +91,11 @@ public class CacheService {
     }
 
     public void clearAll() {
-        Set<String> keys = redisTemplate.keys("*");
-        if (keys != null && !keys.isEmpty()) {
-            deleteKeys(keys);
+        ScanOptions options = ScanOptions.scanOptions().match("*").count(100).build();
+        try (var cursor = redisTemplate.getConnectionFactory().getConnection().scan(options)) {
+            while (cursor.hasNext()) {
+                redisTemplate.delete(new String(cursor.next()));
+            }
         }
     }
 }

@@ -26,7 +26,10 @@ export const API_PATHS = {
   // 分类相关
   CATEGORY: {
     LIST: '/categories',
-    TREE: '/categories/tree'
+    TREE: '/categories/tree',
+    SEARCH: '/categories/search',
+    FEEDBACK: '/categories/feedback',
+    MY_FEEDBACK: '/categories/feedback/my'
   },
   
   // 收藏相关

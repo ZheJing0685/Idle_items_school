@@ -12,4 +12,5 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     Page<Category> findBySortLessThan(Integer sort, Pageable pageable);
     Page<Category> findByStatus(Boolean status, Pageable pageable);
     List<Category> findByParentId(Long parentId);
+    List<Category> findByParentIdIsNull();
 }

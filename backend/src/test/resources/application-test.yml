@@ -19,8 +19,9 @@ spring:
       mode: never
 
 jwt:
-  secret: test-secret-key-for-testing-purposes-only
-  expiration: 86400000
+  secret: "${JWT_SECRET:dGVzdHNlY3JldGtleWZvcnRlc3RpbmdwdXJwb3Nlc29ubHk=}"
+  expiration: "${JWT_EXPIRATION:3600000}"
+  refresh-expiration: "${JWT_REFRESH_EXPIRATION:604800000}"
 
 file:
   upload-path: ./test-uploads/

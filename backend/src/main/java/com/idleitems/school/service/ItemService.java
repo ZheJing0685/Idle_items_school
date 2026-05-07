@@ -1,6 +1,5 @@
 package com.idleitems.school.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.idleitems.school.dto.ItemSummaryDTO;
 import com.idleitems.school.entity.Category;
 import com.idleitems.school.entity.Item;
@@ -127,10 +126,6 @@ public class ItemService {
         @SuppressWarnings("unchecked")
         List<String> images = (List<String>) request.get("images");
         if (images != null && !images.isEmpty()) {
-            ObjectMapper objectMapper = new ObjectMapper();
-            String imagesJson = objectMapper.writeValueAsString(images);
-            item.setImages(imagesJson);
-            
             if (item.getCoverImage() == null) {
                 item.setCoverImage(images.get(0));
             }
@@ -364,10 +359,6 @@ public class ItemService {
 
         List<String> images = (List<String>) request.get("images");
         if (images != null && !images.isEmpty()) {
-            ObjectMapper objectMapper = new ObjectMapper();
-            String imagesJson = objectMapper.writeValueAsString(images);
-            existingItem.setImages(imagesJson);
-            
             if (request.get("coverImage") != null) {
                 existingItem.setCoverImage((String) request.get("coverImage"));
             } else {

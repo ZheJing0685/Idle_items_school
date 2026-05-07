@@ -3,22 +3,34 @@ package com.idleitems.school.filter;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
-@RequiredArgsConstructor
 public class RateLimitFilter implements Filter {
 
     private final RedisTemplate<String, Object> redisTemplate;
     private final DefaultRedisScript<Long> rateLimitScript;
+    private final int defaultLimit;
+    private final int defaultWindow;
+    private final int loginLimit;
+    private final int loginWindow;
+
+    public RateLimitFilter(RedisTemplate<String, Object> redisTemplate,
+                           DefaultRedisScript<Long> rateLimitScript,
+                           int defaultLimit, int defaultWindow,
+                           int loginLimit, int loginWindow) {
+        this.redisTemplate = redisTemplate;
+        this.rateLimitScript = rateLimitScript;
+        this.defaultLimit = defaultLimit;
+        this.defaultWindow = defaultWindow;
+        this.loginLimit = loginLimit;
+        this.loginWindow = loginWindow;
+    }
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
@@ -29,13 +41,21 @@ public class RateLimitFilter implements Filter {
 
         String uri = httpRequest.getRequestURI();
         String clientIP = getClientIP(httpRequest);
-        String key = "rate_limit:" + uri + ":" + clientIP;
 
-        // 默认限流配置：每分钟60次请求
-        int limit = 60;
-        int window = 60;
+        int limit;
+        int window;
+        String key;
 
-        // 执行限流脚本
+        if (uri.equals("/api/auth/login")) {
+            limit = loginLimit;
+            window = loginWindow;
+            key = "rate_limit:login:" + clientIP;
+        } else {
+            limit = defaultLimit;
+            window = defaultWindow;
+            key = "rate_limit:" + uri + ":" + clientIP;
+        }
+
         Long result = redisTemplate.execute(
                 rateLimitScript,
                 Collections.singletonList(key),
@@ -43,27 +63,24 @@ public class RateLimitFilter implements Filter {
         );
 
         if (result == null || result > 0) {
-            // 允许请求通过
             chain.doFilter(request, response);
         } else {
-            // 限流
             httpResponse.setStatus(429);
-            httpResponse.setContentType("application/json");
-            httpResponse.getWriter().write("{\"code\": 429, \"message\": \"请求过于频繁，请稍后再试\"}");
+            httpResponse.setContentType("application/json;charset=UTF-8");
+            httpResponse.getWriter().write("{\"code\":429,\"message\":\"请求过于频繁，请稍后再试\",\"data\":null}");
             httpResponse.getWriter().flush();
-            return;
         }
     }
 
     private String getClientIP(HttpServletRequest request) {
         String ip = request.getHeader("X-Forwarded-For");
-        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
             ip = request.getHeader("Proxy-Client-IP");
         }
-        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
             ip = request.getHeader("WL-Proxy-Client-IP");
         }
-        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
             ip = request.getRemoteAddr();
         }
         return ip;

@@ -1,113 +1,21 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import { ElMessageBox } from 'element-plus';
 import api from '../../api';
+import { setToken, clearToken, getToken } from '../../api/config/axios';
 import storage from '../../utils/storage';
 import { ErrorHandler } from '../../utils/error';
 
 const storageInstance = storage('user');
 
-const COOKIE_CHECK_INTERVAL = 30000;
-
-const getCookieValue = (name) => {
-  const cookieName = `${name}=`;
-  const cookies = document.cookie.split(';');
-  for (let i = 0; i < cookies.length; i++) {
-    let cookie = cookies[i].trim();
-    if (cookie.startsWith(cookieName)) {
-      return decodeURIComponent(cookie.substring(cookieName.length));
-    }
-  }
-  return '';
-};
-
 export const useUserStore = defineStore('user', () => {
-  const token = ref(storageInstance.get('token') || '');
   const refreshToken = ref(storageInstance.get('refreshToken') || '');
   const user = ref(storageInstance.get('user'));
   const lastLoginTime = ref(storageInstance.get('lastLoginTime'));
   const rememberMe = ref(storageInstance.get('rememberMe') || false);
   const loading = ref(false);
-  const isLoggedIn = computed(() => !!token.value);
+  const isLoggedIn = ref(!!getToken());
   const isAdmin = computed(() => user.value?.role === 'ADMIN' || user.value?.role === 'SUPER_ADMIN');
   const isVerified = computed(() => user.value?.verified === true);
-
-  let cookieCheckTimer = null;
-  let isForceLoggingOut = false;
-
-  const clearAuthData = () => {
-    token.value = '';
-    refreshToken.value = '';
-    user.value = null;
-    lastLoginTime.value = null;
-
-    api.clearToken();
-    storageInstance.remove('token');
-    storageInstance.remove('refreshToken');
-    storageInstance.remove('user');
-    storageInstance.remove('lastLoginTime');
-  };
-
-  const checkCookieExpiry = () => {
-    if (!token.value) return;
-
-    if (getCookieValue('user:token')) return;
-
-    if (storageInstance.get('token')) {
-      api.setToken(token.value);
-      return;
-    }
-
-    forceLogout();
-  };
-
-  const startCookieCheck = () => {
-    stopCookieCheck();
-    cookieCheckTimer = setInterval(checkCookieExpiry, COOKIE_CHECK_INTERVAL);
-  };
-
-  const stopCookieCheck = () => {
-    if (cookieCheckTimer) {
-      clearInterval(cookieCheckTimer);
-      cookieCheckTimer = null;
-    }
-  };
-
-  const forceLogout = () => {
-    if (isForceLoggingOut) return;
-    isForceLoggingOut = true;
-
-    clearAuthData();
-    stopCookieCheck();
-
-    if (!rememberMe.value) {
-      storageInstance.remove('rememberMe');
-    }
-
-    ElMessageBox.alert('登录已过期，请重新登录', '提示', {
-      confirmButtonText: '确定',
-      callback: () => {
-        isForceLoggingOut = false;
-        window.location.href = '/login';
-      },
-    });
-  };
-
-  const handleVisibilityChange = () => {
-    if (document.visibilityState !== 'visible') return;
-    if (isForceLoggingOut) return;
-    if (!isLoggedIn.value) return;
-
-    checkCookieExpiry();
-  };
-
-  document.addEventListener('visibilitychange', handleVisibilityChange);
-
-  const setToken = (newToken) => {
-    token.value = newToken;
-    storageInstance.set('token', newToken);
-    api.setToken(newToken);
-  };
 
   const setRefreshToken = (newRefreshToken) => {
     refreshToken.value = newRefreshToken;
@@ -129,14 +37,12 @@ export const useUserStore = defineStore('user', () => {
         user.value = userInfo;
         lastLoginTime.value = new Date().toISOString();
         rememberMe.value = remember || false;
+        isLoggedIn.value = true;
 
-        storageInstance.set('token', newToken);
         storageInstance.set('refreshToken', newRefreshToken);
         storageInstance.set('user', userInfo);
         storageInstance.set('lastLoginTime', lastLoginTime.value);
         storageInstance.set('rememberMe', rememberMe.value);
-
-        startCookieCheck();
 
         return response;
       }
@@ -166,8 +72,15 @@ export const useUserStore = defineStore('user', () => {
   };
 
   const logout = () => {
-    clearAuthData();
-    stopCookieCheck();
+    clearToken();
+    refreshToken.value = '';
+    user.value = null;
+    lastLoginTime.value = null;
+    isLoggedIn.value = false;
+
+    storageInstance.remove('refreshToken');
+    storageInstance.remove('user');
+    storageInstance.remove('lastLoginTime');
 
     if (!rememberMe.value) {
       storageInstance.remove('rememberMe');
@@ -175,7 +88,7 @@ export const useUserStore = defineStore('user', () => {
   };
 
   const getCurrentUser = async () => {
-    if (!token.value) return null;
+    if (!getToken()) return null;
     try {
       const response = await api.auth.getCurrentUser();
       if (response.code === 200) {
@@ -207,14 +120,7 @@ export const useUserStore = defineStore('user', () => {
     }
   };
 
-  api.setUnauthorizedHandler(forceLogout);
-
-  if (token.value) {
-    startCookieCheck();
-  }
-
   return {
-    token,
     refreshToken,
     user,
     lastLoginTime,
@@ -223,7 +129,6 @@ export const useUserStore = defineStore('user', () => {
     isLoggedIn,
     isAdmin,
     isVerified,
-    setToken,
     setRefreshToken,
     login,
     register,

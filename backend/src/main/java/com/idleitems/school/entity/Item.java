@@ -109,9 +109,6 @@ public class Item {
     @Column(name = "cover_image", length = 500)
     private String coverImage;
 
-    @Column(name = "images", columnDefinition = "JSON")
-    private String images;
-
     @Transient
     private String sellerNickname;
 

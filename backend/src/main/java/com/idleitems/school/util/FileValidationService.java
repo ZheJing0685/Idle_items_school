@@ -1,5 +1,7 @@
 package com.idleitems.school.util;
 
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
@@ -10,10 +12,8 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * 文件验证服务
- * 验证文件的类型、大小等信息
- */
+@Slf4j
+@Component
 public class FileValidationService {
 
     private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB

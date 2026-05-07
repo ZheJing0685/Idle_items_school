@@ -130,6 +130,22 @@
             </svg>
             <span v-if="!isCollapsed" class="nav-text">分类管理</span>
           </router-link>
+          <router-link
+            to="/admin/category-feedbacks"
+            class="nav-item"
+            active-class="is-active"
+          >
+            <svg
+              class="nav-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+            >
+              <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+            </svg>
+            <span v-if="!isCollapsed" class="nav-text">分类反馈</span>
+          </router-link>
         </div>
 
         <div class="nav-group">
@@ -283,6 +299,7 @@ const pageTitles = {
   '/admin/verification': '实名认证',
   '/admin/items': '物品管理',
   '/admin/categories': '分类管理',
+  '/admin/category-feedbacks': '分类反馈管理',
   '/admin/orders': '订单管理',
   '/admin/statistics': '数据统计',
   '/admin/logs': '操作日志',

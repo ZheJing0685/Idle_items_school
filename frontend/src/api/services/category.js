@@ -13,6 +13,12 @@ const category = {
       useCache: true,
       useMerge: true,
     }),
+  searchCategories: (keyword) =>
+    instance.get(API_PATHS.CATEGORY.SEARCH, { params: { keyword } }),
+  submitFeedback: (data) =>
+    instance.post(API_PATHS.CATEGORY.FEEDBACK, data),
+  getMyFeedbacks: (params) =>
+    instance.get(API_PATHS.CATEGORY.MY_FEEDBACK, { params }),
 };
 
 export default category;

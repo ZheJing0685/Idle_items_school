@@ -5,10 +5,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.owasp.encoder.Encode;
+import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.util.regex.Pattern;
 
 @Slf4j
+@Component
 public class XssFilter implements Filter {
 
     private static final Pattern[] XSS_PATTERNS = {
@@ -26,19 +28,39 @@ public class XssFilter implements Filter {
     };
 
     @Override
+    public void init(FilterConfig filterConfig) throws ServletException {
+        log.info("XSS过滤器初始化完成");
+    }
+
+    @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
 
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;
 
-        String contentType = httpRequest.getContentType();
-        if (contentType != null && contentType.startsWith("multipart/form-data")) {
+        try {
+            String contentType = httpRequest.getContentType();
+            if (contentType != null && contentType.startsWith("multipart/form-data")) {
+                chain.doFilter(request, response);
+            } else {
+                XssHttpServletRequestWrapper xssRequest = new XssHttpServletRequestWrapper(httpRequest);
+                chain.doFilter(xssRequest, response);
+            }
+        } catch (IOException e) {
+            log.error("XSS过滤器处理请求体时发生IO异常: {}", e.getMessage(), e);
+            httpResponse.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            httpResponse.setContentType("application/json;charset=UTF-8");
+            httpResponse.getWriter().write("{\"code\":40001,\"message\":\"请求体读取异常\",\"data\":null}");
+        } catch (Exception e) {
+            log.error("XSS过滤器处理请求时发生异常: {}", e.getMessage(), e);
             chain.doFilter(request, response);
-        } else {
-            XssHttpServletRequestWrapper xssRequest = new XssHttpServletRequestWrapper(httpRequest);
-            chain.doFilter(xssRequest, response);
         }
+    }
+
+    @Override
+    public void destroy() {
+        log.info("XSS过滤器已销毁");
     }
 
     public static String escapeHtml(String input) {

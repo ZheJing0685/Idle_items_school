@@ -1,7 +1,9 @@
 package com.idleitems.school.util;
 
+import lombok.extern.slf4j.Slf4j;
 import net.coobird.thumbnailator.Thumbnails;
 import net.coobird.thumbnailator.geometry.Positions;
+import org.springframework.stereotype.Component;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -12,10 +14,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
-/**
- * 图片处理服务
- * 处理图片的压缩、尺寸调整、水印添加等操作
- */
+@Slf4j
+@Component
 public class ImageProcessingService {
 
     private static final int MAX_WIDTH = 1920;

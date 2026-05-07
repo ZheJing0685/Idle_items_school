@@ -46,7 +46,7 @@ public class AuthServiceImpl implements AuthService {
         claims.put("role", user.getRole());
 
         String token = jwtUtil.generateToken(user.getId().toString(), claims);
-        String refreshToken = jwtUtil.generateToken(user.getId().toString());
+        String refreshToken = jwtUtil.generateRefreshToken(user.getId().toString());
 
         Map<String, Object> result = new HashMap<>();
         result.put("token", token);
@@ -86,6 +86,10 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public Map<String, Object> refreshToken(String refreshToken) {
         try {
+            if (!jwtUtil.validateRefreshToken(refreshToken)) {
+                throw new IllegalArgumentException("refresh token无效或已过期");
+            }
+
             String userId = jwtUtil.getSubject(refreshToken);
             User user = getCurrentUser(userId);
 
@@ -95,13 +99,15 @@ public class AuthServiceImpl implements AuthService {
             claims.put("role", user.getRole());
 
             String newToken = jwtUtil.generateToken(userId, claims);
-            String newRefreshToken = jwtUtil.generateToken(userId);
+            String newRefreshToken = jwtUtil.generateRefreshToken(userId);
 
             Map<String, Object> result = new HashMap<>();
             result.put("token", newToken);
             result.put("refreshToken", newRefreshToken);
 
             return result;
+        } catch (IllegalArgumentException e) {
+            throw e;
         } catch (Exception e) {
             throw new IllegalArgumentException("刷新token失败");
         }

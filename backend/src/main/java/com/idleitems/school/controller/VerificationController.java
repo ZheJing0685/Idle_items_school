@@ -3,7 +3,7 @@ package com.idleitems.school.controller;
 import com.idleitems.school.common.Result;
 import com.idleitems.school.entity.VerificationRecord;
 import com.idleitems.school.repository.VerificationRecordRepository;
-import com.idleitems.school.util.ImageUtil;
+import com.idleitems.school.service.FileService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -15,7 +15,7 @@ import java.util.Map;
 public class VerificationController {
 
     @Autowired
-    private ImageUtil imageUtil;
+    private FileService fileService;
     
     @Autowired
     private VerificationRecordRepository verificationRecordRepository;
@@ -23,7 +23,7 @@ public class VerificationController {
     @PostMapping("/upload")
     public Result<Map<String, Object>> uploadImage(@RequestParam("file") MultipartFile file) {
         try {
-            Map<String, Object> result = imageUtil.uploadImage(file);
+            Map<String, Object> result = fileService.uploadImage(file);
             return Result.success("上传成功", result);
         } catch (Exception e) {
             return Result.error(e.getMessage());

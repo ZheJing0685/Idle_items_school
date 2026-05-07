@@ -1,6 +1,10 @@
 package com.idleitems.school.service.impl;
 
 import com.idleitems.school.service.FileService;
+import com.idleitems.school.util.FileValidationService;
+import com.idleitems.school.util.ImageProcessingService;
+import com.idleitems.school.util.storage.StorageAdapter;
+import com.idleitems.school.util.storage.StorageServiceFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -14,7 +18,9 @@ import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
@@ -24,8 +30,64 @@ public class FileServiceImpl implements FileService {
     @Value("${file.upload-path}")
     private String uploadPath;
 
+    private final StorageServiceFactory storageServiceFactory;
+    private final FileValidationService fileValidationService;
+    private final ImageProcessingService imageProcessingService;
+
+    public FileServiceImpl(StorageServiceFactory storageServiceFactory,
+                           FileValidationService fileValidationService,
+                           ImageProcessingService imageProcessingService) {
+        this.storageServiceFactory = storageServiceFactory;
+        this.fileValidationService = fileValidationService;
+        this.imageProcessingService = imageProcessingService;
+    }
+
     private static final List<String> ALLOWED_IMAGE_TYPES = List.of(".jpg", ".jpeg", ".png", ".webp");
-    private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+    private static final long MAX_FILE_SIZE = 5 * 1024 * 1024;
+
+    @Override
+    public Map<String, Object> uploadImage(MultipartFile file) throws Exception {
+        fileValidationService.validateImage(file);
+
+        StorageAdapter storageAdapter = storageServiceFactory.getStorageAdapter();
+
+        String originalFilename = file.getOriginalFilename();
+        String extension = fileValidationService.getFileExtension(originalFilename);
+        String fileName = UUID.randomUUID().toString() + "." + extension;
+        String contentType = file.getContentType();
+
+        File tempFile = File.createTempFile("temp", "." + extension);
+        file.transferTo(tempFile);
+
+        try {
+            File processedFile = File.createTempFile("processed", "." + extension);
+            try {
+                ImageProcessingService.ImageInfo imageInfo = imageProcessingService.processImage(
+                        tempFile, processedFile, extension
+                );
+
+                Map<String, Object> storageResult = storageAdapter.upload(
+                        processedFile, fileName, contentType
+                );
+
+                Map<String, Object> result = new HashMap<>();
+                result.put("url", storageResult.get("url"));
+                result.put("path", storageResult.get("path"));
+                result.put("fileName", fileName);
+                result.put("originalName", originalFilename);
+                result.put("width", imageInfo.getWidth());
+                result.put("height", imageInfo.getHeight());
+                result.put("size", imageInfo.getSize());
+                result.put("format", imageInfo.getFormat());
+
+                return result;
+            } finally {
+                processedFile.delete();
+            }
+        } finally {
+            tempFile.delete();
+        }
+    }
 
     @Override
     public String uploadFile(MultipartFile file, String directory) throws IOException {
@@ -42,18 +104,15 @@ public class FileServiceImpl implements FileService {
             throw new IllegalArgumentException("只支持jpg、jpeg、png、webp格式的图片");
         }
 
-        // 创建目录结构
         String datePath = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
         Path uploadDir = Paths.get(uploadPath, directory, datePath);
         if (!Files.exists(uploadDir)) {
             Files.createDirectories(uploadDir);
         }
 
-        // 生成唯一文件名
         String uniqueFileName = UUID.randomUUID().toString() + getFileExtension(fileName);
         Path filePath = uploadDir.resolve(uniqueFileName);
 
-        // 保存文件
         Files.write(filePath, file.getBytes());
 
         return String.format("%s/%s/%s", directory, datePath, uniqueFileName);

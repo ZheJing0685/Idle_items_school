@@ -10,6 +10,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -30,20 +31,17 @@ class ImageAnalysisServiceTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        
+
         testAnalysis = new ImageAnalysis();
         testAnalysis.setId(1L);
         testAnalysis.setImageUrl("https://example.com/image.jpg");
         testAnalysis.setItemId(1L);
-        testAnalysis.setItemType("电子设备");
-        testAnalysis.setBrand("Apple");
-        testAnalysis.setColor("银色");
-        testAnalysis.setConfidence(BigDecimal.valueOf(85.0));
+        testAnalysis.setConfidence(BigDecimal.ZERO);
         testAnalysis.setStatus(ImageAnalysis.Status.SUCCESS);
     }
 
     @Test
-    @DisplayName("测试分析图片 - 成功")
+    @DisplayName("测试分析图片 - 降级模式成功")
     void testAnalyzeImageSuccess() {
         when(imageAnalysisRepository.save(any(ImageAnalysis.class))).thenReturn(testAnalysis);
 
@@ -53,14 +51,11 @@ class ImageAnalysisServiceTest {
         Map<String, Object> result = imageAnalysisService.analyzeImage(imageUrl, itemId);
 
         assertNotNull(result);
-        assertTrue(result.containsKey("itemType"));
-        assertTrue(result.containsKey("brand"));
-        assertTrue(result.containsKey("color"));
-        assertTrue(result.containsKey("confidence"));
-        assertEquals("电子设备", result.get("itemType"));
-        assertEquals("Apple", result.get("brand"));
-        assertEquals("银色", result.get("color"));
-        assertEquals(85.0, result.get("confidence"));
+        assertTrue((Boolean) result.get("success"));
+        assertTrue((Boolean) result.get("degraded"));
+        assertEquals(Collections.emptyList(), result.get("labels"));
+        assertNull(result.get("suggestedCategory"));
+        assertEquals(0.0, result.get("confidence"));
 
         verify(imageAnalysisRepository, times(1)).save(any(ImageAnalysis.class));
     }
@@ -73,11 +68,11 @@ class ImageAnalysisServiceTest {
         Map<String, Object> result = imageAnalysisService.analyzeImage("https://example.com/test.jpg", 1L);
 
         assertNotNull(result);
-        assertTrue(result.containsKey("features"));
-        assertTrue(result.get("features") instanceof String[]);
-        
-        String[] features = (String[]) result.get("features");
-        assertEquals(3, features.length);
+        assertTrue(result.containsKey("success"));
+        assertTrue(result.containsKey("labels"));
+        assertTrue(result.containsKey("suggestedCategory"));
+        assertTrue(result.containsKey("confidence"));
+        assertTrue(result.containsKey("degraded"));
     }
 
     @Test
@@ -97,10 +92,7 @@ class ImageAnalysisServiceTest {
         verify(imageAnalysisRepository, times(1)).save(argThat(analysis -> {
             assertEquals(imageUrl, analysis.getImageUrl());
             assertEquals(itemId, analysis.getItemId());
-            assertEquals("电子设备", analysis.getItemType());
-            assertEquals("Apple", analysis.getBrand());
-            assertEquals("银色", analysis.getColor());
-            assertEquals(BigDecimal.valueOf(85.0), analysis.getConfidence());
+            assertEquals(BigDecimal.ZERO, analysis.getConfidence());
             assertEquals(ImageAnalysis.Status.SUCCESS, analysis.getStatus());
             return true;
         }));
@@ -160,6 +152,6 @@ class ImageAnalysisServiceTest {
         Map<String, Object> result = imageAnalysisService.analyzeImage("https://example.com/test.jpg", 1L);
 
         assertTrue(result.get("confidence") instanceof Double);
-        assertEquals(85.0, (Double) result.get("confidence"), 0.01);
+        assertEquals(0.0, (Double) result.get("confidence"), 0.01);
     }
 }

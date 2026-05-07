@@ -16,7 +16,7 @@
             <el-upload
               class="avatar-upload"
               action="/api/upload"
-              :headers="{ Authorization: `Bearer ${store.token}` }"
+              :headers="{ Authorization: `Bearer ${getToken()}` }"
               :show-file-list="false"
               :on-success="handleAvatarSuccess"
               :before-upload="beforeAvatarUpload"
@@ -150,6 +150,7 @@
 import { ref, onMounted } from 'vue';
 import { ElMessage } from 'element-plus';
 import { userStore } from '../../store';
+import { getToken } from '../../api/config/axios';
 
 const store = userStore();
 
@@ -183,7 +184,7 @@ const getScoreColor = (score) => {
 const loadUserInfo = async () => {
   try {
     const response = await fetch('/api/users/profile', {
-      headers: { Authorization: `Bearer ${store.token}` },
+      headers: { Authorization: `Bearer ${getToken()}` },
     });
     if (response.ok) {
       const data = await response.json();
@@ -263,7 +264,7 @@ const handleSave = async () => {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${store.token}`,
+        Authorization: `Bearer ${getToken()}`,
       },
       body: JSON.stringify(form.value),
     });

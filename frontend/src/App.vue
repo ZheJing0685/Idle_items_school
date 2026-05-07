@@ -2,11 +2,13 @@
   <div class="app">
     <Header />
     <main class="main-content">
-      <router-view v-slot="{ Component }">
-        <transition name="fade" mode="out-in">
-          <component :is="Component" v-if="Component" />
-        </transition>
-      </router-view>
+      <ErrorBoundary>
+        <router-view v-slot="{ Component }">
+          <transition name="fade" mode="out-in">
+            <component :is="Component" v-if="Component" />
+          </transition>
+        </router-view>
+      </ErrorBoundary>
     </main>
     <Footer />
   </div>
@@ -15,6 +17,7 @@
 <script setup>
 import Header from './components/Header.vue';
 import Footer from './components/Footer.vue';
+import ErrorBoundary from './components/common/ErrorBoundary.vue';
 </script>
 
 <style scoped>

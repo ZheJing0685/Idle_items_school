@@ -145,6 +145,32 @@
   --line-height-sm: var(--leading-tight);
   --line-height-base: var(--leading-normal);
   --line-height-lg: var(--leading-relaxed);
+
+  /* === 管理后台统一语义变量 === */
+  --color-primary: var(--primary-color);
+  --color-primary-light: var(--primary-light);
+  --color-primary-lighter: var(--primary-muted);
+  --color-secondary: var(--secondary-color);
+  --color-success: var(--success-color);
+  --color-warning: oklch(62% 0.16 85);
+  --color-danger: var(--error-color);
+  --color-info: var(--info-color);
+
+  --surface-ground: var(--bg-base);
+  --surface-section: var(--bg-muted);
+  --surface-card: var(--bg-surface);
+  --surface-overlay: var(--bg-elevated);
+
+  --content-primary: var(--text-primary);
+  --content-secondary: var(--text-secondary);
+  --content-tertiary: oklch(50% 0.012 195);
+
+  --color-primary-alpha-10: oklch(62% 0.14 195 / 0.1);
+  --color-primary-alpha-15: oklch(62% 0.14 195 / 0.15);
+  --color-success-alpha-10: oklch(62% 0.12 158 / 0.1);
+  --color-warning-alpha-10: oklch(62% 0.16 85 / 0.1);
+  --color-danger-alpha-10: oklch(60% 0.20 25 / 0.1);
+  --color-info-alpha-10: oklch(62% 0.14 250 / 0.1);
 }
 
 * {

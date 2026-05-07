@@ -96,10 +96,10 @@ instance.interceptors.response.use(
 
       switch (status) {
         case 401:
+          clearToken();
           if (unauthorizedHandler) {
             unauthorizedHandler();
           } else {
-            ErrorHandler.clearAuthStorage();
             import('element-plus').then(({ ElMessageBox }) => {
               ElMessageBox.alert('登录已过期，请重新登录', '提示', {
                 confirmButtonText: '确定',

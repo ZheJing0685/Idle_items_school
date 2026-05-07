@@ -14,20 +14,15 @@
     <div class="container">
       <div class="filter-bar">
         <div class="filter-left">
-          <el-select
-            v-model="categoryId"
+          <el-cascader
+            v-model="categoryPath"
+            :options="categoryTreeOptions"
+            :props="{ value: 'id', label: 'name', children: 'children', checkStrictly: true }"
             placeholder="全部分类"
-            @change="handleFilter"
+            clearable
+            @change="handleCategoryChange"
             class="filter-select"
-          >
-            <el-option label="全部分类" value="" />
-            <el-option
-              v-for="category in categories"
-              :key="category.id"
-              :label="category.name"
-              :value="category.id.toString()"
-            />
-          </el-select>
+          />
 
           <el-select
             v-model="condition"
@@ -254,6 +249,8 @@ const route = useRoute();
 const store = itemStore();
 
 const categoryId = ref('');
+const categoryPath = ref([]);
+const categoryTreeOptions = ref([]);
 const condition = ref('');
 const deliveryMethod = ref('');
 const sortBy = ref('createdAt');
@@ -262,7 +259,6 @@ const currentPage = ref(1);
 const pageSize = ref(24);
 const total = ref(0);
 const items = ref([]);
-const categories = ref([]);
 
 // 监听路由参数变化
 watch(
@@ -270,6 +266,7 @@ watch(
   (newQuery) => {
     if (newQuery.category !== categoryId.value) {
       categoryId.value = newQuery.category || '';
+      categoryPath.value = categoryId.value ? findCategoryPath(categoryTreeOptions.value, Number(categoryId.value)) : [];
       currentPage.value = 1;
       loadItems();
     }
@@ -317,13 +314,34 @@ const getDeliveryText = (method) => {
 
 const loadCategories = async () => {
   try {
-    const response = await api.category.getCategories();
+    const response = await api.category.getCategoryTree();
     if (response.code === 200) {
-      categories.value = response.data.filter((cat) => cat.parentId === null);
+      categoryTreeOptions.value = response.data || [];
     }
   } catch (error) {
     console.error('获取分类失败', error);
   }
+};
+
+const findCategoryPath = (nodes, targetId, path = []) => {
+  for (const node of nodes) {
+    if (node.id === targetId) return [...path, node.id];
+    if (node.children && node.children.length > 0) {
+      const found = findCategoryPath(node.children, targetId, [...path, node.id]);
+      if (found.length > 0) return found;
+    }
+  }
+  return [];
+};
+
+const handleCategoryChange = (val) => {
+  if (val && val.length > 0) {
+    categoryId.value = val[val.length - 1].toString();
+  } else {
+    categoryId.value = '';
+    categoryPath.value = [];
+  }
+  handleFilter();
 };
 
 // 解析标签（从JSON字符串到数组）
@@ -383,8 +401,8 @@ const handleCurrentChange = (page) => {
 onMounted(async () => {
   await loadCategories();
   if (route.query.category) {
-    // 确保categoryId与分类数据中的ID类型一致
     categoryId.value = route.query.category;
+    categoryPath.value = findCategoryPath(categoryTreeOptions.value, Number(categoryId.value));
   }
   if (route.query.keyword) {
     keyword.value = route.query.keyword;

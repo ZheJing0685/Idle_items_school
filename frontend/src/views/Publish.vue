@@ -129,19 +129,14 @@
 
               <div class="form-row">
                 <el-form-item label="分类" prop="categoryId" class="form-item">
-                  <el-select
+                  <el-cascader
                     v-model="form.categoryId"
+                    :options="categoryTreeOptions"
+                    :props="{ value: 'id', label: 'name', children: 'children', emitPath: false }"
                     placeholder="选择分类"
                     size="large"
                     class="form-select"
-                  >
-                    <el-option
-                      v-for="category in categories"
-                      :key="category.id"
-                      :label="category.name"
-                      :value="category.id"
-                    />
-                  </el-select>
+                  />
                 </el-form-item>
 
                 <el-form-item label="成色" prop="condition" class="form-item">
@@ -480,7 +475,7 @@ const router = useRouter();
 const formRef = ref();
 const fileInput = ref();
 const submitting = ref(false);
-const categories = ref([]);
+const categoryTreeOptions = ref([]);
 
 const isEdit = computed(() => !!route.query.edit);
 
@@ -526,11 +521,9 @@ const rules = {
 
 const loadCategories = async () => {
   try {
-    const response = await api.category.getCategories();
+    const response = await api.category.getCategoryTree();
     if (response.code === 200) {
-      categories.value = response.data.filter(
-        (cat) => cat.parentId === null
-      );
+      categoryTreeOptions.value = response.data;
     }
   } catch (error) {
     console.error('获取分类失败', error);

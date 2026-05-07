@@ -50,6 +50,13 @@ const admin = {
     batchEnable: (categoryIds) => instance.put('/admin/categories/batch/enable', { categoryIds }),
     batchDisable: (categoryIds) => instance.put('/admin/categories/batch/disable', { categoryIds }),
     batchDelete: (categoryIds) => instance.post('/admin/categories/batch/delete', { categoryIds }),
+    getFeedbacks: (params) => instance.get('/admin/categories/feedback', { params }),
+    reviewFeedback: (feedbackId, data) => instance.put(`/admin/categories/feedback/${feedbackId}/review`, data),
+    getChangeLogs: (params) => instance.get('/admin/categories/change-logs', { params }),
+    exportCategories: () => instance.get('/admin/categories/export', { responseType: 'blob' }),
+    importCategories: (formData) => instance.post('/admin/categories/import', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    }),
   },
   verifications: {
     getVerifications: (params) => instance.get('/admin/verifications', { params }),

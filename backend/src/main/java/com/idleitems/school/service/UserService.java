@@ -1,5 +1,6 @@
 package com.idleitems.school.service;
 
+import com.idleitems.school.entity.Item;
 import com.idleitems.school.entity.User;
 import com.idleitems.school.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -51,5 +52,27 @@ public class UserService {
 
     public User update(User user) {
         return userRepository.save(user);
+    }
+
+    public void enrichItemWithSellerInfo(Item item, int sellerItemCount) {
+        if (item == null) {
+            return;
+        }
+
+        if (item.getUserId() == null) {
+            return;
+        }
+
+        User user = userRepository.findById(item.getUserId()).orElse(null);
+        if (user != null) {
+            item.setSellerNickname(
+                user.getNickname() != null && !user.getNickname().isEmpty()
+                    ? user.getNickname()
+                    : user.getUsername()
+            );
+            item.setSellerVerified(user.getVerified() != null ? user.getVerified() : false);
+            item.setSellerRating(5.0);
+            item.setSellerItemsCount(sellerItemCount);
+        }
     }
 }

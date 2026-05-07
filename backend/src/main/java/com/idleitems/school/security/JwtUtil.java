@@ -3,6 +3,8 @@ package com.idleitems.school.security;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -21,8 +23,23 @@ public class JwtUtil {
     @Value("${jwt.expiration}")
     private long expiration;
 
+    @Value("${jwt.refresh-expiration:604800000}")
+    private long refreshExpiration;
+
+    @PostConstruct
+    public void validateSecretKey() {
+        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
+        if (keyBytes.length < 32) {
+            throw new IllegalArgumentException(
+                "JWT secret key must be at least 256 bits (32 bytes) after Base64 decoding. " +
+                "Current key length: " + keyBytes.length + " bytes. " +
+                "Please set a valid JWT_SECRET environment variable."
+            );
+        }
+    }
+
     private javax.crypto.SecretKey getSigningKey() {
-        byte[] keyBytes = secretKey.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
@@ -41,6 +58,18 @@ public class JwtUtil {
 
     public String generateToken(String subject) {
         return generateToken(subject, null);
+    }
+
+    public String generateRefreshToken(String subject) {
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + refreshExpiration);
+
+        return Jwts.builder()
+                .subject(subject)
+                .issuedAt(now)
+                .expiration(expiryDate)
+                .signWith(getSigningKey())
+                .compact();
     }
 
     public Claims parseToken(String token) {
@@ -79,6 +108,18 @@ public class JwtUtil {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    public boolean validateRefreshToken(String token) {
+        return validateToken(token);
+    }
+
+    public String getTokenFromRequest(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);
+        }
+        return null;
     }
 
     public Date getExpirationDate(String token) {

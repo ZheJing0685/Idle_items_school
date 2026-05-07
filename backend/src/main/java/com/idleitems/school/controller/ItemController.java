@@ -4,9 +4,9 @@ import com.idleitems.school.common.Result;
 import com.idleitems.school.config.ApiPaths;
 import com.idleitems.school.dto.ItemSummaryDTO;
 import com.idleitems.school.entity.Item;
+import com.idleitems.school.service.FileService;
 import com.idleitems.school.service.ItemService;
-import com.idleitems.school.service.UserInfoService;
-import com.idleitems.school.util.ImageUtil;
+import com.idleitems.school.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -23,22 +23,22 @@ import java.util.Map;
 public class ItemController {
 
     private final ItemService itemService;
-    private final UserInfoService userInfoService;
-    private final ImageUtil imageUtil;
+    private final UserService userService;
+    private final FileService fileService;
   
     @PostMapping(ApiPaths.Item.CREATE_PATH)
     public Result<Item> createItem(@RequestAttribute("userId") Long userId, @RequestBody Map<String, Object> request) throws Exception {
         Item savedItem = itemService.createItem(userId, request);
 
         int sellerItemCount = itemService.getSellerItemCount(savedItem.getUserId());
-        userInfoService.enrichItemWithSellerInfo(savedItem, sellerItemCount);
+        userService.enrichItemWithSellerInfo(savedItem, sellerItemCount);
 
         return Result.success("发布成功，等待审核", savedItem);
     }
 
     @PostMapping(ApiPaths.Item.UPLOAD_PATH)
     public Result<Map<String, Object>> uploadImage(@RequestParam("file") MultipartFile file) throws Exception {
-        Map<String, Object> result = imageUtil.uploadImage(file);
+        Map<String, Object> result = fileService.uploadImage(file);
         return Result.success("上传成功", result);
     }
 
@@ -94,7 +94,7 @@ public class ItemController {
         Item updatedItem = itemService.updateItem(userId, id, request);
 
         int sellerItemCount = itemService.getSellerItemCount(updatedItem.getUserId());
-        userInfoService.enrichItemWithSellerInfo(updatedItem, sellerItemCount);
+        userService.enrichItemWithSellerInfo(updatedItem, sellerItemCount);
 
         return Result.success("更新成功，等待审核", updatedItem);
     }
