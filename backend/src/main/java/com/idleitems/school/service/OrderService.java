@@ -365,13 +365,7 @@ public class OrderService {
         Item item = itemRepository.findById(order.getItemId().longValue())
                 .orElseThrow(() -> new IllegalArgumentException("物品不存在"));
 
-        if (!hasOtherActiveOrdersForItem(order.getItemId(), order.getId())) {
-            item.setStatus(Item.ItemStatus.ON_SALE);
-            itemRepository.save(item);
-            log.info("物品已重新上架，物品ID: {}", item.getId());
-        } else {
-            log.info("物品被其他订单占用，保持下架状态，物品ID: {}", item.getId());
-        }
+        restoreItemToSaleIfAvailable(item, order.getId());
 
         Order savedOrder = orderRepository.save(order);
         log.info("退款完成，订单号: {}", savedOrder.getOrderNo());
@@ -381,6 +375,19 @@ public class OrderService {
 
     private boolean hasOtherActiveOrdersForItem(Long itemId, Long excludeOrderId) {
         return orderRepository.existsByItemIdAndOrderStatusInAndIdNot(itemId, ACTIVE_STATUSES, excludeOrderId);
+    }
+
+    /**
+     * 如果没有其他活跃订单占用该物品，则将其重新上架
+     */
+    private void restoreItemToSaleIfAvailable(Item item, Long excludeOrderId) {
+        if (!hasOtherActiveOrdersForItem(item.getId(), excludeOrderId)) {
+            item.setStatus(Item.ItemStatus.ON_SALE);
+            itemRepository.save(item);
+            log.info("物品已重新上架，物品ID: {}", item.getId());
+        } else {
+            log.info("物品被其他订单占用，保持下架状态，物品ID: {}", item.getId());
+        }
     }
 
     @Transactional
@@ -407,13 +414,7 @@ public class OrderService {
             Item item = itemRepository.findItemByIdWithLock(order.getItemId())
                     .orElseThrow(() -> new IllegalArgumentException("物品不存在"));
 
-            if (!hasOtherActiveOrdersForItem(order.getItemId(), order.getId())) {
-                item.setStatus(Item.ItemStatus.ON_SALE);
-                itemRepository.save(item);
-                log.info("物品已重新上架，物品ID: {}", item.getId());
-            } else {
-                log.info("物品被其他订单占用，保持下架状态，物品ID: {}", item.getId());
-            }
+            restoreItemToSaleIfAvailable(item, order.getId());
         }
 
         order.setOrderStatus(Order.OrderStatus.CANCELLED);
