@@ -1,148 +1,148 @@
 <template>
   <div class="profile-page">
-    <el-card class="profile-card">
-      <template #header>
-        <div class="card-header">
-          <h3>个人信息</h3>
-          <span class="header-tip">完善资料有助于获得更多信任</span>
-        </div>
-      </template>
-      <el-form :model="form" label-width="100px" class="profile-form">
-        <div class="avatar-section">
-          <div class="avatar-wrapper">
-            <el-avatar :size="100" :src="form.avatar">
-              {{ form.nickname?.charAt(0) || form.username?.charAt(0) || '用' }}
-            </el-avatar>
-            <el-upload
-              class="avatar-upload"
-              action="/api/upload"
-              :headers="{ Authorization: `Bearer ${getToken()}` }"
-              :show-file-list="false"
-              :on-success="handleAvatarSuccess"
-              :before-upload="beforeAvatarUpload"
-            >
-              <el-button size="small" type="primary">更换头像</el-button>
-            </el-upload>
-          </div>
-        </div>
-
-        <el-form-item label="用户名">
-          <el-input v-model="form.username" disabled />
-        </el-form-item>
-
-        <el-form-item label="昵称">
-          <el-input
-            v-model="form.nickname"
-            maxlength="50"
-            placeholder="请输入昵称"
-          />
-        </el-form-item>
-
-        <el-form-item label="性别">
-          <el-radio-group v-model="form.gender">
-            <el-radio :value="0">未知</el-radio>
-            <el-radio :value="1">男</el-radio>
-            <el-radio :value="2">女</el-radio>
-          </el-radio-group>
-        </el-form-item>
-
-        <el-form-item label="生日">
-          <el-date-picker
-            v-model="form.birthday"
-            type="date"
-            placeholder="选择生日"
-            format="YYYY-MM-DD"
-            value-format="YYYY-MM-DD"
-          />
-        </el-form-item>
-
-        <el-form-item label="个人简介">
-          <el-input
-            v-model="form.bio"
-            type="textarea"
-            :rows="3"
-            maxlength="500"
-            show-word-limit
-            placeholder="介绍一下自己吧"
-          />
-        </el-form-item>
-
-        <div class="form-divider"></div>
-
-        <el-form-item label="邮箱">
-          <el-input v-model="form.email" disabled />
-        </el-form-item>
-
-        <el-form-item label="手机号">
-          <el-input
-            v-model="form.phone"
-            maxlength="20"
-            placeholder="请输入手机号"
-          />
-        </el-form-item>
-
-        <div class="form-divider"></div>
-
-        <el-form-item label="学校名称">
-          <el-input
-            v-model="form.schoolName"
-            maxlength="100"
-            placeholder="请输入学校名称"
-          />
-        </el-form-item>
-
-        <el-form-item label="学号">
-          <el-input
-            v-model="form.studentId"
-            maxlength="20"
-            placeholder="请输入学号"
-          />
-        </el-form-item>
-
-        <div class="form-divider"></div>
-
-        <el-form-item label="注册时间">
-          <el-input v-model="form.createdAt" disabled />
-        </el-form-item>
-
-        <el-form-item label="最后登录">
-          <el-input v-model="form.lastLoginTime" disabled />
-        </el-form-item>
-
-        <el-form-item label="信用评分">
-          <div class="credit-score">
-            <el-progress
-              :percentage="form.creditScore || 100"
-              :color="getScoreColor(form.creditScore)"
-            />
-            <span class="score-text">{{ form.creditScore || 100 }} 分</span>
-          </div>
-        </el-form-item>
-
-        <el-form-item label="交易统计">
-          <div class="transaction-stats">
-            <div class="stat-item">
-              <span class="stat-value">{{ form.totalTransactions || 0 }}</span>
-              <span class="stat-label">总交易</span>
-            </div>
-            <div class="stat-item">
-              <span class="stat-value">{{ form.totalSales || 0 }}</span>
-              <span class="stat-label">售出</span>
-            </div>
-            <div class="stat-item">
-              <span class="stat-value">{{ form.totalPurchases || 0 }}</span>
-              <span class="stat-label">购买</span>
-            </div>
-          </div>
-        </el-form-item>
-
-        <el-form-item>
-          <el-button type="primary" @click="handleSave" :loading="saving"
-            >保存修改</el-button
+    <PageHeader title="个人信息" subtitle="完善资料有助于获得更多信任" />
+    
+    <div class="profile-sections">
+      <!-- 头像区域 -->
+      <div class="section-card">
+        <div class="avatar-upload-wrapper">
+          <el-avatar :size="100" :src="form.avatar" class="profile-avatar">
+            {{ form.nickname?.charAt(0) || form.username?.charAt(0) || '用' }}
+          </el-avatar>
+          <el-upload
+            action="/api/upload"
+            :headers="{ Authorization: `Bearer ${getToken()}` }"
+            :show-file-list="false"
+            :on-success="handleAvatarSuccess"
+            :before-upload="beforeAvatarUpload"
           >
-        </el-form-item>
-      </el-form>
-    </el-card>
+            <el-button size="small" type="primary">更换头像</el-button>
+          </el-upload>
+        </div>
+      </div>
+      
+      <!-- 基本信息 -->
+      <div class="section-card">
+        <h3 class="section-title">基本信息</h3>
+        <el-form :model="form" label-position="top" class="profile-form">
+          <div class="form-row">
+            <el-form-item label="用户名">
+              <el-input v-model="form.username" disabled />
+            </el-form-item>
+          </div>
+          
+          <div class="form-row">
+            <el-form-item label="昵称">
+              <el-input v-model="form.nickname" maxlength="50" placeholder="请输入昵称" />
+            </el-form-item>
+          </div>
+          
+          <div class="form-row">
+            <el-form-item label="性别">
+              <el-radio-group v-model="form.gender">
+                <el-radio :value="0">未知</el-radio>
+                <el-radio :value="1">男</el-radio>
+                <el-radio :value="2">女</el-radio>
+              </el-radio-group>
+            </el-form-item>
+          </div>
+          
+          <div class="form-row">
+            <el-form-item label="生日">
+              <el-date-picker v-model="form.birthday" type="date" placeholder="选择生日" format="YYYY-MM-DD" value-format="YYYY-MM-DD" />
+            </el-form-item>
+          </div>
+          
+          <div class="form-row">
+            <el-form-item label="个人简介">
+              <el-input v-model="form.bio" type="textarea" :rows="3" maxlength="500" show-word-limit placeholder="介绍一下自己吧" />
+            </el-form-item>
+          </div>
+        </el-form>
+      </div>
+      
+      <!-- 联系方式 -->
+      <div class="section-card">
+        <h3 class="section-title">联系方式</h3>
+        <el-form :model="form" label-position="top" class="profile-form">
+          <div class="form-row">
+            <el-form-item label="邮箱">
+              <el-input v-model="form.email" disabled />
+            </el-form-item>
+          </div>
+          
+          <div class="form-row">
+            <el-form-item label="手机号">
+              <el-input v-model="form.phone" maxlength="20" placeholder="请输入手机号" />
+            </el-form-item>
+          </div>
+        </el-form>
+      </div>
+      
+      <!-- 学校信息 -->
+      <div class="section-card">
+        <h3 class="section-title">学校信息</h3>
+        <el-form :model="form" label-position="top" class="profile-form">
+          <div class="form-row">
+            <el-form-item label="学校名称">
+              <el-input v-model="form.schoolName" maxlength="100" placeholder="请输入学校名称" />
+            </el-form-item>
+          </div>
+          
+          <div class="form-row">
+            <el-form-item label="学号">
+              <el-input v-model="form.studentId" maxlength="20" placeholder="请输入学号" />
+            </el-form-item>
+          </div>
+        </el-form>
+      </div>
+      
+      <!-- 账户信息 -->
+      <div class="section-card">
+        <h3 class="section-title">账户信息</h3>
+        <div class="account-info">
+          <div class="info-row">
+            <span class="info-label">注册时间</span>
+            <span class="info-value">{{ form.createdAt || '-' }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">最后登录</span>
+            <span class="info-value">{{ form.lastLoginTime || '-' }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">信用评分</span>
+            <div class="credit-score">
+              <el-progress :percentage="form.creditScore || 100" :color="getScoreColor(form.creditScore)" />
+              <span class="score-text">{{ form.creditScore || 100 }} 分</span>
+            </div>
+          </div>
+          <div class="info-row">
+            <span class="info-label">交易统计</span>
+            <div class="transaction-stats">
+              <div class="stat-item">
+                <span class="stat-value">{{ form.totalTransactions || 0 }}</span>
+                <span class="stat-label">总交易</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-value">{{ form.totalSales || 0 }}</span>
+                <span class="stat-label">售出</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-value">{{ form.totalPurchases || 0 }}</span>
+                <span class="stat-label">购买</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 保存按钮 -->
+      <div class="form-actions">
+        <el-button type="primary" @click="handleSave" :loading="saving" size="large">
+          保存修改
+        </el-button>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -151,6 +151,7 @@ import { ref, onMounted } from 'vue';
 import { ElMessage } from 'element-plus';
 import { userStore } from '../../store';
 import { getToken } from '../../api/config/axios';
+import PageHeader from '../../components/user/PageHeader.vue';
 
 const store = userStore();
 
@@ -183,7 +184,7 @@ const getScoreColor = (score) => {
 
 const loadUserInfo = async () => {
   try {
-    const response = await fetch('/api/users/profile', {
+    const response = await fetch('/api/user/profile', {
       headers: { Authorization: `Bearer ${getToken()}` },
     });
     if (response.ok) {
@@ -260,7 +261,7 @@ const beforeAvatarUpload = (file) => {
 const handleSave = async () => {
   saving.value = true;
   try {
-    const response = await fetch('/api/users/profile', {
+    const response = await fetch('/api/user/profile', {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
