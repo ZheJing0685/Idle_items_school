@@ -1,122 +1,62 @@
 <template>
   <div class="items-page">
-    <!-- 页面标题和操作 -->
-    <div class="page-header">
-      <div>
-        <h2>我的发布</h2>
-        <p class="subtitle">您发布的物品会显示在这里，方便您管理</p>
-      </div>
-      <el-button type="primary" @click="$router.push('/publish')" class="publish-button">
-        <el-icon><Plus /></el-icon>
-        发布新物品
-      </el-button>
-    </div>
+    <PageHeader title="我的发布" subtitle="您发布的物品会显示在这里，方便您管理">
+      <template #action>
+        <el-button type="primary" @click="$router.push('/publish')">
+          <el-icon><Plus /></el-icon>
+          发布新物品
+        </el-button>
+      </template>
+    </PageHeader>
 
-    <!-- 状态筛选 -->
-    <div class="filter-section">
-      <el-radio-group v-model="statusFilter" @change="handleStatusChange">
-        <el-radio-button value="">全部</el-radio-button>
-        <el-radio-button value="ON_SALE">在售</el-radio-button>
-        <el-radio-button value="SOLD">已售出</el-radio-button>
-        <el-radio-button value="PENDING">审核中</el-radio-button>
-        <el-radio-button value="OFF_SHELF">已下架</el-radio-button>
-      </el-radio-group>
-    </div>
+    <FilterTabs v-model="statusFilter" :tabs="filterTabs" @change="handleStatusChange" />
 
     <!-- 加载状态 -->
-    <el-skeleton v-if="loading" :rows="6" animated>
-      <template #template>
-        <el-skeleton-item variant="p" style="width: 100%" />
-      </template>
-    </el-skeleton>
+    <div v-if="loading" class="loading-grid">
+      <div v-for="i in 6" :key="i" class="skeleton-card">
+        <div class="skeleton-image"></div>
+        <div class="skeleton-content">
+          <div class="skeleton-title"></div>
+          <div class="skeleton-price"></div>
+          <div class="skeleton-meta"></div>
+        </div>
+      </div>
+    </div>
 
     <!-- 错误提示 -->
-    <el-alert
-      v-else-if="error"
-      :title="error"
-      type="error"
-      show-icon
-      class="error-alert"
-    />
+    <el-alert v-else-if="error" :title="error" type="error" show-icon class="error-alert" />
 
     <!-- 空状态 -->
-    <el-empty
-      v-else-if="items.length === 0"
-      description="您还没有发布任何物品"
-      class="empty-state"
-    >
-      <el-button type="primary" @click="$router.push('/publish')">去发布物品</el-button>
-    </el-empty>
+    <EmptyState v-else-if="items.length === 0" title="您还没有发布任何物品" description="发布闲置物品，让它们找到新主人">
+      <template #action>
+        <el-button type="primary" @click="$router.push('/publish')">去发布物品</el-button>
+      </template>
+    </EmptyState>
 
     <!-- 物品列表 -->
     <div v-else class="items-grid">
-      <el-card
+      <ItemCard
         v-for="item in items"
         :key="item.id"
-        class="item-card"
-        hover
+        :id="item.id"
+        :title="item.title"
+        :price="item.price"
+        :coverImage="item.coverImage"
+        :status="item.status"
+        :statusText="getStatusText(item.status)"
+        :viewCount="item.viewCount"
+        :time="formatDate(item.createdAt)"
+        @click="goToItemDetail(item.id)"
       >
-        <!-- 物品图片 -->
-        <div class="card-image">
-          <el-image
-            :src="item.images && item.images.length > 0 ? item.images[0] : 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=placeholder%20image%20for%20secondhand%20item&image_size=square'"
-            fit="cover"
-            @click="goToItemDetail(item.id)"
-          />
-        </div>
-
-        <!-- 物品信息 -->
-        <div class="card-content">
-          <h3 class="item-title" @click="goToItemDetail(item.id)">{{ item.title }}</h3>
-          <div class="item-price">¥{{ item.price }}</div>
-          <div class="item-meta">
-            <span class="view-count"><el-icon><View /></el-icon> {{ item.viewCount || 0 }}浏览</span>
-            <span class="created-time">{{ formatDate(item.createdAt) }}</span>
-          </div>
-          <div class="item-status">
-            <el-tag :type="getStatusType(item.status)">
-              {{ getStatusText(item.status) }}
-            </el-tag>
-          </div>
-        </div>
-
-        <!-- 操作按钮 -->
-        <div class="card-actions">
-          <el-button
-            type="primary"
-            size="small"
-            @click="goToItemDetail(item.id)"
-            class="view-button"
-          >
-            查看详情
-          </el-button>
-          <el-button
-            type="info"
-            size="small"
-            @click="editItem(item.id)"
-            class="edit-button"
-            :disabled="item.status === 'SOLD'"
-          >
-            编辑
-          </el-button>
-          <el-button
-            type="warning"
-            size="small"
-            @click="toggleShelf(item)"
-            class="shelf-button"
-          >
+        <template #actions>
+          <el-button type="primary" size="small" @click.stop="goToItemDetail(item.id)">查看详情</el-button>
+          <el-button type="info" size="small" @click.stop="editItem(item.id)" :disabled="!canEdit(item)">编辑</el-button>
+          <el-button v-if="canToggleShelf(item)" type="warning" size="small" @click.stop="toggleShelf(item)">
             {{ item.status === 'ON_SALE' ? '下架' : '上架' }}
           </el-button>
-          <el-button
-            type="danger"
-            size="small"
-            @click="deleteItem(item.id)"
-            class="delete-button"
-          >
-            删除
-          </el-button>
-        </div>
-      </el-card>
+          <el-button v-if="canDelete(item)" type="danger" size="small" @click.stop="deleteItem(item.id)">删除</el-button>
+        </template>
+      </ItemCard>
     </div>
 
     <!-- 分页 -->
@@ -136,11 +76,19 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { Plus, View } from '@element-plus/icons-vue';
+import { Plus } from '@element-plus/icons-vue';
 import api from '../../api';
+import { useDictStore } from '../../store/dict.js';
+import PageHeader from '../../components/user/PageHeader.vue';
+import FilterTabs from '../../components/user/FilterTabs.vue';
+import ItemCard from '../../components/user/ItemCard.vue';
+import EmptyState from '../../components/user/EmptyState.vue';
 
-// 响应式数据
+const router = useRouter();
+const dictStore = useDictStore();
+
 const items = ref([]);
 const loading = ref(false);
 const error = ref('');
@@ -149,12 +97,23 @@ const pageSize = ref(12);
 const total = ref(0);
 const statusFilter = ref('');
 
-// 加载物品列表
+const filterTabs = [
+  { value: '', label: '全部' },
+  { value: 'ON_SALE', label: '在售' },
+  { value: 'SOLD', label: '已售出' },
+  { value: 'PENDING', label: '审核中' },
+  { value: 'OFF_SHELF', label: '已下架' }
+];
+
 const loadItems = async () => {
   loading.value = true;
   error.value = '';
   try {
-    const response = await api.user.getItems(statusFilter.value || undefined, currentPage.value, pageSize.value);
+    const response = await api.user.getItems(
+      statusFilter.value || undefined,
+      currentPage.value,
+      pageSize.value
+    );
     if (response.code === 200) {
       items.value = response.data.content || [];
       total.value = response.data.totalElements || 0;
@@ -163,87 +122,64 @@ const loadItems = async () => {
     }
   } catch (err) {
     error.value = '网络错误，请稍后重试';
-    console.error('加载物品失败:', err);
   } finally {
     loading.value = false;
   }
 };
 
-// 编辑物品
 const editItem = (id) => {
-  window.location.href = `/publish?id=${id}`;
+  window.location.href = `/publish?edit=${id}`;
 };
 
-// 删除物品
 const deleteItem = async (id) => {
   try {
-    await ElMessageBox.confirm(
-      '确定要删除这个物品吗？删除后无法恢复。',
-      '删除确认',
-      {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning',
-      }
-    );
-    
-    // 这里添加删除物品的API调用
-    // const response = await api.item.deleteItem(id);
-    // if (response.code === 0) {
-      // 从列表中移除
-      items.value = items.value.filter(item => item.id !== id);
-      total.value--;
-      ElMessage.success('删除成功');
-    // } else {
-    //   ElMessage.error(response.message || '删除失败');
-    // }
+    await ElMessageBox.confirm('确定要删除这个物品吗？删除后无法恢复。', '删除确认', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    });
+    items.value = items.value.filter((item) => item.id !== id);
+    total.value--;
+    ElMessage.success('删除成功');
   } catch (err) {
     if (err !== 'cancel') {
       ElMessage.error('删除失败');
-      console.error('删除物品失败:', err);
     }
   }
 };
 
-// 上下架操作
 const toggleShelf = async (item) => {
   try {
     const newStatus = item.status === 'ON_SALE' ? 'OFF_SHELF' : 'ON_SALE';
     const action = newStatus === 'ON_SALE' ? '上架' : '下架';
-    
-    await ElMessageBox.confirm(
-      `确定要${action}这个物品吗？`,
-      `${action}确认`,
-      {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'info',
-      }
-    );
-    
-    // 这里添加上下架的API调用
-    // const response = await api.item.updateStatus(item.id, newStatus);
-    // if (response.code === 0) {
-      // 更新本地状态
+    await ElMessageBox.confirm(`确定要${action}这个物品吗？`, `${action}确认`, {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'info',
+    });
+    let response;
+    if (newStatus === 'OFF_SHELF') {
+      response = await api.item.offShelf(item.id);
+    } else {
+      response = await api.item.onShelf(item.id);
+    }
+    if (response.code === 200) {
       item.status = newStatus;
       ElMessage.success(`${action}成功`);
-    // } else {
-    //   ElMessage.error(response.message || `${action}失败`);
-    // }
+    } else {
+      ElMessage.error(response.message || `${action}失败`);
+    }
   } catch (err) {
     if (err !== 'cancel') {
       ElMessage.error('操作失败');
-      console.error('上下架操作失败:', err);
     }
   }
 };
 
-// 跳转到物品详情
 const goToItemDetail = (id) => {
   window.location.href = `/item/${id}`;
 };
 
-// 格式化日期
 const formatDate = (dateString) => {
   if (!dateString) return '';
   const date = new Date(dateString);
@@ -251,50 +187,30 @@ const formatDate = (dateString) => {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
   });
 };
 
-// 获取状态类型
-const getStatusType = (status) => {
-  switch (status) {
-    case 'ON_SALE':
-      return 'success';
-    case 'SOLD':
-      return 'info';
-    case 'PENDING':
-      return 'warning';
-    case 'OFF_SHELF':
-      return 'danger';
-    default:
-      return 'info';
-  }
-};
-
-// 获取状态文本
 const getStatusText = (status) => {
-  switch (status) {
-    case 'ON_SALE':
-      return '在售';
-    case 'SOLD':
-      return '已售出';
-    case 'PENDING':
-      return '审核中';
-    case 'OFF_SHELF':
-      return '已下架';
-    default:
-      return status;
-  }
+  return dictStore.getDictLabel('ITEM_STATUS', status);
 };
 
-// 状态筛选变化
+const canEdit = (item) => {
+  return !(item.status === 'SOLD');
+};
+
+const canToggleShelf = (item) => {
+  return item.status !== 'PENDING';
+};
+
+const canDelete = (item) => {
+  return !(item.status === 'SOLD');
+};
+
 const handleStatusChange = () => {
   currentPage.value = 1;
   loadItems();
 };
 
-// 分页处理
 const handleSizeChange = (size) => {
   pageSize.value = size;
   currentPage.value = 1;
@@ -306,8 +222,8 @@ const handleCurrentChange = (page) => {
   loadItems();
 };
 
-// 页面挂载时加载数据
-onMounted(() => {
+onMounted(async () => {
+  await dictStore.preloadCommonDicts();
   loadItems();
 });
 </script>
