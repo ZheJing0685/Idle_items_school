@@ -80,11 +80,6 @@ public class StompAuthInterceptor implements ChannelInterceptor {
             return authValues.get(0);
         }
 
-        Principal principal = accessor.getUser();
-        if (principal instanceof UsernamePasswordAuthenticationToken) {
-            return null;
-        }
-
         return null;
     }
 }

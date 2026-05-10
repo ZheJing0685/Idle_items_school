@@ -63,7 +63,7 @@ public class RateLimitFilter implements Filter {
                     limit, window
             );
 
-            if (result != null && result > 0) {
+            if (result > 0) {
                 chain.doFilter(request, response);
             } else {
                 httpResponse.setStatus(429);

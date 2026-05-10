@@ -59,7 +59,7 @@ public class JwtTokenBlacklistService {
     public void invalidateAllUserTokens(Long userId) {
         String pattern = BLACKLIST_PREFIX + "user:" + userId + ":*";
         var keys = redisTemplate.keys(pattern);
-        if (keys != null && !keys.isEmpty()) {
+        if (!keys.isEmpty()) {
             redisTemplate.delete(keys);
             log.info("已使用户{}的所有Token失效", userId);
         }

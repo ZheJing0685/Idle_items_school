@@ -122,7 +122,7 @@ public class NotificationServiceImpl implements NotificationService {
                 } else {
                     // 等待一段时间后重试
                     try {
-                        Thread.sleep(1000 * attempt); // 递增等待时间
+                        Thread.sleep(1000L * attempt); // 递增等待时间
                     } catch (InterruptedException ie) {
                         Thread.currentThread().interrupt();
                         log.error("重试等待被中断");
