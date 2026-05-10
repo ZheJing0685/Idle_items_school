@@ -150,6 +150,19 @@ scripts/
 .githooks/
 GIT_WORKFLOW.md
 
+# Spec/plan/report files (not source code)
+.specs/
+.playwright-mcp/
+.trae_spec/
+doc/
+findings.md
+progress.md
+task_plan.md
+task_plan_backup.md
+vulnerabilities_report_*.md
+websocket-*-report.md
+修复报告.md
+
 
 # Database exports (may contain sensitive data)
 sql/idle_items_school.sql
