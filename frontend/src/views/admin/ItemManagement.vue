@@ -190,10 +190,7 @@
               <td class="col-image">
                 <div class="item-cell">
                   <div class="item-image">
-                    <img
-                      :src="getFirstImage(item)"
-                      :alt="item.title"
-                    />
+                    <img :src="getFirstImage(item)" :alt="item.title" />
                     <span v-if="item.isRecommended" class="recommend-badge"
                       >推荐</span
                     >
@@ -298,7 +295,9 @@
               </td>
               <td class="col-seller">
                 <div class="seller-cell">
-                  <span class="seller-name">{{ item.sellerNickname || '-' }}</span>
+                  <span class="seller-name">{{
+                    item.sellerNickname || '-'
+                  }}</span>
                   <span class="seller-id" v-if="item.sellerVerified"
                     >已认证</span
                   >
@@ -493,15 +492,9 @@
       <div class="item-detail" v-if="currentItem">
         <div class="detail-gallery">
           <div class="main-image">
-            <img
-              :src="getFirstImage(currentItem)"
-              :alt="currentItem.title"
-            />
+            <img :src="getFirstImage(currentItem)" :alt="currentItem.title" />
           </div>
-          <div
-            class="image-list"
-            v-if="parseImages(currentItem.images).length"
-          >
+          <div class="image-list" v-if="parseImages(currentItem.images).length">
             <img
               v-for="(img, idx) in parseImages(currentItem.images)"
               :key="idx"
@@ -514,11 +507,9 @@
         <div class="detail-info">
           <div class="detail-header">
             <h3 class="detail-title">{{ currentItem.title }}</h3>
-            <span
-              class="badge"
-              :class="getStatusClass(currentItem.status)"
-              >{{ getStatusText(currentItem.status) }}</span
-            >
+            <span class="badge" :class="getStatusClass(currentItem.status)">{{
+              getStatusText(currentItem.status)
+            }}</span>
           </div>
           <div class="detail-price">
             <span class="current-price">¥{{ currentItem.price }}</span>
@@ -613,9 +604,7 @@
               <span class="seller-school" v-if="currentItem.sellerVerified">
                 已认证
               </span>
-              <span class="seller-school" v-else>
-                未认证
-              </span>
+              <span class="seller-school" v-else> 未认证 </span>
             </div>
           </div>
           <div class="detail-reject" v-if="currentItem.rejectReason">
@@ -655,6 +644,9 @@
 import { ref, computed, onMounted } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import api from '../../api';
+import { useDictStore } from '../../store/dict.js';
+
+const dictStore = useDictStore();
 
 const searchKeyword = ref('');
 const itemStatus = ref('');
@@ -689,19 +681,11 @@ const getConditionClass = (condition) => {
 };
 
 const getConditionText = (condition) => {
-  const map = {
-    NEW: '全新',
-    LIKE_NEW: '几乎全新',
-    GOOD: '良好',
-    FAIR: '一般',
-    POOR: '较差',
-  };
-  return map[condition] || condition;
+  return dictStore.getDictLabel('ITEM_CONDITION', condition);
 };
 
 const getDeliveryText = (method) => {
-  const map = { 1: '自提', 2: '邮寄', 3: '送货上门' };
-  return map[method] || '自提';
+  return dictStore.getDictLabel('DELIVERY_METHOD', method);
 };
 
 const getStatusClass = (status) => {
@@ -717,15 +701,7 @@ const getStatusClass = (status) => {
 };
 
 const getStatusText = (status) => {
-  const map = {
-    DRAFT: '草稿',
-    PENDING: '待审核',
-    ON_SALE: '在售',
-    SOLD: '已售',
-    OFF_SHELF: '已下架',
-    REJECTED: '已驳回',
-  };
-  return map[status] || status;
+  return dictStore.getDictLabel('ITEM_STATUS', status);
 };
 
 const truncateText = (text, length) => {
@@ -964,7 +940,9 @@ const handleBulkDelete = () => {
         const results = await Promise.allSettled(
           selectedItems.value.map((id) => api.admin.items.deleteItem(id))
         );
-        const succeeded = results.filter(r => r.status === 'fulfilled').length;
+        const succeeded = results.filter(
+          (r) => r.status === 'fulfilled'
+        ).length;
         ElMessage.success(`已删除 ${succeeded} 个物品`);
         selectedItems.value = [];
         fetchItems();
@@ -975,9 +953,30 @@ const handleBulkDelete = () => {
     .catch(() => {});
 };
 
-const handleExport = () => ElMessage.info('导出功能开发中');
+const handleExport = async () => {
+  try {
+    const params = {};
+    if (searchKeyword.value) params.keyword = searchKeyword.value;
+    if (filterStatus.value) params.status = filterStatus.value;
+    if (filterCategory.value) params.categoryId = filterCategory.value;
 
-onMounted(() => {
+    const response = await api.admin.items.exportItems(params);
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `items_${new Date().getTime()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    ElMessage.success('导出成功');
+  } catch (error) {
+    ElMessage.error('导出失败');
+  }
+};
+
+onMounted(async () => {
+  // 加载字典数据
+  await dictStore.preloadCommonDicts();
   fetchItems();
   fetchCategories();
   fetchStats();

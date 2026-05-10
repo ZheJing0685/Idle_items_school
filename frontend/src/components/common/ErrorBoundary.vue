@@ -10,19 +10,19 @@
 </template>
 
 <script setup>
-import { ref, onErrorCaptured } from 'vue'
+import { ref, onErrorCaptured } from 'vue';
 
-const error = ref(null)
+const error = ref(null);
 
 onErrorCaptured((err) => {
-  error.value = err
-  return false
-})
+  error.value = err;
+  return false;
+});
 
 const handleRefresh = () => {
-  error.value = null
-  window.location.reload()
-}
+  error.value = null;
+  window.location.reload();
+};
 </script>
 
 <style scoped>

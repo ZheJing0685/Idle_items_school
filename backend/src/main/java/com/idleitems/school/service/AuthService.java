@@ -19,4 +19,18 @@ public interface AuthService {
     boolean validateToken(String token);
     
     String getUserIdFromToken(String token);
+    
+    /**
+     * 用户登出，使当前Token失效
+     * @param token 当前有效的JWT Token
+     */
+    void logout(String token);
+    
+    /**
+     * 修改密码，使该用户所有Token失效
+     * @param userId 用户ID
+     * @param oldPassword 旧密码
+     * @param newPassword 新密码
+     */
+    void changePassword(Long userId, String oldPassword, String newPassword);
 }

@@ -397,10 +397,10 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import itemStore from '../store/item';
+import { useItemStore } from '../store';
 import api from '../api';
 
-const store = itemStore();
+const store = useItemStore();
 
 const categories = ref([]);
 const featuredItems = ref([]);

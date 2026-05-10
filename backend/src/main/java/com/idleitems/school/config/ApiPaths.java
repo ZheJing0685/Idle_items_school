@@ -87,7 +87,7 @@ public class ApiPaths {
         public static final String CANCEL_PATH = "/{id}/cancel";
         public static final String PAY_PATH = "/{id}/pay";
         public static final String SHIP_PATH = "/{id}/ship";
-        public static final String CONFIRM_PATH = "/{id}/confirm";
+        public static final String CONFIRM_PATH = "/{id}/confirm-receive";
         public static final String REFUND_PATH = "/{id}/refund";
         // 完整路径
         public static final String CREATE = BASE + CREATE_PATH;
@@ -120,10 +120,12 @@ public class ApiPaths {
         public static final String PROFILE_PATH = "/profile";
         public static final String UPDATE_PATH = "/profile";
         public static final String VERIFICATION_PATH = "/verification";
+        public static final String STATS_PATH = "/stats";
         // 完整路径
         public static final String PROFILE = BASE + PROFILE_PATH;
         public static final String UPDATE = BASE + UPDATE_PATH;
         public static final String VERIFICATION = BASE + VERIFICATION_PATH;
+        public static final String STATS = BASE + STATS_PATH;
     }
 
     // 管理员相关
@@ -142,5 +144,37 @@ public class ApiPaths {
     // 健康检查
     public static class Health {
         public static final String BASE = "/actuator/health";
+    }
+
+    // 纠纷相关
+    public static class Dispute {
+        public static final String BASE = API_BASE + "/disputes";
+        public static final String CREATE_PATH = "";
+        public static final String LIST_PATH = "";
+        public static final String DETAIL_PATH = "/{id}";
+        public static final String REPLY_PATH = "/{id}/reply";
+        public static final String STATS_PATH = "/stats";
+        // 完整路径
+        public static final String CREATE = BASE + CREATE_PATH;
+        public static final String LIST = BASE + LIST_PATH;
+        public static final String DETAIL = BASE + DETAIL_PATH;
+        public static final String REPLY = BASE + REPLY_PATH;
+        public static final String STATS = BASE + STATS_PATH;
+    }
+
+    // 通知相关
+    public static class Notification {
+        public static final String BASE = API_BASE + "/notifications";
+        public static final String LIST_PATH = "";
+        public static final String UNREAD_COUNT_PATH = "/unread-count";
+        public static final String READ_PATH = "/{id}/read";
+        public static final String READ_ALL_PATH = "/read-all";
+        public static final String DELETE_PATH = "/{id}";
+        // 完整路径
+        public static final String LIST = BASE + LIST_PATH;
+        public static final String UNREAD_COUNT = BASE + UNREAD_COUNT_PATH;
+        public static final String READ = BASE + READ_PATH;
+        public static final String READ_ALL = BASE + READ_ALL_PATH;
+        public static final String DELETE = BASE + DELETE_PATH;
     }
 }

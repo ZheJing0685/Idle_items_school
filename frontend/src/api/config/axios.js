@@ -21,25 +21,25 @@ export const setUnauthorizedHandler = (handler) => {
 // Cookie操作工具函数
 const setCookie = (name, value, options = {}) => {
   let cookie = `${name}=${encodeURIComponent(value)}`;
-  
+
   if (options.expires) {
     const date = new Date();
-    date.setTime(date.getTime() + (options.expires * 24 * 60 * 60 * 1000));
+    date.setTime(date.getTime() + options.expires * 24 * 60 * 60 * 1000);
     cookie += `; expires=${date.toUTCString()}`;
   }
-  
+
   if (options.path) {
     cookie += `; path=${options.path}`;
   }
-  
+
   if (options.domain) {
     cookie += `; domain=${options.domain}`;
   }
-  
+
   if (options.secure) {
     cookie += '; secure';
   }
-  
+
   document.cookie = cookie;
 };
 
@@ -47,7 +47,7 @@ const getCookie = (name) => {
   const cookieName = `${name}=`;
   const decodedCookie = decodeURIComponent(document.cookie);
   const cookieArray = decodedCookie.split(';');
-  
+
   for (let i = 0; i < cookieArray.length; i++) {
     let cookie = cookieArray[i];
     while (cookie.charAt(0) === ' ') {
@@ -66,7 +66,7 @@ const deleteCookie = (name) => {
 
 const initToken = () => {
   // 从cookie中获取 token
-  const storedToken = getCookie('user:token');
+  const storedToken = getCookie('user_token');
   if (storedToken) {
     memoryToken = storedToken;
   }
@@ -171,10 +171,10 @@ instance.interceptors.response.use(
 
 export const setToken = (token) => {
   memoryToken = token;
-  setCookie('user:token', token, {
+  setCookie('user_token', token, {
     expires: 7,
     path: '/',
-    secure: window.location.protocol === 'https:'
+    secure: window.location.protocol === 'https:',
   });
 };
 
@@ -182,7 +182,7 @@ export const getToken = () => memoryToken;
 
 export const clearToken = () => {
   memoryToken = '';
-  deleteCookie('user:token');
+  deleteCookie('user_token');
   ErrorHandler.clearAuthStorage();
 };
 

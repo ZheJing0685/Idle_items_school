@@ -120,13 +120,21 @@
           />
         </div>
         <div class="filter-selects">
-          <select v-model="verificationStatus" class="filter-select" @change="handleSearch">
+          <select
+            v-model="verificationStatus"
+            class="filter-select"
+            @change="handleSearch"
+          >
             <option value="">全部状态</option>
             <option value="PENDING">待审核</option>
             <option value="APPROVED">已通过</option>
             <option value="REJECTED">已拒绝</option>
           </select>
-          <select v-model="verificationType" class="filter-select" @change="handleSearch">
+          <select
+            v-model="verificationType"
+            class="filter-select"
+            @change="handleSearch"
+          >
             <option value="">全部类型</option>
             <option value="1">身份证认证</option>
             <option value="2">学生证认证</option>
@@ -400,41 +408,71 @@
             <span class="detail-value">{{ currentVerification.realName }}</span>
           </div>
           <!-- 身份证认证信息 -->
-          <div v-if="currentVerification.verificationType == '1' || currentVerification.verificationType == 1" class="detail-row">
+          <div
+            v-if="
+              currentVerification.verificationType == '1' ||
+              currentVerification.verificationType == 1
+            "
+            class="detail-row"
+          >
             <span class="detail-label">身份证号：</span>
             <span class="detail-value">{{
               currentVerification.idCard || '无'
             }}</span>
           </div>
-          
+
           <!-- 学生证认证信息 -->
-          <div v-if="currentVerification.verificationType == '2' || currentVerification.verificationType == 2" class="detail-row">
+          <div
+            v-if="
+              currentVerification.verificationType == '2' ||
+              currentVerification.verificationType == 2
+            "
+            class="detail-row"
+          >
             <span class="detail-label">学号：</span>
             <span class="detail-value">{{
               currentVerification.studentId || '无'
             }}</span>
           </div>
-          <div v-if="currentVerification.verificationType == '2' || currentVerification.verificationType == 2" class="detail-row">
+          <div
+            v-if="
+              currentVerification.verificationType == '2' ||
+              currentVerification.verificationType == 2
+            "
+            class="detail-row"
+          >
             <span class="detail-label">学校：</span>
             <span class="detail-value">{{
               currentVerification.school || '无'
             }}</span>
           </div>
-          
+
           <!-- 教师证认证信息 -->
-          <div v-if="currentVerification.verificationType == '3' || currentVerification.verificationType == 3" class="detail-row">
+          <div
+            v-if="
+              currentVerification.verificationType == '3' ||
+              currentVerification.verificationType == 3
+            "
+            class="detail-row"
+          >
             <span class="detail-label">教师证号：</span>
             <span class="detail-value">{{
               currentVerification.teacherId || '无'
             }}</span>
           </div>
-          <div v-if="currentVerification.verificationType == '3' || currentVerification.verificationType == 3" class="detail-row">
+          <div
+            v-if="
+              currentVerification.verificationType == '3' ||
+              currentVerification.verificationType == 3
+            "
+            class="detail-row"
+          >
             <span class="detail-label">学校：</span>
             <span class="detail-value">{{
               currentVerification.school || '无'
             }}</span>
           </div>
-          
+
           <div class="detail-row">
             <span class="detail-label">认证类型：</span>
             <span class="detail-value">{{
@@ -475,7 +513,12 @@
           <h4>证件照片</h4>
           <div class="image-grid">
             <!-- 身份证认证照片 -->
-            <div v-if="currentVerification.verificationType == '1' || currentVerification.verificationType == 1">
+            <div
+              v-if="
+                currentVerification.verificationType == '1' ||
+                currentVerification.verificationType == 1
+              "
+            >
               <div v-if="currentVerification.idCardFront" class="image-item">
                 <el-image
                   :src="currentVerification.idCardFront"
@@ -495,9 +538,14 @@
                 <span class="image-caption">身份证反面</span>
               </div>
             </div>
-            
+
             <!-- 学生证认证照片 -->
-            <div v-if="currentVerification.verificationType == '2' || currentVerification.verificationType == 2">
+            <div
+              v-if="
+                currentVerification.verificationType == '2' ||
+                currentVerification.verificationType == 2
+              "
+            >
               <div v-if="currentVerification.studentCard" class="image-item">
                 <el-image
                   :src="currentVerification.studentCard"
@@ -508,9 +556,14 @@
                 <span class="image-caption">学生证</span>
               </div>
             </div>
-            
+
             <!-- 教师证认证照片 -->
-            <div v-if="currentVerification.verificationType == '3' || currentVerification.verificationType == 3">
+            <div
+              v-if="
+                currentVerification.verificationType == '3' ||
+                currentVerification.verificationType == 3
+              "
+            >
               <div v-if="currentVerification.teacherCard" class="image-item">
                 <el-image
                   :src="currentVerification.teacherCard"
@@ -543,6 +596,9 @@ import {
   ElButton,
 } from 'element-plus';
 import api from '../../api';
+import { useDictStore } from '../../store/dict.js';
+
+const dictStore = useDictStore();
 const searchKeyword = ref('');
 const verificationStatus = ref('');
 const verificationType = ref('');
@@ -569,11 +625,14 @@ const hasPendingSelected = computed(() =>
 );
 const hasImages = computed(() => {
   if (!currentVerification.value) return false;
-  
+
   const type = currentVerification.value.verificationType;
   if (type == '1' || type == 1) {
     // 身份证认证
-    return !!(currentVerification.value.idCardFront || currentVerification.value.idCardBack);
+    return !!(
+      currentVerification.value.idCardFront ||
+      currentVerification.value.idCardBack
+    );
   } else if (type == '2' || type == 2) {
     // 学生证认证
     return !!currentVerification.value.studentCard;
@@ -594,13 +653,14 @@ const getStatusClass = (status) => {
 };
 
 const getStatusText = (status) => {
-  const map = { PENDING: '待审核', APPROVED: '已通过', REJECTED: '已拒绝' };
-  return map[status] || status;
+  return dictStore.getDictLabel('VERIFICATION_STATUS', status);
 };
 
 const getTypeText = (type) => {
-  const map = { 1: '身份证认证', 2: '学生证认证', 3: '教师证认证' };
-  return map[type] || '未知类型';
+  // 将数字类型转换为枚举值
+  const typeMap = { 1: 'ID_CARD', 2: 'STUDENT_CARD', 3: 'TEACHER_CARD' };
+  const typeEnum = typeMap[type] || type;
+  return dictStore.getDictLabel('VERIFICATION_TYPE', typeEnum);
 };
 
 const maskIdNumber = (idNumber) => {
@@ -655,7 +715,12 @@ const fetchStats = async () => {
   try {
     const res = await api.admin.verifications.getStats();
     if (res.code === 200) {
-      stats.value = res.data || { total: 0, pending: 0, approved: 0, rejected: 0 };
+      stats.value = res.data || {
+        total: 0,
+        pending: 0,
+        approved: 0,
+        rejected: 0,
+      };
     }
   } catch (error) {
     console.error('Error fetching stats:', error);
@@ -783,7 +848,10 @@ const handleBulkReject = async () => {
       }
     );
 
-    const res = await api.admin.verifications.batchReject(selectedItems.value, reason);
+    const res = await api.admin.verifications.batchReject(
+      selectedItems.value,
+      reason
+    );
     if (res.code === 200) {
       ElMessage.success(`批量操作成功`);
       selectedItems.value = [];
@@ -800,10 +868,15 @@ const handleBulkReject = async () => {
   }
 };
 
-onMounted(() => {
+onMounted(async () => {
+  // 加载字典数据
+  await dictStore.preloadCommonDicts();
   fetchVerifications();
   fetchStats();
 });
 </script>
 
-<style scoped src="../../styles/pages/admin-verification-management.css"></style>
+<style
+  scoped
+  src="../../styles/pages/admin-verification-management.css"
+></style>

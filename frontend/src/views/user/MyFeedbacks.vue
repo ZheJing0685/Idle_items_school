@@ -8,7 +8,12 @@
     </div>
 
     <div v-loading="loading" class="feedback-table-card">
-      <el-table :data="feedbacks" stripe style="width: 100%" empty-text="暂无反馈记录">
+      <el-table
+        :data="feedbacks"
+        stripe
+        style="width: 100%"
+        empty-text="暂无反馈记录"
+      >
         <el-table-column label="反馈类型" width="120">
           <template #default="{ row }">
             <el-tag :type="feedbackTypeTag(row.feedbackType)" size="small">
@@ -33,7 +38,11 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="管理员回复" min-width="180" show-overflow-tooltip>
+        <el-table-column
+          label="管理员回复"
+          min-width="180"
+          show-overflow-tooltip
+        >
           <template #default="{ row }">
             {{ row.adminReply || '-' }}
           </template>
@@ -98,7 +107,10 @@ const formatTime = (time) => {
 const loadFeedbacks = async () => {
   loading.value = true;
   try {
-    const res = await api.category.getMyFeedbacks({ page: currentPage.value, size: pageSize.value });
+    const res = await api.category.getMyFeedbacks({
+      page: currentPage.value,
+      size: pageSize.value,
+    });
     if (res.code === 200) {
       feedbacks.value = res.data.content || res.data || [];
       total.value = res.data.totalElements || feedbacks.value.length || 0;

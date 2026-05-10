@@ -29,6 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(OrderController.class)
 @AutoConfigureMockMvc(addFilters = false)
 @DisplayName("OrderController 接口测试")
+@SuppressWarnings("deprecation")
 class OrderControllerTest {
 
     @Autowired
@@ -37,9 +38,11 @@ class OrderControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @SuppressWarnings("deprecation")
     @MockBean
     private OrderService orderService;
 
+    @SuppressWarnings("deprecation")
     @MockBean
     private JwtUtil jwtUtil;
 

@@ -5,6 +5,7 @@ const user = {
     instance.get('/items/user', { params: { status, page, size } }),
   getProfile: () => instance.get('/users/profile'),
   updateProfile: (data) => instance.put('/users/profile', data),
+  getStats: () => instance.get('/user/stats'),
 };
 
 export default user;

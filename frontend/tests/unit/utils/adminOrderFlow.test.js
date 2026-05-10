@@ -49,7 +49,7 @@ describe('adminOrderFlow', () => {
     expect(canAdminApproveRefund('PENDING_PAYMENT')).toBe(false);
     expect(
       getAdminOrderActions('PAID').map(
-        (action) => action.name
+        (action) => action.label
       )
     ).toEqual(['查看详情', '取消订单', '标记发货', '处理退款']);
   });

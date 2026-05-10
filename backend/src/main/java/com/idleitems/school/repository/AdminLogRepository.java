@@ -32,4 +32,33 @@ public interface AdminLogRepository extends JpaRepository<AdminLog, Long> {
     List<Object[]> findTop5AdminsByOperationCount();
 
     Long countByCreatedAtBetween(LocalDateTime start, LocalDateTime end);
+
+    @Query("SELECT al FROM AdminLog al WHERE " +
+           "(:keyword IS NULL OR al.operation LIKE %:keyword% OR al.targetType LIKE %:keyword%) AND " +
+           "(:adminId IS NULL OR al.adminId = :adminId) AND " +
+           "(:targetType IS NULL OR al.targetType = :targetType) AND " +
+           "(:startDate IS NULL OR al.createdAt >= :startDate) AND " +
+           "(:endDate IS NULL OR al.createdAt <= :endDate) " +
+           "ORDER BY al.createdAt DESC")
+    Page<AdminLog> findByFilters(
+            @Param("keyword") String keyword,
+            @Param("adminId") Long adminId,
+            @Param("targetType") String targetType,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate,
+            Pageable pageable);
+
+    @Query("SELECT al FROM AdminLog al WHERE " +
+           "(:keyword IS NULL OR al.operation LIKE %:keyword% OR al.targetType LIKE %:keyword%) AND " +
+           "(:adminId IS NULL OR al.adminId = :adminId) AND " +
+           "(:targetType IS NULL OR al.targetType = :targetType) AND " +
+           "(:startDate IS NULL OR al.createdAt >= :startDate) AND " +
+           "(:endDate IS NULL OR al.createdAt <= :endDate) " +
+           "ORDER BY al.createdAt DESC")
+    List<AdminLog> findAllByFilters(
+            @Param("keyword") String keyword,
+            @Param("adminId") Long adminId,
+            @Param("targetType") String targetType,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate);
 }

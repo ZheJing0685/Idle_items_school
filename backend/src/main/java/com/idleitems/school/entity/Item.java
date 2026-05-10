@@ -78,6 +78,9 @@ public class Item {
     @Column(name = "contact_phone", length = 20)
     private String contactPhone;
 
+    @Column(name = "contact_info", length = 100)
+    private String contactInfo;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "item_condition", nullable = false)
     private ItemCondition condition = ItemCondition.GOOD;

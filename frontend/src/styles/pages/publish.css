@@ -31,6 +31,7 @@
   font-size: var(--text-base);
   color: var(--text-muted);
   margin: 0;
+  max-width: none;
 }
 
 .publish-layout {

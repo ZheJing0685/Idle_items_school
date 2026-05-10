@@ -6,10 +6,14 @@ const auth = {
   login: (data) => instance.post(API_PATHS.AUTH.LOGIN, data),
   register: (data) => instance.post(API_PATHS.AUTH.REGISTER, data),
   getCurrentUser: () =>
-    requestManager.request(API_PATHS.AUTH.ME, () => instance.get(API_PATHS.AUTH.ME), {
-      useCache: true,
-      useMerge: true,
-    }),
+    requestManager.request(
+      API_PATHS.AUTH.ME,
+      () => instance.get(API_PATHS.AUTH.ME),
+      {
+        useCache: true,
+        useMerge: true,
+      }
+    ),
   refreshToken: (data) => instance.post(API_PATHS.AUTH.REFRESH, data),
 };
 

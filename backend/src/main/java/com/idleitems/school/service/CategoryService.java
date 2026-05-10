@@ -41,6 +41,7 @@ public class CategoryService {
     private static final String CATEGORIES_CACHE_KEY = "categories:all";
     private static final String CATEGORY_TREE_CACHE_KEY = "categories:tree";
 
+    @SuppressWarnings("unchecked")
     public List<Map<String, Object>> getAllCategories() {
         try {
             Object cached = cacheManager.get(CATEGORIES_CACHE_KEY);
@@ -78,6 +79,7 @@ public class CategoryService {
         return result;
     }
 
+    @SuppressWarnings("unchecked")
     public List<Map<String, Object>> getCategoryTree() {
         try {
             Object cached = cacheManager.get(CATEGORY_TREE_CACHE_KEY);

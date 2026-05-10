@@ -34,12 +34,12 @@ describe('orderFlow', () => {
   it('returns buyer actions based on order status', () => {
     expect(
       getOrderActions(OrderStatus.PENDING_PAYMENT, 'buyer').map(
-        (action) => action.name
+        (action) => action.label
       )
     ).toEqual(['付款', '取消订单']);
 
     expect(
-      getOrderActions(OrderStatus.COMPLETED, 'buyer').map((action) => action.name)
+      getOrderActions(OrderStatus.COMPLETED, 'buyer').map((action) => action.label)
     ).toEqual(['评价']);
 
     expect(
@@ -50,9 +50,9 @@ describe('orderFlow', () => {
   it('returns seller actions and hints correctly', () => {
     expect(
       getOrderActions(OrderStatus.PENDING_SHIPMENT, 'seller').map(
-        (action) => action.name
+        (action) => action.label
       )
-    ).toEqual(['发货']);
+    ).toEqual(['确认发货']);
 
     expect(
       getOrderHint(OrderStatus.SHIPPED, 'seller')
@@ -60,7 +60,7 @@ describe('orderFlow', () => {
     
     expect(
       getOrderHint(OrderStatus.PENDING_SHIPMENT, 'seller')
-    ).toBe('请尽快发货，避免影响买家体验');
+    ).toBe('买家已付款，请尽快确认发货');
   });
 
   it('sanitizes views and statuses', () => {

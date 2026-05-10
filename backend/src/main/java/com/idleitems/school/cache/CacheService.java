@@ -43,6 +43,7 @@ public class CacheService {
         redisTemplate.delete(key);
     }
 
+    @SuppressWarnings("deprecation")
     public void deletePattern(String pattern) {
         ScanOptions options = ScanOptions.scanOptions().match(pattern).count(100).build();
         redisTemplate.execute((RedisConnection connection) -> {
@@ -95,6 +96,7 @@ public class CacheService {
         redisTemplate.opsForSet().remove(key, values);
     }
 
+    @SuppressWarnings("deprecation")
     public void clearAll() {
         ScanOptions options = ScanOptions.scanOptions().match("*").count(100).build();
         redisTemplate.execute((RedisConnection connection) -> {

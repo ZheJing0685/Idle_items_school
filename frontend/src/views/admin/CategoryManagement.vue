@@ -8,7 +8,12 @@
     <div class="stats-row">
       <div class="stat-card">
         <div class="stat-icon stat-icon-total">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+          >
             <path d="M4 6h16M4 10h16M4 14h16M4 18h16" />
           </svg>
         </div>
@@ -19,7 +24,12 @@
       </div>
       <div class="stat-card">
         <div class="stat-icon stat-icon-active">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+          >
             <circle cx="12" cy="12" r="9" />
             <path d="M12 7v5l3 3" />
           </svg>
@@ -31,7 +41,12 @@
       </div>
       <div class="stat-card">
         <div class="stat-icon stat-icon-level1">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+          >
             <path d="M12 2L2 7l10 5 10-5-10-5z" />
             <path d="M2 17l10 5 10-5" />
             <path d="M2 12l10 5 10-5" />
@@ -44,7 +59,12 @@
       </div>
       <div class="stat-card">
         <div class="stat-icon stat-icon-level2">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+          >
             <path d="M3 12s0-2 2-2 2 2 2 2-2 2-2 2" />
             <path d="M13 12s0-2 2-2 2 2 2 2-2 2-2 2" />
             <path d="M3 6s0-2 2-2 2 2 2 2-2 2-2 2" />
@@ -65,14 +85,32 @@
         <div class="tree-header">
           <h3 class="tree-title">分类结构</h3>
           <div class="tree-actions">
-            <button class="btn btn-icon" @click="handleExpandAll" :title="allExpanded ? '全部收起' : '全部展开'">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <button
+              class="btn btn-icon"
+              @click="handleExpandAll"
+              :title="allExpanded ? '全部收起' : '全部展开'"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+              >
                 <path v-if="allExpanded" d="M7 15l5-5 5 5" />
                 <path v-else d="M7 9l5 5 5-5" />
               </svg>
             </button>
-            <button class="btn btn-icon" @click="handleRefreshTree" title="刷新">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <button
+              class="btn btn-icon"
+              @click="handleRefreshTree"
+              title="刷新"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+              >
                 <path d="M21.5 2v6h-6M2.5 22v-6h6" />
                 <path d="M2 12A10 10 0 1 0 22 12" />
               </svg>
@@ -81,7 +119,13 @@
         </div>
 
         <div class="tree-search">
-          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg
+            class="search-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
             <circle cx="11" cy="11" r="8" />
             <path d="M21 21l-4.35-4.35" />
           </svg>
@@ -95,16 +139,27 @@
 
         <div class="tree-toolbar">
           <button class="btn btn-primary btn-sm" @click="handleAddRoot">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+            >
               <path d="M12 5v14M5 12h14" />
             </svg>
             添加一级分类
           </button>
           <div class="tree-batch" v-if="selectedTreeKeys.length > 0">
             <span class="batch-count">{{ selectedTreeKeys.length }} 项</span>
-            <button class="btn btn-success btn-xs" @click="handleBatchEnable">启用</button>
-            <button class="btn btn-warning btn-xs" @click="handleBatchDisable">禁用</button>
-            <button class="btn btn-danger btn-xs" @click="handleBatchDelete">删除</button>
+            <button class="btn btn-success btn-xs" @click="handleBatchEnable">
+              启用
+            </button>
+            <button class="btn btn-warning btn-xs" @click="handleBatchDisable">
+              禁用
+            </button>
+            <button class="btn btn-danger btn-xs" @click="handleBatchDelete">
+              删除
+            </button>
           </div>
         </div>
 
@@ -131,15 +186,31 @@
                   </span>
                   <span class="tree-node-name">{{ data.name }}</span>
                   <span class="tree-node-count">{{ data.itemCount || 0 }}</span>
-                  <span class="tree-node-status" :class="data.status ? 'status-active' : 'status-inactive'">
+                  <span
+                    class="tree-node-status"
+                    :class="data.status ? 'status-active' : 'status-inactive'"
+                  >
                     {{ data.status ? '启用' : '禁用' }}
                   </span>
                 </div>
                 <div class="tree-node-actions" @click.stop>
-                  <button class="tree-action-btn" @click="handleEditNode(data)" title="编辑">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                      <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
-                      <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+                  <button
+                    class="tree-action-btn"
+                    @click="handleEditNode(data)"
+                    title="编辑"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                    >
+                      <path
+                        d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"
+                      />
+                      <path
+                        d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"
+                      />
                     </svg>
                   </button>
                   <button
@@ -148,13 +219,29 @@
                     @click="handleAddChild(data)"
                     title="添加子分类"
                   >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                    >
                       <path d="M12 5v14M5 12h14" />
                     </svg>
                   </button>
-                  <button class="tree-action-btn tree-action-danger" @click="handleDeleteNode(data)" title="删除">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                      <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+                  <button
+                    class="tree-action-btn tree-action-danger"
+                    @click="handleDeleteNode(data)"
+                    title="删除"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                    >
+                      <path
+                        d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"
+                      />
                     </svg>
                   </button>
                 </div>
@@ -163,8 +250,15 @@
           </el-tree>
 
           <div class="tree-empty" v-if="filteredTreeData.length === 0">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+            >
+              <path
+                d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+              />
             </svg>
             <span>暂无分类数据</span>
           </div>
@@ -174,7 +268,12 @@
       <div class="detail-panel">
         <template v-if="panelMode === 'empty'">
           <div class="detail-empty">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+            >
               <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
               <path d="M3 9h18M9 21V9" />
             </svg>
@@ -190,17 +289,36 @@
                 <img :src="currentCategory.icon" :alt="currentCategory.name" />
               </div>
               <div class="detail-icon detail-icon-placeholder" v-else>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                >
+                  <path
+                    d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                  />
                 </svg>
               </div>
               <div class="detail-title-group">
                 <h3 class="detail-name">{{ currentCategory.name }}</h3>
                 <div class="detail-badges">
-                  <span class="badge" :class="currentCategory.level === 1 ? 'badge-primary' : 'badge-info'">
+                  <span
+                    class="badge"
+                    :class="
+                      currentCategory.level === 1
+                        ? 'badge-primary'
+                        : 'badge-info'
+                    "
+                  >
                     {{ currentCategory.level }}级分类
                   </span>
-                  <span class="badge" :class="currentCategory.status ? 'badge-success' : 'badge-danger'">
+                  <span
+                    class="badge"
+                    :class="
+                      currentCategory.status ? 'badge-success' : 'badge-danger'
+                    "
+                  >
                     {{ currentCategory.status ? '启用' : '禁用' }}
                   </span>
                 </div>
@@ -208,9 +326,18 @@
             </div>
             <div class="detail-header-right">
               <button class="btn btn-primary btn-sm" @click="handleEditCurrent">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
-                  <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                >
+                  <path
+                    d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"
+                  />
+                  <path
+                    d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"
+                  />
                 </svg>
                 编辑
               </button>
@@ -231,7 +358,9 @@
                 </div>
                 <div class="info-item">
                   <span class="info-label">父分类</span>
-                  <span class="info-value">{{ currentCategory.parentName || '无（一级分类）' }}</span>
+                  <span class="info-value">{{
+                    currentCategory.parentName || '无（一级分类）'
+                  }}</span>
                 </div>
                 <div class="info-item">
                   <span class="info-label">排序权重</span>
@@ -239,11 +368,20 @@
                 </div>
                 <div class="info-item">
                   <span class="info-label">物品数量</span>
-                  <span class="info-value">{{ currentCategory.itemCount || 0 }}</span>
+                  <span class="info-value">{{
+                    currentCategory.itemCount || 0
+                  }}</span>
                 </div>
                 <div class="info-item">
                   <span class="info-label">状态</span>
-                  <span class="info-value" :class="currentCategory.status ? 'status-active' : 'status-inactive'">
+                  <span
+                    class="info-value"
+                    :class="
+                      currentCategory.status
+                        ? 'status-active'
+                        : 'status-inactive'
+                    "
+                  >
                     {{ currentCategory.status ? '启用' : '禁用' }}
                   </span>
                 </div>
@@ -260,11 +398,15 @@
               <div class="info-grid">
                 <div class="info-item">
                   <span class="info-label">创建时间</span>
-                  <span class="info-value">{{ formatDateTime(currentCategory.createdAt) }}</span>
+                  <span class="info-value">{{
+                    formatDateTime(currentCategory.createdAt)
+                  }}</span>
                 </div>
                 <div class="info-item">
                   <span class="info-label">更新时间</span>
-                  <span class="info-value">{{ formatDateTime(currentCategory.updatedAt) }}</span>
+                  <span class="info-value">{{
+                    formatDateTime(currentCategory.updatedAt)
+                  }}</span>
                 </div>
               </div>
             </div>
@@ -276,11 +418,20 @@
           </div>
         </template>
 
-        <template v-if="(panelMode === 'edit' || panelMode === 'create') && editForm">
+        <template
+          v-if="(panelMode === 'edit' || panelMode === 'create') && editForm"
+        >
           <div class="edit-header">
-            <h3 class="edit-title">{{ panelMode === 'edit' ? '编辑分类' : '新增分类' }}</h3>
+            <h3 class="edit-title">
+              {{ panelMode === 'edit' ? '编辑分类' : '新增分类' }}
+            </h3>
             <button class="btn btn-ghost btn-sm" @click="handleCancelEdit">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+              >
                 <path d="M18 6L6 18M6 6l12 12" />
               </svg>
               取消
@@ -288,13 +439,25 @@
           </div>
 
           <div class="edit-body">
-            <el-form :model="editForm" label-width="100px" class="category-form">
+            <el-form
+              :model="editForm"
+              label-width="100px"
+              class="category-form"
+            >
               <el-form-item label="分类名称" required>
-                <el-input v-model="editForm.name" maxlength="50" placeholder="请输入分类名称" />
+                <el-input
+                  v-model="editForm.name"
+                  maxlength="50"
+                  placeholder="请输入分类名称"
+                />
               </el-form-item>
 
               <el-form-item label="父分类">
-                <el-select v-model="editForm.parentId" placeholder="选择父分类" style="width: 100%">
+                <el-select
+                  v-model="editForm.parentId"
+                  placeholder="选择父分类"
+                  style="width: 100%"
+                >
                   <el-option value="0" label="一级分类" />
                   <el-option
                     v-for="cat in level1Categories"
@@ -306,11 +469,20 @@
               </el-form-item>
 
               <el-form-item label="排序">
-                <el-input-number v-model="editForm.sort" :min="1" :max="999" :step="1" />
+                <el-input-number
+                  v-model="editForm.sort"
+                  :min="1"
+                  :max="999"
+                  :step="1"
+                />
               </el-form-item>
 
               <el-form-item label="状态">
-                <el-switch v-model="editForm.status" :active-value="1" :inactive-value="0" />
+                <el-switch
+                  v-model="editForm.status"
+                  :active-value="1"
+                  :inactive-value="0"
+                />
               </el-form-item>
 
               <el-form-item label="分类图标">
@@ -322,15 +494,31 @@
                   :before-upload="beforeIconUpload"
                 >
                   <div class="upload-area" v-if="!editForm.icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                    >
+                      <path
+                        d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"
+                      />
                     </svg>
                     <span>点击上传图标</span>
                   </div>
                   <div class="icon-preview" v-else>
                     <img :src="editForm.icon" :alt="editForm.name" />
-                    <button type="button" class="remove-btn" @click.stop="editForm.icon = ''">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <button
+                      type="button"
+                      class="remove-btn"
+                      @click.stop="editForm.icon = ''"
+                    >
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.5"
+                      >
                         <circle cx="12" cy="12" r="10" />
                         <path d="M15 9l-6 6M9 9l6 6" />
                       </svg>
@@ -352,8 +540,14 @@
 
               <el-form-item>
                 <div class="edit-actions">
-                  <button class="btn btn-ghost" @click="handleCancelEdit">取消</button>
-                  <button class="btn btn-primary" @click="handleSave" :disabled="saving">
+                  <button class="btn btn-ghost" @click="handleCancelEdit">
+                    取消
+                  </button>
+                  <button
+                    class="btn btn-primary"
+                    @click="handleSave"
+                    :disabled="saving"
+                  >
                     {{ saving ? '保存中...' : '保存' }}
                   </button>
                 </div>
@@ -369,7 +563,11 @@
         <el-tab-pane label="分类管理" name="management">
           <div class="tab-toolbar">
             <div class="tab-filters">
-              <select v-model="tableStatus" class="filter-select" @change="fetchTableCategories">
+              <select
+                v-model="tableStatus"
+                class="filter-select"
+                @change="fetchTableCategories"
+              >
                 <option value="">全部状态</option>
                 <option value="1">启用</option>
                 <option value="0">禁用</option>
@@ -377,14 +575,28 @@
             </div>
             <div class="tab-actions">
               <button class="btn btn-ghost btn-sm" @click="handleExport">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                >
+                  <path
+                    d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"
+                  />
                 </svg>
                 导出
               </button>
               <button class="btn btn-ghost btn-sm" @click="triggerImport">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" />
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                >
+                  <path
+                    d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"
+                  />
                 </svg>
                 导入
               </button>
@@ -403,7 +615,11 @@
               <thead>
                 <tr>
                   <th class="col-checkbox">
-                    <input type="checkbox" @change="handleSelectAll" :checked="isAllSelected" />
+                    <input
+                      type="checkbox"
+                      @change="handleSelectAll"
+                      :checked="isAllSelected"
+                    />
                   </th>
                   <th class="col-name">分类名称</th>
                   <th class="col-level">级别</th>
@@ -415,39 +631,71 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="category in tableCategories" :key="category.id" class="table-row">
+                <tr
+                  v-for="category in tableCategories"
+                  :key="category.id"
+                  class="table-row"
+                >
                   <td class="col-checkbox">
-                    <input type="checkbox" v-model="selectedCategories" :value="category.id" />
+                    <input
+                      type="checkbox"
+                      v-model="selectedCategories"
+                      :value="category.id"
+                    />
                   </td>
                   <td class="col-name">
                     <div class="category-cell">
-                      <span class="category-name" :style="{ paddingLeft: (category.level - 1) * 20 + 'px' }">
-                        <span v-if="category.level > 1" class="level-indicator"></span>
+                      <span
+                        class="category-name"
+                        :style="{
+                          paddingLeft: (category.level - 1) * 20 + 'px',
+                        }"
+                      >
+                        <span
+                          v-if="category.level > 1"
+                          class="level-indicator"
+                        ></span>
                         {{ category.name }}
                       </span>
                     </div>
                   </td>
                   <td class="col-level">
-                    <span class="badge" :class="category.level === 1 ? 'badge-primary' : 'badge-info'">
+                    <span
+                      class="badge"
+                      :class="
+                        category.level === 1 ? 'badge-primary' : 'badge-info'
+                      "
+                    >
                       {{ category.level }}级
                     </span>
                   </td>
                   <td class="col-parent">
-                    <span class="parent-name">{{ category.parentName || '无' }}</span>
+                    <span class="parent-name">{{
+                      category.parentName || '无'
+                    }}</span>
                   </td>
                   <td class="col-sort">
                     <span class="sort-value">{{ category.sort }}</span>
                   </td>
                   <td class="col-count">
-                    <span class="item-count">{{ category.itemCount || 0 }}</span>
+                    <span class="item-count">{{
+                      category.itemCount || 0
+                    }}</span>
                   </td>
                   <td class="col-status">
-                    <span class="status-tag" :class="category.status ? 'status-active' : 'status-inactive'">
+                    <span
+                      class="status-tag"
+                      :class="
+                        category.status ? 'status-active' : 'status-inactive'
+                      "
+                    >
                       {{ category.status ? '启用' : '禁用' }}
                     </span>
                   </td>
                   <td class="col-date">
-                    <span class="create-time">{{ formatDate(category.createdAt) }}</span>
+                    <span class="create-time">{{
+                      formatDate(category.createdAt)
+                    }}</span>
                   </td>
                 </tr>
               </tbody>
@@ -459,31 +707,69 @@
               已选择 <strong>{{ selectedCategories.length }}</strong> 项
             </div>
             <div class="bulk-actions">
-              <button class="btn btn-sm btn-success" @click="handleBulkEnable">批量启用</button>
-              <button class="btn btn-sm btn-warning" @click="handleBulkDisable">批量禁用</button>
-              <button class="btn btn-sm btn-danger" @click="handleBulkDelete">批量删除</button>
+              <button class="btn btn-sm btn-success" @click="handleBulkEnable">
+                批量启用
+              </button>
+              <button class="btn btn-sm btn-warning" @click="handleBulkDisable">
+                批量禁用
+              </button>
+              <button class="btn btn-sm btn-danger" @click="handleBulkDelete">
+                批量删除
+              </button>
             </div>
           </div>
 
           <div class="pagination-wrapper">
             <div class="pagination-info">
-              显示 {{ (tablePage - 1) * tablePageSize + 1 }} - {{ Math.min(tablePage * tablePageSize, tableTotal) }} 条，共 {{ tableTotal }} 条
+              显示 {{ (tablePage - 1) * tablePageSize + 1 }} -
+              {{ Math.min(tablePage * tablePageSize, tableTotal) }} 条，共
+              {{ tableTotal }} 条
             </div>
             <div class="pagination-controls">
-              <select v-model="tablePageSize" class="page-size-select" @change="handleTableSizeChange">
+              <select
+                v-model="tablePageSize"
+                class="page-size-select"
+                @change="handleTableSizeChange"
+              >
                 <option :value="10">10 条/页</option>
                 <option :value="20">20 条/页</option>
                 <option :value="50">50 条/页</option>
               </select>
               <div class="pagination-buttons">
-                <button class="page-btn" :disabled="tablePage === 1" @click="tablePage--; fetchTableCategories()">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <button
+                  class="page-btn"
+                  :disabled="tablePage === 1"
+                  @click="
+                    tablePage--;
+                    fetchTableCategories();
+                  "
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
                     <path d="M15 18l-6-6 6-6" />
                   </svg>
                 </button>
-                <span class="page-indicator">{{ tablePage }} / {{ tableTotalPages }}</span>
-                <button class="page-btn" :disabled="tablePage >= tableTotalPages" @click="tablePage++; fetchTableCategories()">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <span class="page-indicator"
+                  >{{ tablePage }} / {{ tableTotalPages }}</span
+                >
+                <button
+                  class="page-btn"
+                  :disabled="tablePage >= tableTotalPages"
+                  @click="
+                    tablePage++;
+                    fetchTableCategories();
+                  "
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
                     <path d="M9 18l6-6-6-6" />
                   </svg>
                 </button>
@@ -507,7 +793,10 @@
               <tbody>
                 <tr v-for="log in changeLogs" :key="log.id" class="table-row">
                   <td>
-                    <span class="badge" :class="getLogTypeClass(log.operationType)">
+                    <span
+                      class="badge"
+                      :class="getLogTypeClass(log.operationType)"
+                    >
                       {{ log.operationType }}
                     </span>
                   </td>
@@ -526,19 +815,43 @@
           </div>
 
           <div class="pagination-wrapper">
-            <div class="pagination-info">
-              共 {{ logTotal }} 条记录
-            </div>
+            <div class="pagination-info">共 {{ logTotal }} 条记录</div>
             <div class="pagination-controls">
               <div class="pagination-buttons">
-                <button class="page-btn" :disabled="logPage === 1" @click="logPage--; fetchChangeLogs()">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <button
+                  class="page-btn"
+                  :disabled="logPage === 1"
+                  @click="
+                    logPage--;
+                    fetchChangeLogs();
+                  "
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
                     <path d="M15 18l-6-6 6-6" />
                   </svg>
                 </button>
-                <span class="page-indicator">{{ logPage }} / {{ logTotalPages }}</span>
-                <button class="page-btn" :disabled="logPage >= logTotalPages" @click="logPage++; fetchChangeLogs()">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <span class="page-indicator"
+                  >{{ logPage }} / {{ logTotalPages }}</span
+                >
+                <button
+                  class="page-btn"
+                  :disabled="logPage >= logTotalPages"
+                  @click="
+                    logPage++;
+                    fetchChangeLogs();
+                  "
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
                     <path d="M9 18l6-6-6-6" />
                   </svg>
                 </button>
@@ -586,10 +899,16 @@ const logTotal = ref(0);
 
 const treeProps = { children: 'children', label: 'name' };
 
-const tableTotalPages = computed(() => Math.ceil(tableTotal.value / tablePageSize.value) || 1);
-const logTotalPages = computed(() => Math.ceil(logTotal.value / logPageSize.value) || 1);
+const tableTotalPages = computed(
+  () => Math.ceil(tableTotal.value / tablePageSize.value) || 1
+);
+const logTotalPages = computed(
+  () => Math.ceil(logTotal.value / logPageSize.value) || 1
+);
 const isAllSelected = computed(
-  () => tableCategories.value.length > 0 && selectedCategories.value.length === tableCategories.value.length
+  () =>
+    tableCategories.value.length > 0 &&
+    selectedCategories.value.length === tableCategories.value.length
 );
 
 const filteredTreeData = computed(() => {
@@ -608,7 +927,12 @@ const buildTree = (list) => {
     map[item.id] = { ...item, children: [] };
   });
   list.forEach((item) => {
-    if (item.parentId && item.parentId !== '0' && item.parentId !== 0 && map[item.parentId]) {
+    if (
+      item.parentId &&
+      item.parentId !== '0' &&
+      item.parentId !== 0 &&
+      map[item.parentId]
+    ) {
       map[item.parentId].children.push(map[item.id]);
     } else {
       roots.push(map[item.id]);
@@ -647,12 +971,12 @@ const formatDateTime = (dateString) => {
 
 const getLogTypeClass = (type) => {
   const map = {
-    '创建': 'badge-success',
-    '编辑': 'badge-primary',
-    '删除': 'badge-danger',
-    '启用': 'badge-success',
-    '禁用': 'badge-warning',
-    '导入': 'badge-info',
+    创建: 'badge-success',
+    编辑: 'badge-primary',
+    删除: 'badge-danger',
+    启用: 'badge-success',
+    禁用: 'badge-warning',
+    导入: 'badge-info',
   };
   return map[type] || 'badge-info';
 };
@@ -768,7 +1092,10 @@ const handleEditNode = (data) => {
 
 const handleEditCurrent = () => {
   if (!currentCategory.value) return;
-  editForm.value = { ...currentCategory.value, status: currentCategory.value.status ? 1 : 0 };
+  editForm.value = {
+    ...currentCategory.value,
+    status: currentCategory.value.status ? 1 : 0,
+  };
   panelMode.value = 'edit';
 };
 
@@ -820,29 +1147,33 @@ const handleDeleteNode = (data) => {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning',
-  }).then(async () => {
-    try {
-      const res = await api.admin.categories.deleteCategory(data.id);
-      if (res.code === 200) {
-        ElMessage.success('分类已删除');
-        if (currentCategory.value?.id === data.id) {
-          currentCategory.value = null;
-          panelMode.value = 'empty';
+  })
+    .then(async () => {
+      try {
+        const res = await api.admin.categories.deleteCategory(data.id);
+        if (res.code === 200) {
+          ElMessage.success('分类已删除');
+          if (currentCategory.value?.id === data.id) {
+            currentCategory.value = null;
+            panelMode.value = 'empty';
+          }
+          fetchAllCategories();
+          fetchTableCategories();
+          fetchStats();
+        } else {
+          ElMessage.error(res.message || '操作失败');
         }
-        fetchAllCategories();
-        fetchTableCategories();
-        fetchStats();
-      } else {
-        ElMessage.error(res.message || '操作失败');
+      } catch {
+        ElMessage.error('网络错误');
       }
-    } catch {
-      ElMessage.error('网络错误');
-    }
-  }).catch(() => {});
+    })
+    .catch(() => {});
 };
 
 const handleSelectAll = (e) => {
-  selectedCategories.value = e.target.checked ? tableCategories.value.map((c) => c.id) : [];
+  selectedCategories.value = e.target.checked
+    ? tableCategories.value.map((c) => c.id)
+    : [];
 };
 
 const handleTableSizeChange = () => {
@@ -851,124 +1182,167 @@ const handleTableSizeChange = () => {
 };
 
 const handleBatchEnable = async () => {
-  ElMessageBox.confirm(`批量启用 ${selectedTreeKeys.value.length} 个分类？`, '确认').then(async () => {
-    try {
-      const res = await api.admin.categories.batchEnable(selectedTreeKeys.value);
-      if (res.code === 200) {
-        ElMessage.success('操作成功');
-        selectedTreeKeys.value = [];
-        treeRef.value?.setCheckedKeys([]);
-        fetchAllCategories();
-        fetchTableCategories();
-        fetchStats();
-      } else {
-        ElMessage.error(res.message || '操作失败');
+  ElMessageBox.confirm(
+    `批量启用 ${selectedTreeKeys.value.length} 个分类？`,
+    '确认'
+  )
+    .then(async () => {
+      try {
+        const res = await api.admin.categories.batchEnable(
+          selectedTreeKeys.value
+        );
+        if (res.code === 200) {
+          ElMessage.success('操作成功');
+          selectedTreeKeys.value = [];
+          treeRef.value?.setCheckedKeys([]);
+          fetchAllCategories();
+          fetchTableCategories();
+          fetchStats();
+        } else {
+          ElMessage.error(res.message || '操作失败');
+        }
+      } catch {
+        ElMessage.error('网络错误');
       }
-    } catch {
-      ElMessage.error('网络错误');
-    }
-  }).catch(() => {});
+    })
+    .catch(() => {});
 };
 
 const handleBatchDisable = async () => {
-  ElMessageBox.confirm(`批量禁用 ${selectedTreeKeys.value.length} 个分类？`, '确认').then(async () => {
-    try {
-      const res = await api.admin.categories.batchDisable(selectedTreeKeys.value);
-      if (res.code === 200) {
-        ElMessage.success('操作成功');
-        selectedTreeKeys.value = [];
-        treeRef.value?.setCheckedKeys([]);
-        fetchAllCategories();
-        fetchTableCategories();
-        fetchStats();
-      } else {
-        ElMessage.error(res.message || '操作失败');
+  ElMessageBox.confirm(
+    `批量禁用 ${selectedTreeKeys.value.length} 个分类？`,
+    '确认'
+  )
+    .then(async () => {
+      try {
+        const res = await api.admin.categories.batchDisable(
+          selectedTreeKeys.value
+        );
+        if (res.code === 200) {
+          ElMessage.success('操作成功');
+          selectedTreeKeys.value = [];
+          treeRef.value?.setCheckedKeys([]);
+          fetchAllCategories();
+          fetchTableCategories();
+          fetchStats();
+        } else {
+          ElMessage.error(res.message || '操作失败');
+        }
+      } catch {
+        ElMessage.error('网络错误');
       }
-    } catch {
-      ElMessage.error('网络错误');
-    }
-  }).catch(() => {});
+    })
+    .catch(() => {});
 };
 
 const handleBatchDelete = async () => {
-  ElMessageBox.confirm(`批量删除 ${selectedTreeKeys.value.length} 个分类？此操作不可恢复。`, '确认删除', {
-    type: 'warning',
-  }).then(async () => {
-    try {
-      const res = await api.admin.categories.batchDelete(selectedTreeKeys.value);
-      if (res.code === 200) {
-        ElMessage.success('操作成功');
-        selectedTreeKeys.value = [];
-        treeRef.value?.setCheckedKeys([]);
-        currentCategory.value = null;
-        panelMode.value = 'empty';
-        fetchAllCategories();
-        fetchTableCategories();
-        fetchStats();
-      } else {
-        ElMessage.error(res.message || '操作失败');
-      }
-    } catch {
-      ElMessage.error('网络错误');
+  ElMessageBox.confirm(
+    `批量删除 ${selectedTreeKeys.value.length} 个分类？此操作不可恢复。`,
+    '确认删除',
+    {
+      type: 'warning',
     }
-  }).catch(() => {});
+  )
+    .then(async () => {
+      try {
+        const res = await api.admin.categories.batchDelete(
+          selectedTreeKeys.value
+        );
+        if (res.code === 200) {
+          ElMessage.success('操作成功');
+          selectedTreeKeys.value = [];
+          treeRef.value?.setCheckedKeys([]);
+          currentCategory.value = null;
+          panelMode.value = 'empty';
+          fetchAllCategories();
+          fetchTableCategories();
+          fetchStats();
+        } else {
+          ElMessage.error(res.message || '操作失败');
+        }
+      } catch {
+        ElMessage.error('网络错误');
+      }
+    })
+    .catch(() => {});
 };
 
 const handleBulkEnable = async () => {
-  ElMessageBox.confirm(`批量启用 ${selectedCategories.value.length} 个分类？`, '确认').then(async () => {
-    try {
-      const res = await api.admin.categories.batchEnable(selectedCategories.value);
-      if (res.code === 200) {
-        ElMessage.success('操作成功');
-      } else {
-        ElMessage.error(res.message || '操作失败');
+  ElMessageBox.confirm(
+    `批量启用 ${selectedCategories.value.length} 个分类？`,
+    '确认'
+  )
+    .then(async () => {
+      try {
+        const res = await api.admin.categories.batchEnable(
+          selectedCategories.value
+        );
+        if (res.code === 200) {
+          ElMessage.success('操作成功');
+        } else {
+          ElMessage.error(res.message || '操作失败');
+        }
+      } catch {
+        ElMessage.error('网络错误');
       }
-    } catch {
-      ElMessage.error('网络错误');
-    }
-    selectedCategories.value = [];
-    fetchTableCategories();
-    fetchAllCategories();
-    fetchStats();
-  }).catch(() => {});
+      selectedCategories.value = [];
+      fetchTableCategories();
+      fetchAllCategories();
+      fetchStats();
+    })
+    .catch(() => {});
 };
 
 const handleBulkDisable = async () => {
-  ElMessageBox.confirm(`批量禁用 ${selectedCategories.value.length} 个分类？`, '确认').then(async () => {
-    try {
-      const res = await api.admin.categories.batchDisable(selectedCategories.value);
-      if (res.code === 200) {
-        ElMessage.success('操作成功');
-      } else {
-        ElMessage.error(res.message || '操作失败');
+  ElMessageBox.confirm(
+    `批量禁用 ${selectedCategories.value.length} 个分类？`,
+    '确认'
+  )
+    .then(async () => {
+      try {
+        const res = await api.admin.categories.batchDisable(
+          selectedCategories.value
+        );
+        if (res.code === 200) {
+          ElMessage.success('操作成功');
+        } else {
+          ElMessage.error(res.message || '操作失败');
+        }
+      } catch {
+        ElMessage.error('网络错误');
       }
-    } catch {
-      ElMessage.error('网络错误');
-    }
-    selectedCategories.value = [];
-    fetchTableCategories();
-    fetchAllCategories();
-    fetchStats();
-  }).catch(() => {});
+      selectedCategories.value = [];
+      fetchTableCategories();
+      fetchAllCategories();
+      fetchStats();
+    })
+    .catch(() => {});
 };
 
 const handleBulkDelete = async () => {
-  ElMessageBox.confirm(`批量删除 ${selectedCategories.value.length} 个分类？`, '确认').then(async () => {
-    try {
-      const res = await api.admin.categories.batchDelete(selectedCategories.value);
-      if (res.code === 200) {
-        ElMessage.success('操作成功');
-      } else {
-        ElMessage.error(res.message || '操作失败');
+  ElMessageBox.confirm(
+    `批量删除 ${selectedCategories.value.length} 个分类？`,
+    '确认'
+  )
+    .then(async () => {
+      try {
+        const res = await api.admin.categories.batchDelete(
+          selectedCategories.value
+        );
+        if (res.code === 200) {
+          ElMessage.success('操作成功');
+        } else {
+          ElMessage.error(res.message || '操作失败');
+        }
+      } catch {
+        ElMessage.error('网络错误');
       }
-    } catch {
-      ElMessage.error('网络错误');
-    }
-    selectedCategories.value = [];
-    fetchTableCategories();
-    fetchAllCategories();
-    fetchStats();
-  }).catch(() => {});
+      selectedCategories.value = [];
+      fetchTableCategories();
+      fetchAllCategories();
+      fetchStats();
+    })
+    .catch(() => {});
 };
 
 const handleExport = async () => {
@@ -1026,7 +1400,10 @@ const handleIconSuccess = (response) => {
 };
 
 const beforeIconUpload = (file) => {
-  const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png' || file.type === 'image/webp';
+  const isJpgOrPng =
+    file.type === 'image/jpeg' ||
+    file.type === 'image/png' ||
+    file.type === 'image/webp';
   if (!isJpgOrPng) {
     ElMessage.error('只能上传 JPG、PNG 或 WebP 格式的图片！');
   }

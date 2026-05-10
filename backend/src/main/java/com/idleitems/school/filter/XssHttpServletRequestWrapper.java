@@ -2,6 +2,7 @@ package com.idleitems.school.filter;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.servlet.ReadListener;
 import jakarta.servlet.ServletInputStream;
@@ -61,14 +62,20 @@ public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
         if (node.isObject()) {
             ObjectNode objectNode = (ObjectNode) node;
             ObjectNode filteredObject = objectMapper.createObjectNode();
-            node.fields().forEachRemaining(entry -> {
+            node.properties().forEach(entry -> {
                 String key = entry.getKey();
                 JsonNode value = entry.getValue();
                 filteredObject.set(key, filterJsonNode(value));
             });
             return filteredObject;
         } else if (node.isArray()) {
-            return node; // 数组暂时不处理
+            // 修复：递归处理数组中的每个元素
+            ArrayNode arrayNode = (ArrayNode) node;
+            ArrayNode filteredArray = objectMapper.createArrayNode();
+            for (int i = 0; i < arrayNode.size(); i++) {
+                filteredArray.add(filterJsonNode(arrayNode.get(i)));
+            }
+            return filteredArray;
         } else if (node.isTextual()) {
             return objectMapper.valueToTree(XssFilter.filterXss(node.asText()));
         } else {

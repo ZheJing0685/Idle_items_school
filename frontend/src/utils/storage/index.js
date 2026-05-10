@@ -36,7 +36,7 @@ class Storage {
   clear() {
     try {
       const keys = Object.keys(localStorage);
-      keys.forEach(key => {
+      keys.forEach((key) => {
         if (key.startsWith(`${this.namespace}:`)) {
           localStorage.removeItem(key);
         }
@@ -52,7 +52,7 @@ class Storage {
     try {
       const result = {};
       const keys = Object.keys(localStorage);
-      keys.forEach(key => {
+      keys.forEach((key) => {
         if (key.startsWith(`${this.namespace}:`)) {
           const actualKey = key.replace(`${this.namespace}:`, '');
           result[actualKey] = this.get(actualKey);
@@ -73,7 +73,7 @@ class Storage {
     try {
       const item = {
         value,
-        expiry: new Date().getTime() + ttl
+        expiry: new Date().getTime() + ttl,
       };
       return this.set(key, item);
     } catch (error) {
@@ -86,7 +86,7 @@ class Storage {
     try {
       const item = this.get(key);
       if (!item) return null;
-      
+
       if (new Date().getTime() > item.expiry) {
         this.remove(key);
         return null;

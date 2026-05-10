@@ -6,7 +6,7 @@ export const OrderStatus = {
   DELIVERED: 'DELIVERED',
   COMPLETED: 'COMPLETED',
   CANCELLED: 'CANCELLED',
-  REFUNDED: 'REFUNDED'
+  REFUNDED: 'REFUNDED',
 };
 
 export const OrderStatusText = {
@@ -17,7 +17,7 @@ export const OrderStatusText = {
   [OrderStatus.DELIVERED]: '已送达',
   [OrderStatus.COMPLETED]: '已完成',
   [OrderStatus.CANCELLED]: '已取消',
-  [OrderStatus.REFUNDED]: '已退款'
+  [OrderStatus.REFUNDED]: '已退款',
 };
 
 export const OrderStatusColor = {
@@ -28,7 +28,7 @@ export const OrderStatusColor = {
   [OrderStatus.DELIVERED]: '#1890ff',
   [OrderStatus.COMPLETED]: '#52c41a',
   [OrderStatus.CANCELLED]: '#8c8c8c',
-  [OrderStatus.REFUNDED]: '#ff4d4f'
+  [OrderStatus.REFUNDED]: '#ff4d4f',
 };
 
 export const getOrderStatusText = (status) => {
@@ -48,23 +48,26 @@ export const getOrderStatusOptions = (role = 'buyer') => {
     { label: '已发货', value: OrderStatus.SHIPPED },
     { label: '已完成', value: OrderStatus.COMPLETED },
     { label: '已取消', value: OrderStatus.CANCELLED },
-    { label: '已退款', value: OrderStatus.REFUNDED }
+    { label: '已退款', value: OrderStatus.REFUNDED },
   ];
 };
 
 export const getOrderActions = (status, role) => {
   const actions = [];
-  
+
   if (role === 'admin') {
     actions.push({ name: '查看详情', type: 'primary' });
     if (status === OrderStatus.PENDING_PAYMENT) {
       actions.push({ name: '取消订单', type: 'danger' });
     }
-    if (status === OrderStatus.PAID || status === OrderStatus.PENDING_SHIPMENT) {
+    if (
+      status === OrderStatus.PAID ||
+      status === OrderStatus.PENDING_SHIPMENT
+    ) {
       actions.push({ name: '标记发货', type: 'primary' });
     }
   }
-  
+
   return actions;
 };
 
@@ -72,7 +75,7 @@ export const ADMIN_ORDER_PAYMENT_OPTIONS = [
   { label: '在线支付', value: 'ONLINE' },
   { label: '线下支付', value: 'OFFLINE' },
   { label: '微信支付', value: 'WECHAT' },
-  { label: '支付宝', value: 'ALIPAY' }
+  { label: '支付宝', value: 'ALIPAY' },
 ];
 
 export const ADMIN_ORDER_STATUS_OPTIONS = [
@@ -83,11 +86,15 @@ export const ADMIN_ORDER_STATUS_OPTIONS = [
   { label: '已发货', value: OrderStatus.SHIPPED },
   { label: '已完成', value: OrderStatus.COMPLETED },
   { label: '已取消', value: OrderStatus.CANCELLED },
-  { label: '已退款', value: OrderStatus.REFUNDED }
+  { label: '已退款', value: OrderStatus.REFUNDED },
 ];
 
 export const canAdminApproveRefund = (status) => {
-  return status === OrderStatus.PAID || status === OrderStatus.PENDING_SHIPMENT || status === OrderStatus.SHIPPED;
+  return (
+    status === OrderStatus.PAID ||
+    status === OrderStatus.PENDING_SHIPMENT ||
+    status === OrderStatus.SHIPPED
+  );
 };
 
 export const getAdminOrderStatusText = (status) => {
@@ -104,17 +111,17 @@ export const getAdminOrderStatusTime = (order) => {
     [OrderStatus.DELIVERED]: order.deliveredAt,
     [OrderStatus.COMPLETED]: order.completedAt,
     [OrderStatus.CANCELLED]: order.cancelledAt,
-    [OrderStatus.REFUNDED]: order.refundedAt
+    [OrderStatus.REFUNDED]: order.refundedAt,
   };
   return statusTimes[order.orderStatus] || order.createdAt;
 };
 
 export const getAdminPaymentText = (paymentMethod) => {
   const paymentMap = {
-    'ONLINE': '在线支付',
-    'OFFLINE': '线下支付',
-    'WECHAT': '微信支付',
-    'ALIPAY': '支付宝'
+    ONLINE: '在线支付',
+    OFFLINE: '线下支付',
+    WECHAT: '微信支付',
+    ALIPAY: '支付宝',
   };
   return paymentMap[paymentMethod] || '未知支付方式';
 };
@@ -125,7 +132,7 @@ export const normalizeAdminOrder = (order) => {
     ...order,
     orderStatus: order.orderStatus || OrderStatus.PENDING_PAYMENT,
     price: order.price || 0,
-    createdAt: order.createdAt || new Date().toISOString()
+    createdAt: order.createdAt || new Date().toISOString(),
   };
 };
 
@@ -135,21 +142,21 @@ export const canAdminCancelOrder = (status) => {
 
 export const getAdminOrderActions = (status, order) => {
   const actions = [];
-  
-  actions.push({ name: '查看详情', type: 'primary' });
-  
+
+  actions.push({ key: 'view', label: '查看详情', tone: 'primary' });
+
   if (canAdminCancelOrder(status)) {
-    actions.push({ name: '取消订单', type: 'danger' });
+    actions.push({ key: 'cancel', label: '取消订单', tone: 'danger' });
   }
-  
+
   if (status === OrderStatus.PAID || status === OrderStatus.PENDING_SHIPMENT) {
-    actions.push({ name: '标记发货', type: 'primary' });
+    actions.push({ key: 'ship', label: '标记发货', tone: 'primary' });
   }
-  
+
   if (canAdminApproveRefund(status)) {
-    actions.push({ name: '处理退款', type: 'warning' });
+    actions.push({ key: 'approveRefund', label: '处理退款', tone: 'warning' });
   }
-  
+
   return actions;
 };
 
@@ -162,7 +169,7 @@ export const getAdminOrderStatusClass = (status) => {
     [OrderStatus.DELIVERED]: 'admin-status-delivered',
     [OrderStatus.COMPLETED]: 'admin-status-completed',
     [OrderStatus.CANCELLED]: 'admin-status-cancelled',
-    [OrderStatus.REFUNDED]: 'admin-status-refunded'
+    [OrderStatus.REFUNDED]: 'admin-status-refunded',
   };
   return classes[status] || 'admin-status-unknown';
 };
@@ -184,5 +191,5 @@ export default {
   getAdminOrderStatusText,
   getAdminOrderStatusTime,
   getAdminPaymentText,
-  normalizeAdminOrder
+  normalizeAdminOrder,
 };

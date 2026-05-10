@@ -1,78 +1,76 @@
 services:
-  mysql:
-    image: mysql:8.0
-    container_name: mysql-idle-items
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: idle_items_school
-    ports:
-      - "3306:3306"
-    volumes:
-      - mysql-data:/var/lib/mysql
-      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
-
   redis:
     image: redis:7-alpine
     container_name: redis-idle-items
     ports:
-      - "6379:6379"
+      - "6380:6379"
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
     volumes:
-      - redis-data:/data
-    command: redis-server --appendonly yes
+      - redis_data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
-      retries: 3
+      retries: 5
+    networks:
+      - app-network
 
   backend:
+    image: school-backend:fixed
     build:
       context: ./backend
       dockerfile: Dockerfile
+      args:
+        HTTP_PROXY: "${HTTP_PROXY:-}"
+        HTTPS_PROXY: "${HTTPS_PROXY:-}"
     container_name: backend-idle-items
     ports:
       - "7000:7000"
-    depends_on:
-      mysql:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
     environment:
-      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:prod}
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/idle_items_school?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
-      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME:root}
-      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      TZ: ${TZ:-Asia/Shanghai}
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:3306/idle_items_school?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: "${SPRING_DATASOURCE_USERNAME}"
+      SPRING_DATASOURCE_PASSWORD: "${SPRING_DATASOURCE_PASSWORD}"
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      JWT_SECRET: ${JWT_SECRET}
+      REDIS_PASSWORD: "${REDIS_PASSWORD:-}"
+      JWT_SECRET: "${JWT_SECRET}"
+      CORS_ALLOWED_ORIGINS: http://localhost:5173,http://localhost:80
+      SPRING_FLYWAY_VALIDATE-ON-MIGRATE: "false"
     volumes:
-      - uploads_data:/var/data/uploads
+      - ./backend/uploads:/app/uploads
+    depends_on:
+      redis:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:7000/actuator/health || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:7000/actuator/health || exit 1"]
       interval: 15s
       timeout: 10s
       retries: 5
       start_period: 40s
+    networks:
+      - app-network
 
   frontend:
+    image: idle_items_school-frontend:fixed
     build:
       context: ./frontend
       dockerfile: Dockerfile
     container_name: frontend-idle-items
     ports:
-      - "80:80"
+      - "5173:80"
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
     depends_on:
-      backend:
-        condition: service_healthy
+      - backend
+    networks:
+      - app-network
 
 volumes:
-  mysql-data:
-  redis-data:
-  uploads_data:
-    driver: local
+  redis_data:
+
+networks:
+  app-network:
+    driver: bridge

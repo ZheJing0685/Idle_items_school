@@ -40,12 +40,16 @@ public class XssFilter implements Filter {
         HttpServletResponse httpResponse = (HttpServletResponse) response;
 
         try {
+            String method = httpRequest.getMethod();
             String contentType = httpRequest.getContentType();
-            if (contentType != null && contentType.startsWith("multipart/form-data")) {
-                chain.doFilter(request, response);
-            } else {
+            
+            // 只对有请求体的方法（POST/PUT/PATCH）且非multipart进行XSS包装
+            if (("POST".equals(method) || "PUT".equals(method) || "PATCH".equals(method))
+                    && (contentType == null || !contentType.startsWith("multipart/form-data"))) {
                 XssHttpServletRequestWrapper xssRequest = new XssHttpServletRequestWrapper(httpRequest);
                 chain.doFilter(xssRequest, response);
+            } else {
+                chain.doFilter(request, response);
             }
         } catch (IOException e) {
             log.error("XSS过滤器处理请求体时发生IO异常: {}", e.getMessage(), e);

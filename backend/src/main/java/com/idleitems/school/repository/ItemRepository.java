@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.query.Param;
@@ -67,4 +68,31 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
 
     @Query("SELECT i.userId, COUNT(i) FROM Item i WHERE i.userId IN :userIds GROUP BY i.userId")
     List<Object[]> countByUserIds(@Param("userIds") List<Long> userIds);
+    
+    /**
+     * 原子性增加收藏计数
+     *
+     * @param itemId 物品ID
+     */
+    @Modifying
+    @Query("UPDATE Item i SET i.favoriteCount = i.favoriteCount + 1 WHERE i.id = :itemId")
+    void incrementFavoriteCount(@Param("itemId") Long itemId);
+    
+    /**
+     * 原子性减少收藏计数
+     *
+     * @param itemId 物品ID
+     */
+    @Modifying
+    @Query("UPDATE Item i SET i.favoriteCount = i.favoriteCount - 1 WHERE i.id = :itemId AND i.favoriteCount > 0")
+    void decrementFavoriteCount(@Param("itemId") Long itemId);
+    
+    /**
+     * 原子性增加浏览量
+     *
+     * @param itemId 物品ID
+     */
+    @Modifying
+    @Query("UPDATE Item i SET i.viewCount = i.viewCount + 1 WHERE i.id = :itemId")
+    void incrementViewCount(@Param("itemId") Long itemId);
 }

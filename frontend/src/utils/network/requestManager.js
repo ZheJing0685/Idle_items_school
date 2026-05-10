@@ -7,7 +7,13 @@ class RequestManager {
   }
 
   async request(url, requestFn, options = {}) {
-    const { useCache = false, useMerge = false, params, cacheKey, cacheExpiry = this.defaultCacheExpiry } = options;
+    const {
+      useCache = false,
+      useMerge = false,
+      params,
+      cacheKey,
+      cacheExpiry = this.defaultCacheExpiry,
+    } = options;
     const key = cacheKey || this.generateKey(url, params);
 
     if (useCache) {
@@ -21,16 +27,18 @@ class RequestManager {
       return this.requests.get(key);
     }
 
-    const promise = requestFn().then(response => {
-      this.requests.delete(key);
-      if (useCache) {
-        this.setCache(key, response, cacheExpiry);
-      }
-      return response;
-    }).catch(error => {
-      this.requests.delete(key);
-      throw error;
-    });
+    const promise = requestFn()
+      .then((response) => {
+        this.requests.delete(key);
+        if (useCache) {
+          this.setCache(key, response, cacheExpiry);
+        }
+        return response;
+      })
+      .catch((error) => {
+        this.requests.delete(key);
+        throw error;
+      });
 
     if (useMerge) {
       this.requests.set(key, promise);
@@ -50,11 +58,28 @@ class RequestManager {
 
     // 首先收集所有请求，避免重复
     for (const req of requests) {
-      const { url, params, requestFn, useCache = false, useMerge = true, cacheKey, cacheExpiry } = req;
+      const {
+        url,
+        params,
+        requestFn,
+        useCache = false,
+        useMerge = true,
+        cacheKey,
+        cacheExpiry,
+      } = req;
       const key = cacheKey || this.generateKey(url, params);
 
       if (!requestMap.has(key)) {
-        requestMap.set(key, this.request(url, requestFn, { useCache, useMerge, params, cacheKey, cacheExpiry }));
+        requestMap.set(
+          key,
+          this.request(url, requestFn, {
+            useCache,
+            useMerge,
+            params,
+            cacheKey,
+            cacheExpiry,
+          })
+        );
       }
     }
 
@@ -91,7 +116,7 @@ class RequestManager {
     if (!params) return url;
     const sortedParams = Object.keys(params)
       .sort()
-      .map(key => `${key}=${params[key]}`)
+      .map((key) => `${key}=${params[key]}`)
       .join('&');
     return `${url}?${sortedParams}`;
   }
@@ -103,7 +128,7 @@ class RequestManager {
     this.cache.set(key, {
       data: value,
       timestamp: Date.now(),
-      expiry: expiry
+      expiry: expiry,
     });
   }
 
@@ -118,14 +143,14 @@ class RequestManager {
   evictOldestCache() {
     let oldestKey = null;
     let oldestTimestamp = Infinity;
-    
+
     for (const [key, value] of this.cache.entries()) {
       if (value.timestamp < oldestTimestamp) {
         oldestKey = key;
         oldestTimestamp = value.timestamp;
       }
     }
-    
+
     if (oldestKey) {
       this.cache.delete(oldestKey);
     }

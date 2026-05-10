@@ -2,6 +2,7 @@ package com.idleitems.school.config;
 
 import com.idleitems.school.filter.RateLimitFilter;
 import com.idleitems.school.filter.XssFilter;
+import com.idleitems.school.security.JwtTokenBlacklistService;
 import com.idleitems.school.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,6 +41,7 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtUtil jwtUtil;
+    private final JwtTokenBlacklistService jwtTokenBlacklistService;
     private final XssFilter xssFilter;
 
     @Value("${cors.allowed-origins:http://localhost:5173}")
@@ -64,7 +66,10 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/refresh", "/api/auth/me", "/api/items/search", "/api/items/hot", "/api/items/{id}", "/api/categories", "/api/categories/tree", "/api/test/**", "/uploads/**").permitAll()
+                .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/doc.html", "/webjars/**", "/swagger-resources/**").permitAll()
+                .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/refresh", "/api/auth/me", "/api/items/search", "/api/items/hot", "/api/items/{id}", "/api/categories", "/api/categories/tree", "/api/test/**").permitAll()
+                .requestMatchers("/uploads/**").permitAll()
+                .requestMatchers("/ws/**", "/ws-native/**").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/items").permitAll()
                 .requestMatchers("/api/favorites/**", "/api/items/user", "/api/items/upload", "/api/items/upload/**").authenticated()
                 .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
@@ -120,6 +125,14 @@ public class SecurityConfig {
             protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
                 String token = jwtUtil.getTokenFromRequest(request);
                 if (token != null) {
+                    // 检查Token是否在黑名单中
+                    if (jwtTokenBlacklistService.isBlacklisted(token)) {
+                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                        response.setContentType("application/json;charset=UTF-8");
+                        response.getWriter().write("{\"code\":40101,\"message\":\"Token已失效，请重新登录\",\"data\":null}");
+                        return;
+                    }
+                    
                     if (jwtUtil.validateToken(token)) {
                         String userIdStr = jwtUtil.getUserIdFromToken(token);
                         Long userId = Long.parseLong(userIdStr);
@@ -129,7 +142,7 @@ public class SecurityConfig {
                         List<SimpleGrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority(role));
                         org.springframework.security.authentication.UsernamePasswordAuthenticationToken authentication =
                                 new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
-                                        username, null, authorities);
+                                        userIdStr, null, authorities);
                         SecurityContextHolder.getContext().setAuthentication(authentication);
 
                         request.setAttribute("userId", userId);

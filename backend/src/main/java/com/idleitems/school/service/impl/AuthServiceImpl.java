@@ -4,6 +4,7 @@ import com.idleitems.school.dto.LoginRequest;
 import com.idleitems.school.dto.RegisterRequest;
 import com.idleitems.school.entity.User;
 import com.idleitems.school.repository.UserRepository;
+import com.idleitems.school.security.JwtTokenBlacklistService;
 import com.idleitems.school.security.JwtUtil;
 import com.idleitems.school.service.AuthService;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -23,6 +25,7 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final JwtTokenBlacklistService jwtTokenBlacklistService;
 
     @Override
     public Map<String, Object> login(LoginRequest loginRequest) {
@@ -121,5 +124,42 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public String getUserIdFromToken(String token) {
         return jwtUtil.getSubject(token);
+    }
+    
+    @Override
+    public void logout(String token) {
+        try {
+            // 获取Token的过期时间
+            Date expiration = jwtUtil.getExpirationDate(token);
+            long ttl = expiration.getTime() - System.currentTimeMillis();
+            
+            // 将Token加入黑名单
+            jwtTokenBlacklistService.addToBlacklist(token, ttl);
+            log.info("用户登出成功，Token已失效");
+        } catch (Exception e) {
+            log.error("用户登出处理失败: {}", e.getMessage());
+            // 即使获取过期时间失败，也立即将Token加入黑名单
+            jwtTokenBlacklistService.addToBlacklist(token, 0);
+        }
+    }
+    
+    @Override
+    public void changePassword(Long userId, String oldPassword, String newPassword) {
+        // 获取用户
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("用户不存在"));
+        
+        // 验证旧密码
+        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+            throw new IllegalArgumentException("旧密码错误");
+        }
+        
+        // 更新密码
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+        
+        // 使该用户的所有Token失效
+        jwtTokenBlacklistService.invalidateAllUserTokens(userId);
+        log.info("用户{}密码修改成功，所有Token已失效", userId);
     }
 }

@@ -5,24 +5,24 @@ export const AuthTypes = {
   // 登录请求
   LoginRequest: {
     username: String,
-    password: String
+    password: String,
   },
-  
+
   // 注册请求
   RegisterRequest: {
     username: String,
     password: String,
     email: String,
-    phone: String
+    phone: String,
   },
-  
+
   // 登录响应
   LoginResponse: {
     token: String,
     refreshToken: String,
-    user: Object
+    user: Object,
   },
-  
+
   // 用户信息
   UserInfo: {
     id: Number,
@@ -31,8 +31,8 @@ export const AuthTypes = {
     phone: String,
     role: String,
     status: String,
-    verified: Boolean
-  }
+    verified: Boolean,
+  },
 };
 
 // 物品相关
@@ -45,9 +45,9 @@ export const ItemTypes = {
     categoryId: Number,
     condition: String,
     deliveryMethod: Number,
-    images: Array
+    images: Array,
   },
-  
+
   // 物品更新请求
   UpdateItemRequest: {
     title: String,
@@ -56,9 +56,9 @@ export const ItemTypes = {
     categoryId: Number,
     condition: String,
     deliveryMethod: Number,
-    images: Array
+    images: Array,
   },
-  
+
   // 物品信息
   ItemInfo: {
     id: Number,
@@ -75,17 +75,17 @@ export const ItemTypes = {
     updatedAt: String,
     userId: Number,
     username: String,
-    sellerItemCount: Number
+    sellerItemCount: Number,
   },
-  
+
   // 物品列表响应
   ItemListResponse: {
     content: Array,
     totalElements: Number,
     totalPages: Number,
     size: Number,
-    number: Number
-  }
+    number: Number,
+  },
 };
 
 // 分类相关
@@ -96,8 +96,8 @@ export const CategoryTypes = {
     name: String,
     parentId: Number,
     level: Number,
-    children: Array
-  }
+    children: Array,
+  },
 };
 
 // 订单相关
@@ -107,9 +107,9 @@ export const OrderTypes = {
     itemId: Number,
     buyerAddress: String,
     buyerPhone: String,
-    buyerName: String
+    buyerName: String,
   },
-  
+
   // 订单信息
   OrderInfo: {
     id: Number,
@@ -129,8 +129,8 @@ export const OrderTypes = {
     shipTime: String,
     completeTime: String,
     createdAt: String,
-    updatedAt: String
-  }
+    updatedAt: String,
+  },
 };
 
 // 评价相关
@@ -140,9 +140,9 @@ export const ReviewTypes = {
     itemId: Number,
     rating: Number,
     content: String,
-    images: Array
+    images: Array,
   },
-  
+
   // 评价信息
   ReviewInfo: {
     id: Number,
@@ -152,8 +152,8 @@ export const ReviewTypes = {
     rating: Number,
     content: String,
     images: Array,
-    createdAt: String
-  }
+    createdAt: String,
+  },
 };
 
 // 通用响应格式
@@ -162,8 +162,8 @@ export const ResponseTypes = {
   CommonResponse: {
     code: Number,
     message: String,
-    data: Object
-  }
+    data: Object,
+  },
 };
 
 export default {
@@ -172,5 +172,5 @@ export default {
   CategoryTypes,
   OrderTypes,
   ReviewTypes,
-  ResponseTypes
+  ResponseTypes,
 };

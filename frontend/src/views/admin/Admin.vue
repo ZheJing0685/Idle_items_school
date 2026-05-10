@@ -2,7 +2,11 @@
   <div class="admin-shell">
     <aside class="admin-sidebar" :class="{ 'is-collapsed': isCollapsed }">
       <div class="sidebar-brand">
-        <div class="brand-mark">
+        <div
+          class="brand-mark"
+          @click="isCollapsed = !isCollapsed"
+          :class="{ clickable: true }"
+        >
           <svg viewBox="0 0 32 32" fill="none">
             <rect width="32" height="32" rx="8" fill="currentColor" />
             <path
@@ -19,21 +23,6 @@
             <span class="brand-tagline">管理后台</span>
           </div>
         </transition>
-        <button
-          class="collapse-btn"
-          @click="isCollapsed = !isCollapsed"
-          :aria-label="isCollapsed ? '展开侧边栏' : '收起侧边栏'"
-        >
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          >
-            <path v-if="!isCollapsed" d="M15 18l-6-6 6-6" />
-            <path v-else d="M9 18l6-6-6-6" />
-          </svg>
-        </button>
       </div>
 
       <nav class="sidebar-nav">
@@ -142,7 +131,9 @@
               stroke="currentColor"
               stroke-width="1.5"
             >
-              <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+              <path
+                d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"
+              />
             </svg>
             <span v-if="!isCollapsed" class="nav-text">分类反馈</span>
           </router-link>
@@ -166,6 +157,22 @@
               <path d="M7 8h10M7 12h10M7 16h6" />
             </svg>
             <span v-if="!isCollapsed" class="nav-text">订单管理</span>
+          </router-link>
+          <router-link
+            to="/admin/disputes"
+            class="nav-item"
+            active-class="is-active"
+          >
+            <svg
+              class="nav-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+            >
+              <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <span v-if="!isCollapsed" class="nav-text">纠纷管理</span>
           </router-link>
           <router-link
             to="/admin/statistics"
@@ -236,7 +243,7 @@
       </div>
     </aside>
 
-    <div class="admin-main">
+    <div class="admin-main" :class="{ 'sidebar-collapsed': isCollapsed }">
       <header class="admin-header">
         <div class="header-left">
           <h1 class="page-title">{{ currentPageTitle }}</h1>
@@ -310,13 +317,8 @@ const currentPageTitle = computed(() => {
 });
 
 const getRoleText = () => {
-  if (userStoreInstance.user?.role) {
-    const roleMap = {
-      ADMIN: '超级管理员',
-      admin: '管理员',
-      ROLE_ADMIN: '系统管理员',
-    };
-    return roleMap[userStoreInstance.user.role] || '管理员';
+  if (userStoreInstance.user?.role === 'ADMIN') {
+    return '管理员';
   }
   return '管理员';
 };

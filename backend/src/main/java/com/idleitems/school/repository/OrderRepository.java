@@ -94,4 +94,30 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     Long countByCreatedAtAfterAndOrderStatus(@Param("startDate") LocalDateTime startDate, @Param("status") Order.OrderStatus status);
 
     List<Order> findByCreatedAtBetween(LocalDateTime start, LocalDateTime end);
+
+    @Query("SELECT o FROM Order o WHERE o.itemId = :itemId AND o.orderStatus IN :statuses ORDER BY o.createdAt DESC")
+    List<Order> findByItemIdAndOrderStatusIn(@Param("itemId") Long itemId, @Param("statuses") List<Order.OrderStatus> statuses);
+
+    @Query("SELECT o FROM Order o WHERE o.itemId = :itemId AND o.sellerId = :sellerId ORDER BY o.createdAt DESC")
+    List<Order> findByItemIdAndSellerId(@Param("itemId") Long itemId, @Param("sellerId") Long sellerId);
+
+    @Query("""
+            SELECT
+                FUNCTION('DATE', o.createdAt) as orderDate,
+                COUNT(o) as orderCount,
+                COALESCE(SUM(CASE WHEN o.orderStatus = 'COMPLETED' THEN o.price ELSE 0 END), 0) as totalAmount
+            FROM Order o
+            WHERE o.createdAt >= :startDate AND o.createdAt < :endDate
+            GROUP BY FUNCTION('DATE', o.createdAt)
+            ORDER BY FUNCTION('DATE', o.createdAt)
+            """)
+    List<Object[]> countOrdersAndAmountGroupedByDate(
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate
+    );
+
+    /**
+     * 查找发货时间早于指定时间的已发货订单（用于自动确认收货）
+     */
+    List<Order> findByOrderStatusAndShipTimeBefore(Order.OrderStatus status, LocalDateTime threshold);
 }

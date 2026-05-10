@@ -29,36 +29,61 @@ export function classifyError(error) {
     return ErrorType.UNKNOWN_ERROR;
   }
 
-  if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+  // 检查axios错误响应
+  const status = error.response?.status;
+  const code = error.code;
+
+  // 网络超时错误
+  if (code === 'ECONNABORTED' || error.message?.includes('timeout')) {
     return ErrorType.TIMEOUT_ERROR;
   }
 
-  if (error.message?.includes('Network Error')) {
+  // 网络连接错误
+  if (code === 'ERR_NETWORK' || error.message?.includes('Network Error')) {
     return ErrorType.NETWORK_ERROR;
   }
 
-  if (error.code === 401) {
+  // HTTP状态码判断
+  if (status === 401) {
     return ErrorType.AUTHENTICATION_ERROR;
   }
 
-  if (error.code === 403) {
+  if (status === 403) {
     return ErrorType.AUTHORIZATION_ERROR;
   }
 
-  if (error.code === 404) {
+  if (status === 404) {
     return ErrorType.NOT_FOUND_ERROR;
   }
 
-  if (error.code === 409) {
+  if (status === 409) {
     return ErrorType.CONFLICT_ERROR;
   }
 
-  if (error.code === 500) {
+  if (status === 500) {
     return ErrorType.SERVER_ERROR;
   }
 
-  if (error.code >= 400 && error.code < 500) {
+  if (status >= 400 && status < 500) {
     return ErrorType.CLIENT_ERROR;
+  }
+
+  // 后端返回的业务错误码
+  const backendCode = error.response?.data?.code;
+  if (backendCode === 401) {
+    return ErrorType.AUTHENTICATION_ERROR;
+  }
+
+  if (backendCode === 403) {
+    return ErrorType.AUTHORIZATION_ERROR;
+  }
+
+  if (backendCode === 404) {
+    return ErrorType.NOT_FOUND_ERROR;
+  }
+
+  if (backendCode >= 500) {
+    return ErrorType.SERVER_ERROR;
   }
 
   return ErrorType.UNKNOWN_ERROR;
@@ -67,5 +92,5 @@ export function classifyError(error) {
 export default {
   ErrorCode,
   ErrorType,
-  classifyError
+  classifyError,
 };

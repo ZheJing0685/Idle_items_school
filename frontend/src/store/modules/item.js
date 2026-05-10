@@ -49,7 +49,12 @@ export const useItemStore = defineStore('item', () => {
     }
   };
 
-  const searchItems = async (keyword, page = 1, size = 20, sortBy = 'createdAt') => {
+  const searchItems = async (
+    keyword,
+    page = 1,
+    size = 20,
+    sortBy = 'createdAt'
+  ) => {
     loading.value = true;
     try {
       const response = await api.item.searchItems(keyword, page, size, sortBy);

@@ -132,7 +132,12 @@
                   <el-cascader
                     v-model="form.categoryId"
                     :options="categoryTreeOptions"
-                    :props="{ value: 'id', label: 'name', children: 'children', emitPath: false }"
+                    :props="{
+                      value: 'id',
+                      label: 'name',
+                      children: 'children',
+                      emitPath: false,
+                    }"
                     placeholder="选择分类"
                     size="large"
                     class="form-select"
@@ -146,11 +151,12 @@
                     size="large"
                     class="form-select"
                   >
-                    <el-option label="全新" value="NEW" />
-                    <el-option label="九成新" value="LIKE_NEW" />
-                    <el-option label="八成新" value="GOOD" />
-                    <el-option label="七成新" value="FAIR" />
-                    <el-option label="六成新及以下" value="POOR" />
+                    <el-option
+                      v-for="option in conditionOptions"
+                      :key="option.value"
+                      :label="option.label"
+                      :value="option.value"
+                    />
                   </el-select>
                 </el-form-item>
               </div>
@@ -167,9 +173,12 @@
                     size="large"
                     class="form-select"
                   >
-                    <el-option label="自提" value="1" />
-                    <el-option label="快递" value="2" />
-                    <el-option label="两者皆可" value="3" />
+                    <el-option
+                      v-for="option in deliveryMethodOptions"
+                      :key="option.value"
+                      :label="option.label"
+                      :value="option.value"
+                    />
                   </el-select>
                 </el-form-item>
 
@@ -184,9 +193,12 @@
                     size="large"
                     class="form-select"
                   >
-                    <el-option label="平台内" value="1" />
-                    <el-option label="微信" value="2" />
-                    <el-option label="QQ" value="3" />
+                    <el-option
+                      v-for="option in contactTypeOptions"
+                      :key="option.value"
+                      :label="option.label"
+                      :value="option.value"
+                    />
                   </el-select>
                 </el-form-item>
               </div>
@@ -376,6 +388,37 @@
                   />
                 </el-form-item>
               </div>
+
+              <!-- 根据联系方式类型动态显示对应的输入框 -->
+              <div class="form-row" v-if="form.contactType === '2'">
+                <el-form-item
+                  label="微信号"
+                  prop="contactInfo"
+                  class="form-item"
+                >
+                  <el-input
+                    v-model="form.contactInfo"
+                    placeholder="请输入微信号"
+                    size="large"
+                  />
+                </el-form-item>
+              </div>
+
+              <div class="form-row" v-if="form.contactType === '3'">
+                <el-form-item label="QQ号" prop="contactInfo" class="form-item">
+                  <el-input
+                    v-model="form.contactInfo"
+                    placeholder="请输入QQ号"
+                    size="large"
+                  />
+                </el-form-item>
+              </div>
+
+              <div class="form-row" v-if="form.contactType === '1'">
+                <el-form-item label="平台内联系方式" class="form-item">
+                  <el-input disabled value="通过平台内消息联系" size="large" />
+                </el-form-item>
+              </div>
             </div>
 
             <div class="form-actions">
@@ -469,6 +512,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import api from '../api';
 import { itemRules } from '../utils/validator';
+import { useDictStore } from '../store/dict.js';
 
 const route = useRoute();
 const router = useRouter();
@@ -476,6 +520,7 @@ const formRef = ref();
 const fileInput = ref();
 const submitting = ref(false);
 const categoryTreeOptions = ref([]);
+const dictStore = useDictStore();
 
 const isEdit = computed(() => !!route.query.edit);
 
@@ -497,10 +542,32 @@ const form = reactive({
   tags: [],
   contactName: '',
   contactPhone: '',
+  contactInfo: '',
   images: [],
 });
 
 const tagInput = ref('');
+
+// 获取字典选项
+const conditionOptions = computed(() =>
+  dictStore.getDictOptions('ITEM_CONDITION')
+);
+const deliveryMethodOptions = computed(() =>
+  dictStore.getDictOptions('DELIVERY_METHOD')
+);
+const contactTypeOptions = computed(() =>
+  dictStore.getDictOptions('CONTACT_TYPE')
+);
+
+const validateContactInfo = (rule, value, callback) => {
+  if (form.contactType === '2' && !value) {
+    callback(new Error('请输入微信号'));
+  } else if (form.contactType === '3' && !value) {
+    callback(new Error('请输入QQ号'));
+  } else {
+    callback();
+  }
+};
 
 const rules = {
   ...itemRules,
@@ -517,6 +584,7 @@ const rules = {
     { required: true, message: '请输入联系电话', trigger: 'blur' },
     { pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确', trigger: 'blur' },
   ],
+  contactInfo: [{ validator: validateContactInfo, trigger: 'blur' }],
 };
 
 const loadCategories = async () => {
@@ -552,6 +620,7 @@ const loadItemForEdit = async () => {
     form.tags = item.tags || [];
     form.contactName = item.contactName;
     form.contactPhone = item.contactPhone;
+    form.contactInfo = item.contactInfo || '';
     form.images = item.images || [];
   } catch (error) {
     ElMessage.error('获取物品信息失败');
@@ -651,6 +720,8 @@ const handleSubmit = async () => {
 };
 
 onMounted(async () => {
+  // 加载字典数据
+  await dictStore.preloadCommonDicts();
   await loadCategories();
   await loadItemForEdit();
 });

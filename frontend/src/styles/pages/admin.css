@@ -1,11 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600&display=swap');
 
-:root {
-  --sidebar-width: 240px;
-  --sidebar-collapsed-width: 72px;
-  --admin-header-height: 64px;
-}
-
 .admin-shell {
   display: flex;
   min-height: 100vh;
@@ -48,6 +42,15 @@
   height: 36px;
   flex-shrink: 0;
   color: var(--color-primary);
+  transition: transform 150ms var(--ease-out-quart);
+}
+
+.brand-mark.clickable {
+  cursor: pointer;
+}
+
+.brand-mark.clickable:hover {
+  transform: scale(1.05);
 }
 
 .brand-mark svg {
@@ -255,14 +258,16 @@
 .admin-main {
   flex: 1;
   margin-left: var(--sidebar-width);
-  transition: margin-left 250ms var(--ease-out-quart);
+  width: calc(100% - var(--sidebar-width));
+  transition: margin-left 250ms var(--ease-out-quart), width 250ms var(--ease-out-quart);
   display: flex;
   flex-direction: column;
   min-height: 100vh;
 }
 
-.admin-sidebar.is-collapsed + .admin-main {
+.admin-main.sidebar-collapsed {
   margin-left: var(--sidebar-collapsed-width);
+  width: calc(100% - var(--sidebar-collapsed-width));
 }
 
 .admin-header {
@@ -276,6 +281,10 @@
   position: sticky;
   top: 0;
   z-index: 50;
+  margin: var(--space-4);
+  margin-bottom: var(--space-4);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
 }
 
 .header-left {
@@ -381,6 +390,10 @@
 .admin-content {
   flex: 1;
   padding: var(--space-6);
+  background: var(--surface-card);
+  margin: 0 var(--space-4) var(--space-4) var(--space-4);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
 }
 
 .page-fade-enter-active,
@@ -470,8 +483,10 @@
     width: var(--sidebar-collapsed-width);
   }
 
-  .admin-main {
+  .admin-main,
+  .admin-main.sidebar-collapsed {
     margin-left: var(--sidebar-collapsed-width);
+    width: calc(100% - var(--sidebar-collapsed-width));
   }
 
   .brand-text,

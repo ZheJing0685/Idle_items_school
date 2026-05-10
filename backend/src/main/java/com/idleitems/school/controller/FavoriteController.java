@@ -1,6 +1,7 @@
 package com.idleitems.school.controller;
 
 import com.idleitems.school.common.Result;
+import com.idleitems.school.dto.FavoriteDTO;
 import com.idleitems.school.entity.Favorite;
 import com.idleitems.school.service.FavoriteService;
 import lombok.RequiredArgsConstructor;
@@ -34,12 +35,12 @@ public class FavoriteController {
     }
 
     @GetMapping
-    public Result<Page<Favorite>> getUserFavorites(
+    public Result<Page<FavoriteDTO>> getUserFavorites(
             @RequestAttribute("userId") Long userId,
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "size", defaultValue = "10") int size) {
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<Favorite> favorites = favoriteService.getUserFavorites(userId, pageable);
+        Page<FavoriteDTO> favorites = favoriteService.getUserFavorites(userId, pageable);
         return Result.success(favorites);
     }
 

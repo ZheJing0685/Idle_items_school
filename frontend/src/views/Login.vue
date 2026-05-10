@@ -119,7 +119,7 @@
               <el-checkbox v-model="rememberMe" class="remember-check">
                 <span class="check-label">记住我</span>
               </el-checkbox>
-              <a href="#" class="forgot-link">忘记密码？</a>
+              <router-link to="/forgot-password" class="forgot-link">忘记密码？</router-link>
             </div>
 
             <el-button

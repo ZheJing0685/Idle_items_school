@@ -89,6 +89,15 @@ public class Order {
     @Column(name = "refund_amount", precision = 10, scale = 2)
     private BigDecimal refundAmount;
 
+    @Column(name = "cancel_time")
+    private LocalDateTime cancelTime;
+
+    @Column(name = "refund_result", length = 50)
+    private String refundResult;
+
+    @Column(name = "refund_admin_id")
+    private Long refundAdminId;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

@@ -8,6 +8,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import jakarta.servlet.http.HttpServletRequest;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -52,5 +54,16 @@ public class AdminLogService {
     public AdminLog getAdminLogById(Long id) {
         return adminLogRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("日志记录不存在"));
+    }
+
+    public Page<AdminLog> getAdminLogsByFilters(String keyword, Long adminId, String targetType,
+                                                LocalDateTime startDate, LocalDateTime endDate,
+                                                Pageable pageable) {
+        return adminLogRepository.findByFilters(keyword, adminId, targetType, startDate, endDate, pageable);
+    }
+
+    public List<AdminLog> getAdminLogsForExport(String keyword, Long adminId, String targetType,
+                                               LocalDateTime startDate, LocalDateTime endDate) {
+        return adminLogRepository.findAllByFilters(keyword, adminId, targetType, startDate, endDate);
     }
 }

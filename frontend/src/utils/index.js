@@ -12,7 +12,7 @@ export {
   ErrorHandler,
   UploadUtil,
   validator,
-  orderFlow
+  orderFlow,
 };
 
 export default {
@@ -22,5 +22,5 @@ export default {
   ErrorHandler,
   UploadUtil,
   validator,
-  orderFlow
+  orderFlow,
 };

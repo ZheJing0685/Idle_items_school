@@ -35,6 +35,7 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final ItemRepository itemRepository;
     private final ReviewRepository reviewRepository;
+    private final NotificationService notificationService;
 
     private static final List<Order.OrderStatus> ACTIVE_STATUSES = List.of(
             Order.OrderStatus.PENDING_PAYMENT,
@@ -79,6 +80,14 @@ public class OrderService {
         Order savedOrder = orderRepository.save(order);
         log.info("订单创建成功，订单号: {}, 物品ID: {}", savedOrder.getOrderNo(), item.getId());
 
+        // 发送通知给卖家
+        notificationService.createOrderNotification(
+                item.getUserId(),
+                "您有新的订单",
+                "订单号 " + savedOrder.getOrderNo() + "，商品：" + item.getTitle(),
+                savedOrder.getId()
+        );
+
         return savedOrder;
     }
 
@@ -122,6 +131,14 @@ public class OrderService {
     public Page<OrderSummaryResponse> getSellerOrderSummaries(Long sellerId, Order.OrderStatus status, Pageable pageable) {
         return getSellerOrders(sellerId, status, pageable)
                 .map(order -> OrderSummaryResponse.from(order, false));
+    }
+
+    public List<Order> getOrdersByItemId(Long itemId, Long sellerId) {
+        return orderRepository.findByItemIdAndSellerId(itemId, sellerId);
+    }
+
+    public List<Order> getActiveOrdersByItemId(Long itemId) {
+        return orderRepository.findByItemIdAndOrderStatusIn(itemId, ACTIVE_STATUSES);
     }
 
     public Page<AdminOrderResponse> getAdminOrderSummaries(
@@ -210,6 +227,14 @@ public class OrderService {
         Order savedOrder = orderRepository.save(order);
         log.info("订单支付成功，订单号: {}, 物品ID: {}", savedOrder.getOrderNo(), item.getId());
 
+        // 发送通知给卖家
+        notificationService.createOrderNotification(
+                order.getSellerId(),
+                "订单已支付",
+                "订单号 " + savedOrder.getOrderNo() + " 已支付，请尽快发货",
+                savedOrder.getId()
+        );
+
         return savedOrder;
     }
 
@@ -217,7 +242,8 @@ public class OrderService {
     public Order cancelOrder(Long orderId, Long userId, CancelOrderRequest request) {
         log.info("取消订单，订单ID: {}, 用户ID: {}", orderId, userId);
 
-        Order order = orderRepository.findById(orderId.longValue())
+        // 使用悲观锁防止并发操作
+        Order order = orderRepository.findByIdWithLock(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("订单不存在"));
 
         if (!order.getBuyerId().equals(userId)) {
@@ -230,9 +256,18 @@ public class OrderService {
 
         order.setOrderStatus(Order.OrderStatus.CANCELLED);
         order.setCancelReason(request.getReason());
+        order.setCancelTime(LocalDateTime.now());
 
         Order savedOrder = orderRepository.save(order);
         log.info("订单取消成功，订单号: {}", savedOrder.getOrderNo());
+
+        // 发送通知给卖家
+        notificationService.createOrderNotification(
+                order.getSellerId(),
+                "订单已取消",
+                "订单号 " + savedOrder.getOrderNo() + " 已取消，原因：" + request.getReason(),
+                savedOrder.getId()
+        );
 
         return savedOrder;
     }
@@ -241,7 +276,8 @@ public class OrderService {
     public Order shipOrder(Long orderId, Long userId) {
         log.info("发货订单，订单ID: {}, 用户ID: {}", orderId, userId);
 
-        Order order = orderRepository.findById(orderId.longValue())
+        // 使用悲观锁防止并发操作
+        Order order = orderRepository.findByIdWithLock(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("订单不存在"));
 
         if (!order.getSellerId().equals(userId)) {
@@ -257,6 +293,14 @@ public class OrderService {
 
         Order savedOrder = orderRepository.save(order);
         log.info("订单发货成功，订单号: {}", savedOrder.getOrderNo());
+
+        // 发送通知给买家
+        notificationService.createOrderNotification(
+                order.getBuyerId(),
+                "订单已发货",
+                "订单号 " + savedOrder.getOrderNo() + " 已发货，请注意查收",
+                savedOrder.getId()
+        );
 
         return savedOrder;
     }
@@ -293,7 +337,8 @@ public class OrderService {
     public Order confirmReceive(Long orderId, Long userId) {
         log.info("确认收货，订单ID: {}, 用户ID: {}", orderId, userId);
 
-        Order order = orderRepository.findById(orderId.longValue())
+        // 使用悲观锁防止并发操作
+        Order order = orderRepository.findByIdWithLock(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("订单不存在"));
 
         if (!order.getBuyerId().equals(userId)) {
@@ -310,6 +355,14 @@ public class OrderService {
         Order savedOrder = orderRepository.save(order);
         log.info("确认收货成功，订单号: {}", savedOrder.getOrderNo());
 
+        // 发送通知给卖家
+        notificationService.createOrderNotification(
+                order.getSellerId(),
+                "订单已确认收货",
+                "订单号 " + savedOrder.getOrderNo() + " 已确认收货，交易完成",
+                savedOrder.getId()
+        );
+
         return savedOrder;
     }
 
@@ -317,7 +370,8 @@ public class OrderService {
     public Order applyRefund(Long orderId, Long userId, RefundRequest request) {
         log.info("申请退款，订单ID: {}, 用户ID: {}", orderId, userId);
 
-        Order order = orderRepository.findById(orderId.longValue())
+        // 使用悲观锁防止并发操作
+        Order order = orderRepository.findByIdWithLock(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("订单不存在"));
 
         if (!order.getBuyerId().equals(userId)) {
@@ -342,7 +396,8 @@ public class OrderService {
     public Order approveRefund(Long orderId, Long adminId, String result) {
         log.info("审批退款，订单ID: {}, 管理员ID: {}, 结果: {}", orderId, adminId, result);
 
-        Order order = orderRepository.findById(orderId.longValue())
+        // 使用悲观锁防止并发操作
+        Order order = orderRepository.findByIdWithLock(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("订单不存在"));
 
         if (order.getOrderStatus() != Order.OrderStatus.REFUND_REQUESTED) {
@@ -351,7 +406,18 @@ public class OrderService {
 
         if ("REJECTED".equals(result)) {
             log.info("退款申请被拒绝，订单号: {}", order.getOrderNo());
-            throw new IllegalArgumentException("退款申请被拒绝");
+            // 修复：根据原状态回退，而非固定设为PENDING_SHIPMENT
+            if (order.getShipTime() != null) {
+                // 如果已发货，回退到SHIPPED状态
+                order.setOrderStatus(Order.OrderStatus.SHIPPED);
+            } else {
+                // 如果未发货，回退到PENDING_SHIPMENT状态
+                order.setOrderStatus(Order.OrderStatus.PENDING_SHIPMENT);
+            }
+            order.setRefundResult(result);
+            order.setRefundAdminId(adminId);
+            Order savedOrder = orderRepository.save(order);
+            return savedOrder;
         }
 
         if (!"APPROVED".equals(result)) {
@@ -361,6 +427,8 @@ public class OrderService {
         order.setOrderStatus(Order.OrderStatus.REFUNDED);
         order.setRefundAmount(order.getPrice());
         order.setRefundTime(LocalDateTime.now());
+        order.setRefundResult(result);
+        order.setRefundAdminId(adminId);
 
         Item item = itemRepository.findById(order.getItemId().longValue())
                 .orElseThrow(() -> new IllegalArgumentException("物品不存在"));
@@ -406,7 +474,9 @@ public class OrderService {
 
         boolean wasPaid = order.getPaymentTime() != null;
         if (wasPaid) {
-            log.info("管理员取消已支付订单，订单号: {}, 需要处理退款", order.getOrderNo());
+            log.info("管理员取消已支付订单，订单号: {}, 处理退款", order.getOrderNo());
+            order.setRefundAmount(order.getPrice());
+            order.setRefundTime(LocalDateTime.now());
         }
 
         if (order.getOrderStatus() == Order.OrderStatus.PENDING_SHIPMENT

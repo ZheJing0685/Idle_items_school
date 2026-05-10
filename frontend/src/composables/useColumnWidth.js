@@ -30,7 +30,7 @@ export function useColumnWidth() {
     }
 
     let width = 0;
-    for (let char of text) {
+    for (const char of text) {
       const code = char.charCodeAt(0);
       if (code >= 0x4e00 && code <= 0x9fa5) {
         width += config.chineseCharWidth;

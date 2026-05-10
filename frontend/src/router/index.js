@@ -2,6 +2,13 @@ import { createRouter, createWebHistory } from 'vue-router';
 import { userStore } from '../store';
 import { ElMessage } from 'element-plus';
 
+// 验证重定向路径是否为站内路径
+function isValidRedirectPath(path) {
+  if (!path) return false;
+  // 只允许以/开头且不以//开头的路径（防止开放重定向）
+  return path.startsWith('/') && !path.startsWith('//');
+}
+
 const router = createRouter({
   history: createWebHistory(),
   routes: [
@@ -33,6 +40,15 @@ const router = createRouter({
       },
     },
     {
+      path: '/forgot-password',
+      name: 'ForgotPassword',
+      component: () => import('../views/ForgotPassword.vue'),
+      meta: {
+        requiresAuth: false,
+        title: '忘记密码',
+      },
+    },
+    {
       path: '/items',
       name: 'Items',
       component: () => import('../views/Items.vue'),
@@ -52,12 +68,7 @@ const router = createRouter({
     },
     {
       path: '/orders',
-      name: 'OrderList',
-      component: () => import('../views/OrderList.vue'),
-      meta: {
-        requiresAuth: true,
-        title: '我的订单',
-      },
+      redirect: '/user/orders',
     },
     {
       path: '/user',
@@ -113,6 +124,33 @@ const router = createRouter({
             title: '我的反馈',
           },
         },
+        {
+          path: 'chat',
+          name: 'UserChat',
+          component: () => import('../views/user/Chat.vue'),
+          meta: {
+            requiresAuth: true,
+            title: '消息中心',
+          },
+        },
+        {
+          path: 'notifications',
+          name: 'UserNotifications',
+          component: () => import('../views/user/Notifications.vue'),
+          meta: {
+            requiresAuth: true,
+            title: '消息通知',
+          },
+        },
+        {
+          path: 'orders',
+          name: 'UserOrders',
+          component: () => import('../views/OrderList.vue'),
+          meta: {
+            requiresAuth: true,
+            title: '我的订单',
+          },
+        },
       ],
     },
     {
@@ -143,6 +181,16 @@ const router = createRouter({
         title: '管理后台',
       },
       children: [
+        {
+          path: '',
+          name: 'Dashboard',
+          component: () => import('../views/admin/Dashboard.vue'),
+          meta: {
+            requiresAuth: true,
+            requiresAdmin: true,
+            title: '控制台',
+          },
+        },
         {
           path: 'users',
           name: 'UserManagement',
@@ -186,7 +234,8 @@ const router = createRouter({
         {
           path: 'category-feedbacks',
           name: 'CategoryFeedbackManagement',
-          component: () => import('../views/admin/CategoryFeedbackManagement.vue'),
+          component: () =>
+            import('../views/admin/CategoryFeedbackManagement.vue'),
           meta: {
             requiresAuth: true,
             requiresAdmin: true,
@@ -223,6 +272,16 @@ const router = createRouter({
             title: '操作日志管理',
           },
         },
+        {
+          path: 'disputes',
+          name: 'DisputeManagement',
+          component: () => import('../views/admin/DisputeManagement.vue'),
+          meta: {
+            requiresAuth: true,
+            requiresAdmin: true,
+            title: '纠纷管理',
+          },
+        },
       ],
     },
     {
@@ -246,8 +305,11 @@ router.beforeEach(async (to, from, next) => {
   // 检查是否需要认证
   if (to.matched.some((record) => record.meta.requiresAuth)) {
     if (!store.isLoggedIn) {
-      // 保存当前路径，登录后重定向
-      localStorage.setItem('redirectPath', to.fullPath);
+      // 保存当前路径，登录后重定向（验证路径安全性）
+      const redirectPath = to.fullPath;
+      if (isValidRedirectPath(redirectPath)) {
+        localStorage.setItem('redirectPath', redirectPath);
+      }
       next('/login');
     } else {
       // 检查是否需要管理员权限
@@ -258,6 +320,10 @@ router.beforeEach(async (to, from, next) => {
           }
         } catch (error) {
           console.error('获取用户信息失败', error);
+          // 获取用户信息失败时，清除登录状态并跳转到登录页
+          store.logout();
+          next('/login');
+          return;
         }
 
         if (!store.isAdmin) {
@@ -267,13 +333,17 @@ router.beforeEach(async (to, from, next) => {
           next();
         }
       } else {
-        // 普通认证路由，尝试获取用户信息（仅在缺失时）
-        try {
-          if (!store.user || !store.user.role) {
+        // 普通认证路由，仅在用户信息不存在时获取
+        if (!store.user) {
+          try {
             await store.getCurrentUser();
+          } catch (error) {
+            console.error('获取用户信息失败', error);
+            // 获取用户信息失败时，清除登录状态并跳转到登录页
+            store.logout();
+            next('/login');
+            return;
           }
-        } catch (error) {
-          console.error('获取用户信息失败', error);
         }
         next();
       }

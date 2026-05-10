@@ -24,6 +24,7 @@
 import { ref, reactive, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { userStore } from '../store';
+import api from '../api';
 import Sidebar from '../components/user/Sidebar.vue';
 import UserInfoCard from '../components/user/UserInfoCard.vue';
 import StatsCard from '../components/user/StatsCard.vue';
@@ -61,7 +62,7 @@ const menuItems = [
   },
   { 
     name: '我的订单', 
-    path: '/orders',
+    path: '/user/orders',
     icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6V20C3 20.5304 3.21071 21.0391 3.58579 21.4142C3.96086 21.7893 4.46957 22 5 22H19C19.5304 22 20.0391 21.7893 20.4142 21.4142C20.7893 21.0391 21 20.5304 21 20V6L18 2H6Z"/><path d="M3 6H21"/></svg>'
   },
   { 
@@ -94,7 +95,7 @@ const quickActions = [
   },
   {
     name: '查看订单',
-    path: '/orders',
+    path: '/user/orders',
     icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6V20C3 20.5304 3.21071 21.0391 3.58579 21.4142C3.96086 21.7893 4.46957 22 5 22H19C19.5304 22 20.0391 21.7893 20.4142 21.4142C20.7893 21.0391 21 20.5304 21 20V6L18 2H6Z"/><path d="M3 6H21"/></svg>'
   },
   {
@@ -110,15 +111,12 @@ onMounted(() => {
 
 const loadStats = async () => {
   try {
-    const response = await fetch('/api/users/stats');
-    if (response.ok) {
-      const data = await response.json();
-      if (data.code === 200) {
-        stats.totalItems = data.data.totalItems || data.data.total_sales || 0;
-        stats.soldItems = data.data.soldItems || data.data.total_sales || 0;
-        stats.completedDeals = data.data.completedDeals || data.data.total_transactions || 0;
-        stats.rating = data.data.rating || data.data.credit_score || '100';
-      }
+    const res = await api.user.getStats();
+    if (res.code === 200) {
+      stats.totalItems = res.data.totalItems || 0;
+      stats.soldItems = res.data.soldItems || 0;
+      stats.completedDeals = res.data.completedDeals || 0;
+      stats.rating = res.data.rating ?? '100';
     }
   } catch (error) {
     console.error('获取统计数据失败', error);

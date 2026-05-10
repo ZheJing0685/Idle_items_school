@@ -7,6 +7,10 @@ const pinia = createPinia();
 
 export {
   pinia,
+  useUserStore,
+  useItemStore,
+  useCartStore,
+  // 兼容旧的导入方式
   useUserStore as userStore,
   useItemStore as itemStore,
   useCartStore as cartStore,

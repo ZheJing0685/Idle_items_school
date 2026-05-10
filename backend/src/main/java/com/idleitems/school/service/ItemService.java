@@ -6,6 +6,7 @@ import com.idleitems.school.entity.Item;
 import com.idleitems.school.entity.User;
 import com.idleitems.school.repository.CategoryRepository;
 import com.idleitems.school.repository.ItemRepository;
+import com.idleitems.school.repository.ReviewRepository;
 import com.idleitems.school.repository.UserRepository;
 import com.idleitems.school.util.CacheManager;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.Pageable;
 
 @Slf4j
 @Service
@@ -31,19 +33,16 @@ public class ItemService {
     private final CategoryRepository categoryRepository;
     private final CacheManager cacheManager;
     private final UserRepository userRepository;
+    private final ReviewRepository reviewRepository;
 
     @Async("viewCountExecutor")
     @Transactional
     public void incrementViewCountAsync(Long itemId) {
         try {
-            Optional<Item> optionalItem = itemRepository.findById(itemId);
-            if (optionalItem.isPresent()) {
-                Item item = optionalItem.get();
-                item.setViewCount(item.getViewCount() + 1);
-                itemRepository.save(item);
-                cacheManager.delete(CacheManager.getHotItemsKey());
-                log.debug("View count incremented for item: {}", itemId);
-            }
+            // 使用原子性更新，避免并发问题
+            itemRepository.incrementViewCount(itemId);
+            cacheManager.delete(CacheManager.getHotItemsKey());
+            log.debug("View count incremented for item: {}", itemId);
         } catch (Exception e) {
             log.error("Failed to increment view count for item {}: {}", itemId, e.getMessage());
         }
@@ -123,6 +122,13 @@ public class ItemService {
         item.setContactName((String) request.get("contactName"));
         item.setContactPhone((String) request.get("contactPhone"));
         
+        // 根据contactType存储对应的联系方式到contactInfo字段
+        Integer contactType = item.getContactType();
+        String contactInfo = (String) request.get("contactInfo");
+        if (contactType != null && contactInfo != null && !contactInfo.isEmpty()) {
+            item.setContactInfo(contactInfo);
+        }
+        
         @SuppressWarnings("unchecked")
         List<String> images = (List<String>) request.get("images");
         if (images != null && !images.isEmpty()) {
@@ -155,7 +161,9 @@ public class ItemService {
         
         Object cachedObject = cacheManager.get(cacheKey);
         if (cachedObject != null && cachedObject instanceof Page) {
-            return (Page<ItemSummaryDTO>) cachedObject;
+            @SuppressWarnings("unchecked")
+            Page<ItemSummaryDTO> cachedPage = (Page<ItemSummaryDTO>) cachedObject;
+            return cachedPage;
         }
         
         Item.ItemCondition itemCondition = null;
@@ -269,7 +277,10 @@ public class ItemService {
             dto.setSellerVerified(user.getVerified() != null ? user.getVerified() : false);
         }
         dto.setSellerItemsCount(sellerItemCounts.getOrDefault(item.getUserId(), 0));
-        dto.setSellerRating(5.0);
+        
+        // 从评价表计算卖家真实评分
+        BigDecimal averageRating = reviewRepository.getAverageRatingByUserId(item.getUserId());
+        dto.setSellerRating(averageRating != null ? averageRating.doubleValue() : 0.0);
         
         return dto;
     }
@@ -282,7 +293,9 @@ public class ItemService {
         if (cachedObject instanceof List) {
             List<?> cachedList = (List<?>) cachedObject;
             if (!cachedList.isEmpty() && cachedList.get(0) instanceof Item) {
-                return (List<Item>) cachedObject;
+                @SuppressWarnings("unchecked")
+                List<Item> result = (List<Item>) cachedObject;
+                return result;
             }
         }
         
@@ -311,33 +324,38 @@ public class ItemService {
         
         Object cachedObject = cacheManager.get(cacheKey);
         if (cachedObject instanceof Item) {
+            // 仅使用异步更新浏览量，避免重复计数
             incrementViewCountAsync(id);
             return (Item) cachedObject;
         }
         
         Item item = itemRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("物品不存在"));
-        item.setViewCount(item.getViewCount() + 1);
-        Item savedItem = itemRepository.save(item);
+        
+        // 移除同步更新浏览量，仅使用异步更新
+        incrementViewCountAsync(id);
         
         // 直接在Service中填充卖家信息，避免Controller中的N+1
-        int sellerItemCount = getSellerItemCount(savedItem.getUserId());
-        Optional<User> userOpt = userRepository.findById(savedItem.getUserId());
+        int sellerItemCount = getSellerItemCount(item.getUserId());
+        Optional<User> userOpt = userRepository.findById(item.getUserId());
         if (userOpt.isPresent()) {
             User user = userOpt.get();
-            savedItem.setSellerNickname(
+            item.setSellerNickname(
                 user.getNickname() != null && !user.getNickname().isEmpty() 
                     ? user.getNickname() 
                     : user.getUsername()
             );
-            savedItem.setSellerVerified(user.getVerified() != null ? user.getVerified() : false);
-            savedItem.setSellerItemsCount(sellerItemCount);
-            savedItem.setSellerRating(5.0);
+            item.setSellerVerified(user.getVerified() != null ? user.getVerified() : false);
+            item.setSellerItemsCount(sellerItemCount);
+            
+            // 从评价表计算卖家真实评分
+            BigDecimal averageRating = reviewRepository.getAverageRatingByUserId(item.getUserId());
+            item.setSellerRating(averageRating != null ? averageRating.doubleValue() : 0.0);
         }
         
-        cacheManager.set(cacheKey, savedItem, 600);
+        cacheManager.set(cacheKey, item, 600);
         
-        return savedItem;
+        return item;
     }
 
     @Transactional
@@ -365,8 +383,20 @@ public class ItemService {
         existingItem.setTags((String) request.get("tags"));
         existingItem.setContactName((String) request.get("contactName"));
         existingItem.setContactPhone((String) request.get("contactPhone"));
+        
+        // 根据contactType存储对应的联系方式到contactInfo字段
+        Integer contactType = existingItem.getContactType();
+        String contactInfo = (String) request.get("contactInfo");
+        if (contactType != null && contactInfo != null && !contactInfo.isEmpty()) {
+            existingItem.setContactInfo(contactInfo);
+        } else if (contactType != null && (contactType == 1)) {
+            // 如果选择平台内，清空contactInfo
+            existingItem.setContactInfo(null);
+        }
+        
         existingItem.setStatus(Item.ItemStatus.PENDING);
 
+        @SuppressWarnings("unchecked")
         List<String> images = (List<String>) request.get("images");
         if (images != null && !images.isEmpty()) {
             if (request.get("coverImage") != null) {
@@ -404,6 +434,29 @@ public class ItemService {
         return updatedItem;
     }
 
+    @Transactional
+    public Item onShelfItem(Long userId, Long itemId) {
+        Item item = itemRepository.findById(Objects.requireNonNull(itemId))
+                .orElseThrow(() -> new IllegalArgumentException("物品不存在"));
+
+        if (!item.getUserId().equals(userId)) {
+            throw new SecurityException("无权操作此物品");
+        }
+
+        if (item.getStatus() != Item.ItemStatus.OFF_SHELF && item.getStatus() != Item.ItemStatus.DRAFT) {
+            throw new IllegalArgumentException("只有下架或草稿状态的物品才能上架");
+        }
+
+        item.setStatus(Item.ItemStatus.ON_SALE);
+        Item updatedItem = itemRepository.save(item);
+        
+        cacheManager.delete(CacheManager.getItemKey(itemId));
+        cacheManager.deletePattern("item:list:*");
+        cacheManager.deletePattern("item:hot");
+        
+        return updatedItem;
+    }
+
     public Pageable createPageable(int page, int size, String sortBy) {
         Sort sort;
         switch (sortBy) {
@@ -422,5 +475,14 @@ public class ItemService {
                 break;
         }
         return PageRequest.of(page - 1, size, sort);
+    }
+
+    public List<Item> getItemsForExport(String keyword, Item.ItemStatus status, Long categoryId) {
+        Pageable pageable = Pageable.unpaged();
+        if (status != null) {
+            return itemRepository.findByStatus(status, pageable).getContent();
+        } else {
+            return itemRepository.findAll(pageable).getContent();
+        }
     }
 }

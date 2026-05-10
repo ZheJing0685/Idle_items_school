@@ -42,16 +42,19 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { ElMessage } from 'element-plus';
 import { useRouter } from 'vue-router';
 import notificationApi from '@/api/services/notification';
 import { wsService } from '@/utils/websocket';
+import { getToken } from '@/api/config/axios';
+import { useUserStore } from '@/store';
 import PageHeader from '@/components/user/PageHeader.vue';
 import NotificationCard from '@/components/user/NotificationCard.vue';
 import EmptyState from '@/components/user/EmptyState.vue';
 
 const router = useRouter();
+const userStore = useUserStore();
 
 const notifications = ref([]);
 const currentPage = ref(1);
@@ -98,7 +101,7 @@ const markAllAsRead = async () => {
 const handleNotification = (item) => {
   if (!item.isRead) markAsRead(item.id);
   if (item.relatedType === 'ORDER' && item.relatedId) {
-    router.push('/orders');
+    router.push('/user/orders');
   }
 };
 
@@ -121,6 +124,18 @@ const handleNewNotification = (notification) => {
 onMounted(() => {
   loadNotifications();
   wsService.onMessage('notification', handleNewNotification);
+
+  const token = getToken();
+  const userId = userStore.user?.id;
+  if (token && userId) {
+    wsService.connect(token, userId).catch((err) => {
+      console.error('WebSocket连接失败:', err);
+    });
+  }
+});
+
+onUnmounted(() => {
+  wsService.disconnect();
 });
 </script>
 

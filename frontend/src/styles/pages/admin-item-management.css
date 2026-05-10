@@ -5,6 +5,10 @@
 }
 .page-intro {
   margin-bottom: var(--space-2);
+  padding: var(--space-4);
+  background: var(--surface-card);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
 }
 .section-title {
   font-family: 'Bricolage Grotesque', system-ui, sans-serif;

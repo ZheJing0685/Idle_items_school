@@ -130,17 +130,29 @@
           />
         </div>
         <div class="filter-selects">
-          <select v-model="userRole" class="filter-select" @change="handleSearch">
+          <select
+            v-model="userRole"
+            class="filter-select"
+            @change="handleSearch"
+          >
             <option value="">全部角色</option>
             <option value="STUDENT">学生</option>
             <option value="ADMIN">管理员</option>
           </select>
-          <select v-model="userStatus" class="filter-select" @change="handleSearch">
+          <select
+            v-model="userStatus"
+            class="filter-select"
+            @change="handleSearch"
+          >
             <option value="">全部状态</option>
             <option value="ACTIVE">活跃</option>
             <option value="DISABLED">禁用</option>
           </select>
-          <select v-model="userVerified" class="filter-select" @change="handleSearch">
+          <select
+            v-model="userVerified"
+            class="filter-select"
+            @change="handleSearch"
+          >
             <option value="">认证状态</option>
             <option value="true">已认证</option>
             <option value="false">未认证</option>
@@ -426,85 +438,238 @@
       </div>
     </div>
 
-      <el-dialog v-model="dialogVisible" title="用户详情" width="520px" :close-on-click-modal="false" destroy-on-close>
-        <div class="user-detail" v-if="currentUser">
-          <div class="detail-avatar">
-            <el-avatar :size="64" :src="currentUser.avatar">
-              {{ getAvatarText(currentUser) }}
-            </el-avatar>
-            <div class="detail-name">{{ currentUser.nickname || currentUser.username }}</div>
-            <div class="detail-email">{{ currentUser.email || '未设置邮箱' }}</div>
+    <el-dialog
+      v-model="dialogVisible"
+      title="用户详情"
+      width="520px"
+      :close-on-click-modal="false"
+      destroy-on-close
+    >
+      <div class="user-detail" v-if="currentUser">
+        <div class="detail-avatar">
+          <el-avatar :size="64" :src="currentUser.avatar">
+            {{ getAvatarText(currentUser) }}
+          </el-avatar>
+          <div class="detail-name">
+            {{ currentUser.nickname || currentUser.username }}
           </div>
-          <div class="detail-grid">
-            <div class="detail-item">
-              <span class="detail-label">用户名</span>
-              <span class="detail-value">{{ currentUser.username || '-' }}</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">手机号</span>
-              <span class="detail-value">{{ currentUser.phone || '-' }}</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">学校</span>
-              <span class="detail-value">{{ currentUser.schoolName || '-' }}</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">学号</span>
-              <span class="detail-value">{{ currentUser.studentId || '-' }}</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">性别</span>
-              <span class="detail-value">{{ currentUser.gender === 1 ? '男' : currentUser.gender === 2 ? '女' : '未知' }}</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">信用评分</span>
-              <span class="detail-value">
-                <el-progress :percentage="currentUser.creditScore || 100" :color="getScoreColor(currentUser.creditScore)" :width="36" type="circle" :stroke-width="4" />
-                <span style="margin-left: 6px; font-weight: 600;">{{ currentUser.creditScore || 100 }}</span>
-              </span>
-            </div>
-            <div class="detail-item detail-full">
-              <span class="detail-label">交易统计</span>
-              <span class="detail-value">累计交易 {{ currentUser.totalTransactions || 0 }} 次 · 售出 {{ currentUser.totalSales || 0 }} 件 · 购买 {{ currentUser.totalPurchases || 0 }} 件</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">角色</span>
-              <span class="detail-value">
-                <span class="badge" :class="currentUser.role === 'ADMIN' ? 'badge-admin' : 'badge-student'">
-                  {{ currentUser.role === 'ADMIN' ? '管理员' : '学生' }}
-                </span>
-              </span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">状态</span>
-              <span class="detail-value">
-                <span class="badge" :class="currentUser.status === 'ACTIVE' ? 'badge-success' : 'badge-danger'">
-                  {{ currentUser.status === 'ACTIVE' ? '活跃' : '禁用' }}
-                </span>
-              </span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">认证</span>
-              <span class="detail-value">
-                <span class="badge" :class="currentUser.verified ? 'badge-success' : 'badge-warning'">
-                  {{ currentUser.verified ? '已认证' : '未认证' }}
-                </span>
-              </span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">注册时间</span>
-              <span class="detail-value">{{ formatDateTime(currentUser.createdAt) }}</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">最后登录</span>
-              <span class="detail-value">{{ formatDateTime(currentUser.lastLoginTime) }}</span>
-            </div>
+          <div class="detail-email">
+            {{ currentUser.email || '未设置邮箱' }}
           </div>
         </div>
-        <template #footer>
-          <el-button @click="dialogVisible = false">关闭</el-button>
-        </template>
-      </el-dialog>
+        <div class="detail-grid">
+          <div class="detail-item">
+            <span class="detail-label">用户名</span>
+            <span class="detail-value">{{ currentUser.username || '-' }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">手机号</span>
+            <span class="detail-value">{{ currentUser.phone || '-' }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">学校</span>
+            <span class="detail-value">{{
+              currentUser.schoolName || '-'
+            }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">学号</span>
+            <span class="detail-value">{{ currentUser.studentId || '-' }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">性别</span>
+            <span class="detail-value">{{
+              currentUser.gender === 1
+                ? '男'
+                : currentUser.gender === 2
+                  ? '女'
+                  : '未知'
+            }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">信用评分</span>
+            <span class="detail-value">
+              <el-progress
+                :percentage="currentUser.creditScore || 100"
+                :color="getScoreColor(currentUser.creditScore)"
+                :width="36"
+                type="circle"
+                :stroke-width="4"
+              />
+              <span style="margin-left: 6px; font-weight: 600">{{
+                currentUser.creditScore || 100
+              }}</span>
+            </span>
+          </div>
+          <div class="detail-item detail-full">
+            <span class="detail-label">交易统计</span>
+            <span class="detail-value"
+              >累计交易 {{ currentUser.totalTransactions || 0 }} 次 · 售出
+              {{ currentUser.totalSales || 0 }} 件 · 购买
+              {{ currentUser.totalPurchases || 0 }} 件</span
+            >
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">角色</span>
+            <span class="detail-value">
+              <span
+                class="badge"
+                :class="
+                  currentUser.role === 'ADMIN' ? 'badge-admin' : 'badge-student'
+                "
+              >
+                {{ currentUser.role === 'ADMIN' ? '管理员' : '学生' }}
+              </span>
+            </span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">状态</span>
+            <span class="detail-value">
+              <span
+                class="badge"
+                :class="
+                  currentUser.status === 'ACTIVE'
+                    ? 'badge-success'
+                    : 'badge-danger'
+                "
+              >
+                {{ currentUser.status === 'ACTIVE' ? '活跃' : '禁用' }}
+              </span>
+            </span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">认证</span>
+            <span class="detail-value">
+              <span
+                class="badge"
+                :class="
+                  currentUser.verified ? 'badge-success' : 'badge-warning'
+                "
+              >
+                {{ currentUser.verified ? '已认证' : '未认证' }}
+              </span>
+            </span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">注册时间</span>
+            <span class="detail-value">{{
+              formatDateTime(currentUser.createdAt)
+            }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">最后登录</span>
+            <span class="detail-value">{{
+              formatDateTime(currentUser.lastLoginTime)
+            }}</span>
+          </div>
+        </div>
+      </div>
+      <template #footer>
+        <el-button @click="dialogVisible = false">关闭</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 编辑用户对话框 -->
+    <el-dialog
+      v-model="editDialogVisible"
+      title="编辑用户"
+      width="520px"
+      :close-on-click-modal="false"
+      destroy-on-close
+    >
+      <el-form :model="editForm" label-width="80px">
+        <el-form-item label="用户名">
+          <el-input v-model="editForm.username" disabled />
+        </el-form-item>
+        <el-form-item label="邮箱">
+          <el-input v-model="editForm.email" placeholder="请输入邮箱" />
+        </el-form-item>
+        <el-form-item label="手机号">
+          <el-input v-model="editForm.phone" placeholder="请输入手机号" />
+        </el-form-item>
+        <el-form-item label="昵称">
+          <el-input v-model="editForm.nickname" placeholder="请输入昵称" />
+        </el-form-item>
+        <el-form-item label="角色">
+          <el-select v-model="editForm.role" placeholder="请选择角色">
+            <el-option label="学生" value="STUDENT" />
+            <el-option label="管理员" value="ADMIN" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="状态">
+          <el-select v-model="editForm.status" placeholder="请选择状态">
+            <el-option label="活跃" value="ACTIVE" />
+            <el-option label="禁用" value="DISABLED" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="学号">
+          <el-input v-model="editForm.studentId" placeholder="请输入学号" />
+        </el-form-item>
+        <el-form-item label="性别">
+          <el-select v-model="editForm.gender" placeholder="请选择性别" clearable>
+            <el-option label="男" :value="1" />
+            <el-option label="女" :value="2" />
+            <el-option label="未知" :value="0" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="学校">
+          <el-input v-model="editForm.schoolName" placeholder="请输入学校" />
+        </el-form-item>
+        <el-form-item label="简介">
+          <el-input v-model="editForm.bio" type="textarea" :rows="3" placeholder="请输入简介" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="editDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="submitEdit" :loading="editLoading">确定</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 添加用户对话框 -->
+    <el-dialog
+      v-model="addDialogVisible"
+      title="添加用户"
+      width="520px"
+      :close-on-click-modal="false"
+      destroy-on-close
+    >
+      <el-form :model="addForm" label-width="80px">
+        <el-form-item label="用户名" required>
+          <el-input v-model="addForm.username" placeholder="请输入用户名" />
+        </el-form-item>
+        <el-form-item label="邮箱" required>
+          <el-input v-model="addForm.email" placeholder="请输入邮箱" />
+        </el-form-item>
+        <el-form-item label="密码" required>
+          <el-input v-model="addForm.password" type="password" placeholder="请输入密码" show-password />
+        </el-form-item>
+        <el-form-item label="手机号">
+          <el-input v-model="addForm.phone" placeholder="请输入手机号" />
+        </el-form-item>
+        <el-form-item label="昵称">
+          <el-input v-model="addForm.nickname" placeholder="请输入昵称" />
+        </el-form-item>
+        <el-form-item label="角色">
+          <el-select v-model="addForm.role" placeholder="请选择角色">
+            <el-option label="学生" value="STUDENT" />
+            <el-option label="管理员" value="ADMIN" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="状态">
+          <el-select v-model="addForm.status" placeholder="请选择状态">
+            <el-option label="活跃" value="ACTIVE" />
+            <el-option label="禁用" value="DISABLED" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="学号">
+          <el-input v-model="addForm.studentId" placeholder="请输入学号" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="addDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="submitAdd" :loading="addLoading">确定</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -524,6 +689,16 @@ const pageSize = ref(20);
 const total = ref(0);
 const dialogVisible = ref(false);
 const currentUser = ref(null);
+
+// 编辑用户相关
+const editDialogVisible = ref(false);
+const editForm = ref({});
+const editLoading = ref(false);
+
+// 添加用户相关
+const addDialogVisible = ref(false);
+const addForm = ref({});
+const addLoading = ref(false);
 
 const stats = ref({
   total: 0,
@@ -588,16 +763,17 @@ const fetchUsers = async () => {
 
       if (searchKeyword.value) {
         const keyword = searchKeyword.value.toLowerCase();
-        userList = userList.filter(user =>
-          (user.username && user.username.toLowerCase().includes(keyword)) ||
-          (user.nickname && user.nickname.toLowerCase().includes(keyword)) ||
-          (user.email && user.email.toLowerCase().includes(keyword))
+        userList = userList.filter(
+          (user) =>
+            (user.username && user.username.toLowerCase().includes(keyword)) ||
+            (user.nickname && user.nickname.toLowerCase().includes(keyword)) ||
+            (user.email && user.email.toLowerCase().includes(keyword))
         );
       }
 
       if (userVerified.value !== '') {
         const verifiedValue = userVerified.value === 'true';
-        userList = userList.filter(user => user.verified === verifiedValue);
+        userList = userList.filter((user) => user.verified === verifiedValue);
       }
 
       users.value = userList;
@@ -656,7 +832,20 @@ const handleView = (user) => {
 };
 
 const handleEdit = (user) => {
-  ElMessage.info(`编辑用户 ${user.username} 功能开发中`);
+  editForm.value = {
+    id: user.id,
+    username: user.username,
+    email: user.email || '',
+    phone: user.phone || '',
+    nickname: user.nickname || '',
+    role: user.role,
+    status: user.status,
+    studentId: user.studentId || '',
+    gender: user.gender,
+    bio: user.bio || '',
+    schoolName: user.schoolName || '',
+  };
+  editDialogVisible.value = true;
 };
 
 const handleToggleStatus = async (user) => {
@@ -717,7 +906,10 @@ const handleBulkEnable = async () => {
         type: 'success',
       }
     );
-    const response = await api.admin.users.batchUpdateStatus(selectedUsers.value, 'ACTIVE');
+    const response = await api.admin.users.batchUpdateStatus(
+      selectedUsers.value,
+      'ACTIVE'
+    );
     if (response.code === 200) {
       ElMessage.success(`已启用 ${selectedUsers.value.length} 个用户`);
       selectedUsers.value = [];
@@ -741,7 +933,10 @@ const handleBulkDisable = async () => {
         type: 'warning',
       }
     );
-    const response = await api.admin.users.batchUpdateStatus(selectedUsers.value, 'DISABLED');
+    const response = await api.admin.users.batchUpdateStatus(
+      selectedUsers.value,
+      'DISABLED'
+    );
     if (response.code === 200) {
       ElMessage.success(`已禁用 ${selectedUsers.value.length} 个用户`);
       selectedUsers.value = [];
@@ -780,12 +975,106 @@ const handleBulkDelete = async () => {
   }
 };
 
-const handleExport = () => {
-  ElMessage.info('导出功能开发中');
+const handleExport = async () => {
+  try {
+    const params = {};
+    if (searchKeyword.value) params.keyword = searchKeyword.value;
+    if (userRole.value) params.role = userRole.value;
+    if (userStatus.value) params.status = userStatus.value;
+
+    const response = await api.admin.users.exportUsers(params);
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `users_${new Date().getTime()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    ElMessage.success('导出成功');
+  } catch (error) {
+    ElMessage.error('导出失败');
+  }
 };
 
 const handleAdd = () => {
-  ElMessage.info('添加用户功能开发中');
+  addForm.value = {
+    username: '',
+    email: '',
+    password: '',
+    phone: '',
+    nickname: '',
+    role: 'STUDENT',
+    status: 'ACTIVE',
+    studentId: '',
+  };
+  addDialogVisible.value = true;
+};
+
+const submitEdit = async () => {
+  if (!editForm.value.email) {
+    ElMessage.warning('请输入邮箱');
+    return;
+  }
+  editLoading.value = true;
+  try {
+    const response = await api.admin.users.updateUser(editForm.value.id, {
+      email: editForm.value.email,
+      phone: editForm.value.phone,
+      nickname: editForm.value.nickname,
+      role: editForm.value.role,
+      status: editForm.value.status,
+      studentId: editForm.value.studentId,
+      gender: editForm.value.gender,
+      bio: editForm.value.bio,
+      schoolName: editForm.value.schoolName,
+    });
+    if (response.code === 200) {
+      ElMessage.success('更新成功');
+      editDialogVisible.value = false;
+      fetchUsers();
+    } else {
+      ElMessage.error(response.message || '更新失败');
+    }
+  } catch (error) {
+    ElMessage.error('更新失败');
+  } finally {
+    editLoading.value = false;
+  }
+};
+
+const submitAdd = async () => {
+  if (!addForm.value.username) {
+    ElMessage.warning('请输入用户名');
+    return;
+  }
+  if (!addForm.value.email) {
+    ElMessage.warning('请输入邮箱');
+    return;
+  }
+  if (!addForm.value.password) {
+    ElMessage.warning('请输入密码');
+    return;
+  }
+  if (addForm.value.password.length < 6) {
+    ElMessage.warning('密码长度不能少于6位');
+    return;
+  }
+  addLoading.value = true;
+  try {
+    const response = await api.admin.users.createUser(addForm.value);
+    if (response.code === 200) {
+      ElMessage.success('创建成功');
+      addDialogVisible.value = false;
+      fetchUsers();
+      fetchStats();
+    } else {
+      ElMessage.error(response.message || '创建失败');
+    }
+  } catch (error) {
+    ElMessage.error('创建失败');
+  } finally {
+    addLoading.value = false;
+  }
 };
 
 onMounted(() => {

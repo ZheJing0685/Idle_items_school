@@ -4,8 +4,10 @@ import com.idleitems.school.common.Result;
 import com.idleitems.school.config.ApiPaths;
 import com.idleitems.school.dto.ItemSummaryDTO;
 import com.idleitems.school.entity.Item;
+import com.idleitems.school.entity.Order;
 import com.idleitems.school.service.FileService;
 import com.idleitems.school.service.ItemService;
+import com.idleitems.school.service.OrderService;
 import com.idleitems.school.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +27,7 @@ public class ItemController {
     private final ItemService itemService;
     private final UserService userService;
     private final FileService fileService;
+    private final OrderService orderService;
   
     @PostMapping(ApiPaths.Item.CREATE_PATH)
     public Result<Item> createItem(@RequestAttribute("userId") Long userId, @RequestBody Map<String, Object> request) throws Exception {
@@ -105,5 +108,27 @@ public class ItemController {
             @PathVariable Long id) {
         Item updatedItem = itemService.offShelfItem(userId, id);
         return Result.success("下架成功", updatedItem);
+    }
+
+    @PutMapping("/{id}/on-shelf")
+    public Result<Item> onShelfItem(
+            @RequestAttribute("userId") Long userId,
+            @PathVariable Long id) {
+        Item updatedItem = itemService.onShelfItem(userId, id);
+        return Result.success("上架成功", updatedItem);
+    }
+
+    @GetMapping("/{id}/orders")
+    public Result<List<Order>> getItemOrders(
+            @RequestAttribute("userId") Long userId,
+            @PathVariable Long id) {
+        List<Order> orders = orderService.getOrdersByItemId(id, userId);
+        return Result.success(orders);
+    }
+
+    @GetMapping("/{id}/active-orders")
+    public Result<List<Order>> getItemActiveOrders(@PathVariable Long id) {
+        List<Order> orders = orderService.getActiveOrdersByItemId(id);
+        return Result.success(orders);
     }
 }

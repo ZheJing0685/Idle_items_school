@@ -3,41 +3,51 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch } from 'vue';
+import { ref, onMounted, onUnmounted, watch, computed } from 'vue';
 import * as echarts from 'echarts/core';
 import { PieChart } from 'echarts/charts';
-import {
-  TooltipComponent,
-  LegendComponent
-} from 'echarts/components';
+import { TooltipComponent, LegendComponent } from 'echarts/components';
 import { CanvasRenderer } from 'echarts/renderers';
+import { useDictStore } from '../../../store/dict.js';
 
-echarts.use([
-  PieChart,
-  TooltipComponent,
-  LegendComponent,
-  CanvasRenderer
-]);
+echarts.use([PieChart, TooltipComponent, LegendComponent, CanvasRenderer]);
 
 const props = defineProps({
   data: {
     type: Object,
-    default: () => ({})
-  }
+    default: () => ({}),
+  },
 });
 
+const dictStore = useDictStore();
 const chartRef = ref(null);
 let chartInstance = null;
 
-const statusMap = {
-  pending_payment: { name: '待付款', color: '#f59e0b' },
-  pending_shipment: { name: '待发货', color: '#3b82f6' },
-  shipped: { name: '已发货', color: '#8b5cf6' },
-  completed: { name: '已完成', color: '#22c55e' },
-  cancelled: { name: '已取消', color: '#94a3b8' },
-  refund_requested: { name: '退款中', color: '#ef4444' },
-  refunded: { name: '已退款', color: '#ec4899' }
-};
+// 从字典获取状态映射
+const statusMap = computed(() => {
+  const map = {};
+  const orderStatuses = dictStore.getDictOptions('ORDER_STATUS');
+  const colors = [
+    '#f59e0b',
+    '#3b82f6',
+    '#8b5cf6',
+    '#22c55e',
+    '#94a3b8',
+    '#ef4444',
+    '#ec4899',
+  ];
+
+  orderStatuses.forEach((status, index) => {
+    map[status.value] = {
+      name: status.label,
+      color: colors[index % colors.length],
+    };
+  });
+
+  return map;
+});
+
+// statusMap 已在上面定义为计算属性
 
 const initChart = () => {
   if (!chartRef.value) return;
@@ -52,21 +62,21 @@ const updateChart = () => {
   const pieData = Object.entries(props.data)
     .filter(([key, value]) => value > 0)
     .map(([key, value]) => ({
-      name: statusMap[key]?.name || key,
+      name: statusMap.value[key]?.name || key,
       value: value,
-      itemStyle: { color: statusMap[key]?.color || '#94a3b8' }
+      itemStyle: { color: statusMap.value[key]?.color || '#94a3b8' },
     }));
 
   const option = {
     tooltip: {
       trigger: 'item',
-      formatter: '{b}: {c} ({d}%)'
+      formatter: '{b}: {c} ({d}%)',
     },
     legend: {
       orient: 'vertical',
       right: '5%',
       top: 'center',
-      data: pieData.map(item => item.name)
+      data: pieData.map((item) => item.name),
     },
     series: [
       {
@@ -77,25 +87,25 @@ const updateChart = () => {
         itemStyle: {
           borderRadius: 10,
           borderColor: '#fff',
-          borderWidth: 2
+          borderWidth: 2,
         },
         label: {
           show: false,
-          position: 'center'
+          position: 'center',
         },
         emphasis: {
           label: {
             show: true,
             fontSize: 16,
-            fontWeight: 'bold'
-          }
+            fontWeight: 'bold',
+          },
         },
         labelLine: {
-          show: false
+          show: false,
         },
-        data: pieData
-      }
-    ]
+        data: pieData,
+      },
+    ],
   };
 
   chartInstance.setOption(option);

@@ -1,0 +1,426 @@
+.dashboard {
+  padding: var(--space-6);
+}
+
+.page-intro {
+  margin-bottom: var(--space-8);
+}
+
+.section-title {
+  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  color: var(--content-primary);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.section-subtitle {
+  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--content-primary);
+  margin: 0 0 var(--space-4) 0;
+}
+
+.section-desc {
+  font-size: var(--text-sm);
+  color: var(--content-tertiary);
+  margin: 0;
+}
+
+/* 统计卡片网格 */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-4);
+  margin-bottom: var(--space-8);
+}
+
+.stat-card {
+  background: var(--surface-card);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  border: 1px solid var(--border-subtle);
+  transition: all 150ms var(--ease-out-quart);
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  border-radius: 0 2px 2px 0;
+}
+
+.stat-card.card-total::before { background: var(--color-primary); }
+.stat-card.card-secondary::before { background: var(--color-secondary); }
+.stat-card.card-success::before { background: var(--color-success); }
+.stat-card.card-info::before { background: var(--color-info); }
+
+.stat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-3);
+}
+
+.stat-label {
+  font-size: var(--text-sm);
+  color: var(--content-secondary);
+  font-weight: 500;
+}
+
+.stat-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: var(--surface-section);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--content-tertiary);
+}
+
+.stat-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.stat-value {
+  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+  font-size: var(--text-3xl);
+  font-weight: 700;
+  color: var(--content-primary);
+  margin-bottom: var(--space-2);
+}
+
+.stat-change {
+  font-size: var(--text-xs);
+  color: var(--content-tertiary);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.stat-change.positive {
+  color: var(--color-success);
+}
+
+.stat-change.negative {
+  color: var(--color-danger);
+}
+
+/* 快捷操作 */
+.quick-actions {
+  margin-bottom: var(--space-8);
+}
+
+.actions-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-4);
+}
+
+.action-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  background: var(--surface-card);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+  text-decoration: none;
+  transition: all 150ms var(--ease-out-quart);
+  cursor: pointer;
+}
+
+.action-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+  border-color: var(--color-primary-alpha-10);
+}
+
+.action-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  background: var(--color-primary-alpha-10);
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.action-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.action-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.action-title {
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--content-primary);
+  margin: 0 0 var(--space-1) 0;
+}
+
+.action-desc {
+  font-size: var(--text-xs);
+  color: var(--content-tertiary);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.action-arrow {
+  width: 20px;
+  height: 20px;
+  color: var(--content-tertiary);
+  flex-shrink: 0;
+  transition: transform 150ms var(--ease-out-quart);
+}
+
+.action-card:hover .action-arrow {
+  transform: translateX(4px);
+  color: var(--color-primary);
+}
+
+/* 底部区域 */
+.dashboard-bottom {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-6);
+}
+
+/* 待办事项 */
+.todo-section {
+  background: var(--surface-card);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+  padding: var(--space-5);
+}
+
+.todo-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.todo-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background: var(--surface-section);
+  border-radius: var(--radius-md);
+  transition: all 150ms var(--ease-out-quart);
+}
+
+.todo-item:hover {
+  background: var(--surface-card);
+  box-shadow: var(--shadow-sm);
+}
+
+.todo-priority {
+  width: 4px;
+  height: 40px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.todo-priority.high { background: var(--color-danger); }
+.todo-priority.medium { background: var(--color-warning); }
+.todo-priority.low { background: var(--color-info); }
+
+.todo-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.todo-title {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--content-primary);
+  margin: 0 0 var(--space-1) 0;
+}
+
+.todo-desc {
+  font-size: var(--text-xs);
+  color: var(--content-tertiary);
+  margin: 0 0 var(--space-1) 0;
+}
+
+.todo-time {
+  font-size: 11px;
+  color: var(--content-tertiary);
+}
+
+.todo-count {
+  min-width: 24px;
+  height: 24px;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.todo-count.warning {
+  background: var(--color-warning-alpha-10);
+  color: var(--color-warning);
+}
+
+.todo-count.primary {
+  background: var(--color-primary-alpha-10);
+  color: var(--color-primary);
+}
+
+.todo-count.danger {
+  background: var(--color-danger-alpha-10);
+  color: var(--color-danger);
+}
+
+.todo-count.info {
+  background: var(--color-info-alpha-10);
+  color: var(--color-info);
+}
+
+/* 最近活动 */
+.activity-section {
+  background: var(--surface-card);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+  padding: var(--space-5);
+}
+
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.activity-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  transition: background 150ms var(--ease-out-quart);
+}
+
+.activity-item:hover {
+  background: var(--surface-section);
+}
+
+.activity-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.activity-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.activity-icon.user {
+  background: var(--color-primary-alpha-10);
+  color: var(--color-primary);
+}
+
+.activity-icon.item {
+  background: var(--color-success-alpha-10);
+  color: var(--color-success);
+}
+
+.activity-icon.order {
+  background: var(--color-info-alpha-10);
+  color: var(--color-info);
+}
+
+.activity-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.activity-text {
+  font-size: var(--text-sm);
+  color: var(--content-primary);
+  margin: 0 0 var(--space-1) 0;
+  line-height: 1.4;
+}
+
+.activity-time {
+  font-size: 11px;
+  color: var(--content-tertiary);
+}
+
+/* 响应式 */
+@media (max-width: 1200px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .actions-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard {
+    padding: var(--space-4);
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .actions-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-bottom {
+    grid-template-columns: 1fr;
+  }
+
+  .stat-value {
+    font-size: var(--text-2xl);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stat-card,
+  .action-card,
+  .todo-item,
+  .activity-item {
+    transition: none;
+  }
+
+  .stat-card:hover,
+  .action-card:hover,
+  .todo-item:hover {
+    transform: none;
+  }
+}

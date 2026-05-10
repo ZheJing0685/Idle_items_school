@@ -1,5 +1,7 @@
 package com.idleitems.school.util;
 
+import com.idleitems.school.service.ConfigService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.coobird.thumbnailator.Thumbnails;
 import net.coobird.thumbnailator.geometry.Positions;
@@ -16,11 +18,52 @@ import java.io.InputStream;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class ImageProcessingService {
 
-    private static final int MAX_WIDTH = 1920;
+    private final ConfigService configService;
+
+    private static final String CONFIG_MAX_WIDTH = "file_max_width";
+    private static final String CONFIG_DEFAULT_QUALITY = "file_default_quality";
+    private static final String CONFIG_WATERMARK_OPACITY = "file_watermark_opacity";
+    private static final String CONFIG_WATERMARK_TEXT = "file_watermark_text";
+
+    private static final int DEFAULT_MAX_WIDTH = 1920;
     private static final float DEFAULT_QUALITY = 0.8f;
-    private static final float WATERMARK_OPACITY = 0.3f;
+    private static final float DEFAULT_WATERMARK_OPACITY = 0.3f;
+    private static final String DEFAULT_WATERMARK_TEXT = "Idle Items School";
+
+    /**
+     * 获取最大宽度
+     */
+    private int getMaxWidth() {
+        Integer maxWidth = configService.getConfigInt(CONFIG_MAX_WIDTH);
+        return maxWidth != null ? maxWidth : DEFAULT_MAX_WIDTH;
+    }
+
+    /**
+     * 获取默认质量
+     */
+    private float getDefaultQuality() {
+        Float quality = configService.getConfigFloat(CONFIG_DEFAULT_QUALITY);
+        return quality != null ? quality : DEFAULT_QUALITY;
+    }
+
+    /**
+     * 获取水印透明度
+     */
+    private float getWatermarkOpacity() {
+        Float opacity = configService.getConfigFloat(CONFIG_WATERMARK_OPACITY);
+        return opacity != null ? opacity : DEFAULT_WATERMARK_OPACITY;
+    }
+
+    /**
+     * 获取水印文字
+     */
+    private String getWatermarkText() {
+        String text = configService.getConfigValue(CONFIG_WATERMARK_TEXT);
+        return text != null && !text.isEmpty() ? text : DEFAULT_WATERMARK_TEXT;
+    }
 
     /**
      * 处理图片
@@ -43,14 +86,18 @@ public class ImageProcessingService {
         int newWidth = newDimensions[0];
         int newHeight = newDimensions[1];
         
+        // 获取配置值
+        float quality = getDefaultQuality();
+        float watermarkOpacity = getWatermarkOpacity();
+        
         // 处理图片
         Thumbnails.Builder<? extends File> builder = Thumbnails.of(inputFile)
                 .size(newWidth, newHeight)
                 .outputFormat(format)
-                .outputQuality(DEFAULT_QUALITY);
+                .outputQuality(quality);
         
         // 添加水印
-        builder.watermark(Positions.BOTTOM_RIGHT, createWatermark(), WATERMARK_OPACITY);
+        builder.watermark(Positions.BOTTOM_RIGHT, createWatermark(), watermarkOpacity);
         
         // 保存处理后的图片
         builder.toFile(outputFile);
@@ -87,6 +134,10 @@ public class ImageProcessingService {
         int newWidth = newDimensions[0];
         int newHeight = newDimensions[1];
         
+        // 获取配置值
+        float quality = getDefaultQuality();
+        float watermarkOpacity = getWatermarkOpacity();
+        
         // 创建输出流
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         
@@ -94,10 +145,10 @@ public class ImageProcessingService {
         Thumbnails.Builder<? extends InputStream> builder = Thumbnails.of(inputStream)
                 .size(newWidth, newHeight)
                 .outputFormat(format)
-                .outputQuality(DEFAULT_QUALITY);
+                .outputQuality(quality);
         
         // 添加水印
-        builder.watermark(Positions.BOTTOM_RIGHT, createWatermark(), WATERMARK_OPACITY);
+        builder.watermark(Positions.BOTTOM_RIGHT, createWatermark(), watermarkOpacity);
         
         // 保存处理后的图片
         builder.toOutputStream(outputStream);
@@ -121,7 +172,9 @@ public class ImageProcessingService {
      * @return 新尺寸 [width, height]
      */
     private int[] calculateNewDimensions(int width, int height) {
-        if (width <= MAX_WIDTH && height <= MAX_WIDTH) {
+        int maxWidth = getMaxWidth();
+        
+        if (width <= maxWidth && height <= maxWidth) {
             return new int[]{width, height};
         }
         
@@ -129,11 +182,11 @@ public class ImageProcessingService {
         int newWidth, newHeight;
         
         if (width > height) {
-            newWidth = MAX_WIDTH;
-            newHeight = (int) (MAX_WIDTH / aspectRatio);
+            newWidth = maxWidth;
+            newHeight = (int) (maxWidth / aspectRatio);
         } else {
-            newHeight = MAX_WIDTH;
-            newWidth = (int) (MAX_WIDTH * aspectRatio);
+            newHeight = maxWidth;
+            newWidth = (int) (maxWidth * aspectRatio);
         }
         
         return new int[]{newWidth, newHeight};
@@ -144,6 +197,10 @@ public class ImageProcessingService {
      * @return 水印图片
      */
     private BufferedImage createWatermark() {
+        // 获取水印配置
+        float watermarkOpacity = getWatermarkOpacity();
+        String watermarkText = getWatermarkText();
+        
         // 创建一个简单的文字水印
         int width = 200;
         int height = 50;
@@ -151,7 +208,7 @@ public class ImageProcessingService {
         Graphics2D g2d = watermark.createGraphics();
         
         // 设置透明度
-        g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, WATERMARK_OPACITY));
+        g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, watermarkOpacity));
         
         // 设置字体
         g2d.setFont(new Font("Arial", Font.BOLD, 16));
@@ -160,11 +217,10 @@ public class ImageProcessingService {
         g2d.setColor(Color.WHITE);
         
         // 绘制文字
-        String text = "Idle Items School";
         FontMetrics metrics = g2d.getFontMetrics();
-        int x = (width - metrics.stringWidth(text)) / 2;
+        int x = (width - metrics.stringWidth(watermarkText)) / 2;
         int y = (height - metrics.getHeight()) / 2 + metrics.getAscent();
-        g2d.drawString(text, x, y);
+        g2d.drawString(watermarkText, x, y);
         
         // 释放资源
         g2d.dispose();

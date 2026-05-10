@@ -110,11 +110,6 @@ describe('User Store', () => {
       expect(store.isAdmin).toBe(true)
     })
 
-    it('isAdmin should be true when user role is SUPER_ADMIN', () => {
-      store.user = { id: 1, username: 'admin', role: 'SUPER_ADMIN' }
-      expect(store.isAdmin).toBe(true)
-    })
-
     it('isAdmin should be falsy when user role is USER', () => {
       store.user = { id: 1, username: 'user', role: 'USER' }
       expect(store.isAdmin).toBeFalsy()

@@ -23,7 +23,9 @@
             @click="handleStatusChange(tab.value)"
           >
             {{ tab.label }}
-            <span v-if="tab.count !== null" class="tab-count">{{ tab.count }}</span>
+            <span v-if="tab.count !== null" class="tab-count">{{
+              tab.count
+            }}</span>
           </button>
         </div>
       </div>
@@ -49,7 +51,9 @@
               class="table-row"
             >
               <td class="col-user">
-                <span class="user-name">{{ feedback.username || feedback.userId }}</span>
+                <span class="user-name">{{
+                  feedback.username || feedback.userId
+                }}</span>
               </td>
               <td class="col-type">
                 <span class="type-tag" :class="getTypeClass(feedback.type)">
@@ -57,7 +61,9 @@
                 </span>
               </td>
               <td class="col-category">
-                <span class="category-name">{{ feedback.categoryName || '无' }}</span>
+                <span class="category-name">{{
+                  feedback.categoryName || '无'
+                }}</span>
               </td>
               <td class="col-desc">
                 <span class="desc-text" :title="feedback.description">
@@ -65,7 +71,10 @@
                 </span>
               </td>
               <td class="col-status">
-                <span class="status-badge" :class="getStatusClass(feedback.status)">
+                <span
+                  class="status-badge"
+                  :class="getStatusClass(feedback.status)"
+                >
                   {{ getStatusLabel(feedback.status) }}
                 </span>
               </td>
@@ -75,7 +84,9 @@
                 </span>
               </td>
               <td class="col-date">
-                <span class="create-time">{{ formatDate(feedback.createdAt) }}</span>
+                <span class="create-time">{{
+                  formatDate(feedback.createdAt)
+                }}</span>
               </td>
               <td class="col-actions">
                 <div class="action-group">
@@ -92,7 +103,9 @@
                       stroke-width="1.5"
                     >
                       <path d="M9 11l3 3L22 4" />
-                      <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" />
+                      <path
+                        d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"
+                      />
                     </svg>
                   </button>
                 </div>
@@ -107,7 +120,9 @@
                     stroke="currentColor"
                     stroke-width="1.5"
                   >
-                    <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" />
+                    <path
+                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"
+                    />
                     <rect x="9" y="3" width="6" height="4" rx="1" />
                     <path d="M9 14l2 2 4-4" />
                   </svg>
@@ -138,7 +153,10 @@
             <button
               class="page-btn"
               :disabled="page === 1"
-              @click="page--; fetchFeedbacks();"
+              @click="
+                page--;
+                fetchFeedbacks();
+              "
             >
               <svg
                 viewBox="0 0 24 24"
@@ -153,7 +171,10 @@
             <button
               class="page-btn"
               :disabled="page >= totalPages"
-              @click="page++; fetchFeedbacks();"
+              @click="
+                page++;
+                fetchFeedbacks();
+              "
             >
               <svg
                 viewBox="0 0 24 24"
@@ -182,18 +203,25 @@
             <div class="info-item">
               <span class="info-label">反馈类型</span>
               <span class="info-value">
-                <span class="type-tag" :class="getTypeClass(currentFeedback.type)">
+                <span
+                  class="type-tag"
+                  :class="getTypeClass(currentFeedback.type)"
+                >
                   {{ getTypeLabel(currentFeedback.type) }}
                 </span>
               </span>
             </div>
             <div class="info-item">
               <span class="info-label">关联分类</span>
-              <span class="info-value">{{ currentFeedback.categoryName || '无' }}</span>
+              <span class="info-value">{{
+                currentFeedback.categoryName || '无'
+              }}</span>
             </div>
             <div class="info-item info-item-full">
               <span class="info-label">描述内容</span>
-              <span class="info-value">{{ currentFeedback.description || '无' }}</span>
+              <span class="info-value">{{
+                currentFeedback.description || '无'
+              }}</span>
             </div>
           </div>
         </div>
@@ -242,7 +270,9 @@
 import { ref, computed, onMounted } from 'vue';
 import { ElMessage } from 'element-plus';
 import api from '../../api';
+import { useDictStore } from '../../store/dict.js';
 
+const dictStore = useDictStore();
 const currentStatus = ref('');
 const feedbacks = ref([]);
 const page = ref(1);
@@ -278,9 +308,19 @@ const statusMap = {
   REJECTED: { label: '已拒绝', class: 'status-rejected' },
 };
 
-const getTypeLabel = (type) => feedbackTypeMap[type]?.label || type || '未知';
+const getTypeLabel = (type) => {
+  // 将前端枚举值转换为后端枚举值
+  const typeMap = {
+    INVALID_CATEGORY: 'INVALID',
+    MISSING_CATEGORY: 'MISSING',
+  };
+  const backendType = typeMap[type] || type;
+  return dictStore.getDictLabel('CATEGORY_FEEDBACK_TYPE', backendType);
+};
 const getTypeClass = (type) => feedbackTypeMap[type]?.class || 'type-default';
-const getStatusLabel = (status) => statusMap[status]?.label || status || '未知';
+const getStatusLabel = (status) => {
+  return dictStore.getDictLabel('VERIFICATION_STATUS', status);
+};
 const getStatusClass = (status) => statusMap[status]?.class || '';
 
 const truncateText = (text, length) => {
@@ -358,7 +398,9 @@ const handleSubmitReview = async () => {
   }
 };
 
-onMounted(() => {
+onMounted(async () => {
+  // 加载字典数据
+  await dictStore.preloadCommonDicts();
   fetchFeedbacks();
 });
 </script>

@@ -8,11 +8,14 @@ export const useCartStore = defineStore('cart', () => {
 
   const totalItems = computed(() => items.value.length);
   const totalPrice = computed(() => {
-    return items.value.reduce((total, item) => total + (item.price * item.quantity), 0);
+    return items.value.reduce(
+      (total, item) => total + item.price * item.quantity,
+      0
+    );
   });
 
   const addItem = (item) => {
-    const existingItem = items.value.find(i => i.id === item.id);
+    const existingItem = items.value.find((i) => i.id === item.id);
     if (existingItem) {
       existingItem.quantity += 1;
     } else {
@@ -22,12 +25,12 @@ export const useCartStore = defineStore('cart', () => {
   };
 
   const removeItem = (itemId) => {
-    items.value = items.value.filter(item => item.id !== itemId);
+    items.value = items.value.filter((item) => item.id !== itemId);
     saveToStorage();
   };
 
   const updateQuantity = (itemId, quantity) => {
-    const item = items.value.find(i => i.id === itemId);
+    const item = items.value.find((i) => i.id === itemId);
     if (item && quantity > 0) {
       item.quantity = quantity;
       saveToStorage();

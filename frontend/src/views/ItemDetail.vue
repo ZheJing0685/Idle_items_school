@@ -530,11 +530,11 @@ const discountPercent = computed(() => {
 
 const getConditionText = (condition) => {
   const map = {
-    'NEW': '全新',
-    'LIKE_NEW': '九成新',
-    'GOOD': '八成新',
-    'FAIR': '七成新',
-    'POOR': '六成新及以下',
+    NEW: '全新',
+    LIKE_NEW: '九成新',
+    GOOD: '八成新',
+    FAIR: '七成新',
+    POOR: '六成新及以下',
   };
   return map[condition] || condition;
 };
@@ -542,8 +542,7 @@ const getConditionText = (condition) => {
 const getDeliveryText = (method) => {
   const map = {
     1: '自提',
-    2: '快递',
-    3: '两者皆可',
+    2: '上门',
   };
   return map[method] || method;
 };
@@ -644,7 +643,7 @@ const confirmBuy = async () => {
     ElMessage.success('购买成功，请在订单中完成支付');
     showBuyDialog.value = false;
     router.push({
-      path: '/orders',
+      path: '/user/orders',
       query: {
         status: 'PENDING_PAYMENT',
       },
@@ -661,7 +660,45 @@ const handleContact = async () => {
     router.push('/login');
     return;
   }
-  ElMessage.info('聊天功能开发中');
+  
+  try {
+    // 获取卖家ID - 直接使用item.value.userId
+    const sellerId = item.value?.userId;
+    console.log('Item data:', item.value);
+    console.log('Seller ID:', sellerId);
+    
+    if (!sellerId) {
+      ElMessage.error('无法获取卖家信息');
+      return;
+    }
+    
+    // 检查是否是自己的商品
+    const { userStore } = await import('../store');
+    const currentUser = userStore().user;
+    console.log('Current user:', currentUser);
+    
+    if (currentUser && currentUser.id === sellerId) {
+      ElMessage.warning('不能联系自己');
+      return;
+    }
+    
+    // 创建或获取聊天会话
+    console.log('Creating chat with sellerId:', sellerId, 'itemId:', item.value.id);
+    const response = await api.chat.createChat(sellerId, item.value.id);
+    console.log('Chat response:', response);
+    
+    if (response.code === 200 && response.data) {
+      const chatId = response.data.id || response.data;
+      console.log('Chat ID:', chatId);
+      // 跳转到聊天页面
+      router.push(`/user/chat?chatId=${chatId}`);
+    } else {
+      ElMessage.error(response.message || '创建聊天失败');
+    }
+  } catch (error) {
+    console.error('联系卖家失败:', error);
+    ElMessage.error(error.message || '联系卖家失败');
+  }
 };
 
 const editItem = () => {

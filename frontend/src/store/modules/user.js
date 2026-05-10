@@ -14,7 +14,9 @@ export const useUserStore = defineStore('user', () => {
   const rememberMe = ref(storageInstance.get('rememberMe') || false);
   const loading = ref(false);
   const isLoggedIn = ref(!!getToken());
-  const isAdmin = computed(() => user.value?.role === 'ADMIN' || user.value?.role === 'SUPER_ADMIN');
+  const isAdmin = computed(
+    () => user.value?.role === 'ADMIN'
+  );
   const isVerified = computed(() => user.value?.verified === true);
 
   const setRefreshToken = (newRefreshToken) => {
@@ -27,11 +29,15 @@ export const useUserStore = defineStore('user', () => {
     try {
       const credentials = {
         username,
-        password
+        password,
       };
       const response = await api.auth.login(credentials);
       if (response.code === 200 && response.data) {
-        const { token: newToken, refreshToken: newRefreshToken, user: userInfo } = response.data;
+        const {
+          token: newToken,
+          refreshToken: newRefreshToken,
+          user: userInfo,
+        } = response.data;
         setToken(newToken);
         setRefreshToken(newRefreshToken);
         user.value = userInfo;

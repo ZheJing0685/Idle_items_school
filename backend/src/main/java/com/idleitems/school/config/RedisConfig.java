@@ -40,7 +40,7 @@ public class RedisConfig {
             local key = KEYS[1]
             local limit = tonumber(ARGV[1])
             local window = tonumber(ARGV[2])
-            
+
             local current = redis.call('get', key)
             if current then
                 if tonumber(current) >= limit then

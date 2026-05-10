@@ -81,7 +81,7 @@ export const validateMaxLength = (value, max) => {
 export const formRules = {
   username: [
     { required: true, message: '请输入用户名', trigger: 'blur' },
-    { min: 3, max: 20, message: '用户名长度3-20个字符', trigger: 'blur' }
+    { min: 3, max: 20, message: '用户名长度3-20个字符', trigger: 'blur' },
   ],
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
@@ -94,8 +94,8 @@ export const formRules = {
           callback();
         }
       },
-      trigger: 'blur'
-    }
+      trigger: 'blur',
+    },
   ],
   email: [
     { required: true, message: '请输入邮箱', trigger: 'blur' },
@@ -107,8 +107,8 @@ export const formRules = {
           callback();
         }
       },
-      trigger: 'blur'
-    }
+      trigger: 'blur',
+    },
   ],
   phone: [
     { required: true, message: '请输入手机号', trigger: 'blur' },
@@ -120,19 +120,19 @@ export const formRules = {
           callback();
         }
       },
-      trigger: 'blur'
-    }
+      trigger: 'blur',
+    },
   ],
   nickname: [
     { required: true, message: '请输入昵称', trigger: 'blur' },
-    { min: 2, max: 20, message: '昵称长度2-20个字符', trigger: 'blur' }
-  ]
+    { min: 2, max: 20, message: '昵称长度2-20个字符', trigger: 'blur' },
+  ],
 };
 
 export const itemRules = {
   title: [
     { required: true, message: '请输入标题', trigger: 'blur' },
-    { min: 3, max: 50, message: '标题长度3-50个字符', trigger: 'blur' }
+    { min: 3, max: 50, message: '标题长度3-50个字符', trigger: 'blur' },
   ],
   price: [
     { required: true, message: '请输入价格', trigger: 'blur' },
@@ -144,16 +144,14 @@ export const itemRules = {
           callback();
         }
       },
-      trigger: 'blur'
-    }
+      trigger: 'blur',
+    },
   ],
   description: [
     { required: true, message: '请输入描述', trigger: 'blur' },
-    { min: 10, max: 1000, message: '描述长度10-1000个字符', trigger: 'blur' }
+    { min: 10, max: 1000, message: '描述长度10-1000个字符', trigger: 'blur' },
   ],
-  categoryId: [
-    { required: true, message: '请选择分类', trigger: 'change' }
-  ],
+  categoryId: [{ required: true, message: '请选择分类', trigger: 'change' }],
   images: [
     {
       validator: (rule, value, callback) => {
@@ -163,9 +161,9 @@ export const itemRules = {
           callback();
         }
       },
-      trigger: 'change'
-    }
-  ]
+      trigger: 'change',
+    },
+  ],
 };
 
 export default {
@@ -183,5 +181,5 @@ export default {
   validateMinLength,
   validateMaxLength,
   formRules,
-  itemRules
+  itemRules,
 };

@@ -25,7 +25,12 @@
           <el-cascader
             v-model="form.categoryId"
             :options="categoryTreeOptions"
-            :props="{ value: 'id', label: 'name', children: 'children', emitPath: false }"
+            :props="{
+              value: 'id',
+              label: 'name',
+              children: 'children',
+              emitPath: false,
+            }"
             placeholder="选择相关分类"
             clearable
             class="form-cascader"
@@ -54,7 +59,11 @@
             >
               提交反馈
             </el-button>
-            <el-button size="large" @click="router.push('/user/feedback')" class="view-btn">
+            <el-button
+              size="large"
+              @click="router.push('/user/feedback')"
+              class="view-btn"
+            >
               查看我的反馈
             </el-button>
           </div>
@@ -82,7 +91,9 @@ const form = reactive({
 });
 
 const rules = {
-  feedbackType: [{ required: true, message: '请选择反馈类型', trigger: 'change' }],
+  feedbackType: [
+    { required: true, message: '请选择反馈类型', trigger: 'change' },
+  ],
   description: [
     { required: true, message: '请填写描述', trigger: 'blur' },
     { min: 5, message: '描述至少5个字符', trigger: 'blur' },

@@ -1,10 +1,12 @@
 package com.idleitems.school.service.impl;
 
+import com.idleitems.school.service.ConfigService;
 import com.idleitems.school.service.FileService;
 import com.idleitems.school.util.FileValidationService;
 import com.idleitems.school.util.ImageProcessingService;
 import com.idleitems.school.util.storage.StorageAdapter;
 import com.idleitems.school.util.storage.StorageServiceFactory;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -17,14 +19,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class FileServiceImpl implements FileService {
 
     @Value("${file.upload-path}")
@@ -33,17 +33,13 @@ public class FileServiceImpl implements FileService {
     private final StorageServiceFactory storageServiceFactory;
     private final FileValidationService fileValidationService;
     private final ImageProcessingService imageProcessingService;
+    private final ConfigService configService;
 
-    public FileServiceImpl(StorageServiceFactory storageServiceFactory,
-                           FileValidationService fileValidationService,
-                           ImageProcessingService imageProcessingService) {
-        this.storageServiceFactory = storageServiceFactory;
-        this.fileValidationService = fileValidationService;
-        this.imageProcessingService = imageProcessingService;
-    }
+    private static final String CONFIG_MAX_FILE_SIZE = "file_max_size";
+    private static final String CONFIG_ALLOWED_FILE_TYPES = "file_allowed_types";
 
-    private static final List<String> ALLOWED_IMAGE_TYPES = List.of(".jpg", ".jpeg", ".png", ".webp");
-    private static final long MAX_FILE_SIZE = 5 * 1024 * 1024;
+    private static final long DEFAULT_MAX_FILE_SIZE = 5 * 1024 * 1024;
+    private static final Set<String> DEFAULT_ALLOWED_EXTENSIONS = new HashSet<>(Arrays.asList(".jpg", ".jpeg", ".png", ".webp"));
 
     @Override
     public Map<String, Object> uploadImage(MultipartFile file) throws Exception {
@@ -102,13 +98,17 @@ public class FileServiceImpl implements FileService {
             throw new IllegalArgumentException("文件不能为空");
         }
 
-        if (file.getSize() > MAX_FILE_SIZE) {
-            throw new IllegalArgumentException("文件大小不能超过5MB");
+        long maxSize = getMaxFileSize();
+        if (file.getSize() > maxSize) {
+            throw new IllegalArgumentException("文件大小不能超过" + (maxSize / 1024 / 1024) + "MB");
         }
 
         String fileName = file.getOriginalFilename();
         if (fileName == null || !isAllowedFileType(fileName)) {
-            throw new IllegalArgumentException("只支持jpg、jpeg、png、webp格式的图片");
+            Set<String> allowedExtensions = getAllowedExtensions();
+            throw new IllegalArgumentException("只支持" + allowedExtensions.stream()
+                    .map(ext -> ext.replace(".", "").toUpperCase())
+                    .collect(Collectors.joining("、")) + "格式的图片");
         }
 
         String datePath = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
@@ -149,20 +149,25 @@ public class FileServiceImpl implements FileService {
             return errors;
         }
 
+        long maxSize = getMaxFileSize();
+        Set<String> allowedExtensions = getAllowedExtensions();
+
         for (MultipartFile file : files) {
             if (file.isEmpty()) {
                 errors.add("文件不能为空");
                 continue;
             }
 
-            if (file.getSize() > MAX_FILE_SIZE) {
-                errors.add("文件大小不能超过5MB");
+            if (file.getSize() > maxSize) {
+                errors.add("文件大小不能超过" + (maxSize / 1024 / 1024) + "MB");
                 continue;
             }
 
             String fileName = file.getOriginalFilename();
             if (fileName == null || !isAllowedFileType(fileName)) {
-                errors.add("只支持jpg、jpeg、png、webp格式的图片");
+                errors.add("只支持" + allowedExtensions.stream()
+                        .map(ext -> ext.replace(".", "").toUpperCase())
+                        .collect(Collectors.joining("、")) + "格式的图片");
             }
         }
 
@@ -205,11 +210,26 @@ public class FileServiceImpl implements FileService {
             return false;
         }
         String extension = getFileExtension(fileName).toLowerCase();
-        return ALLOWED_IMAGE_TYPES.contains(extension);
+        Set<String> allowedExtensions = getAllowedExtensions();
+        return allowedExtensions.contains(extension);
     }
 
     @Override
     public long getMaxFileSize() {
-        return MAX_FILE_SIZE;
+        Long maxSize = configService.getConfigLong(CONFIG_MAX_FILE_SIZE);
+        return maxSize != null ? maxSize : DEFAULT_MAX_FILE_SIZE;
+    }
+
+    private Set<String> getAllowedExtensions() {
+        String allowedTypes = configService.getConfigValue(CONFIG_ALLOWED_FILE_TYPES);
+        if (allowedTypes != null && !allowedTypes.isEmpty()) {
+            Set<String> extensions = Arrays.stream(allowedTypes.split(","))
+                    .map(String::trim)
+                    .map(ext -> ext.startsWith(".") ? ext : "." + ext)
+                    .map(String::toLowerCase)
+                    .collect(java.util.stream.Collectors.toSet());
+            return extensions;
+        }
+        return DEFAULT_ALLOWED_EXTENSIONS;
     }
 }

@@ -1,5 +1,7 @@
 package com.idleitems.school.util;
 
+import com.idleitems.school.service.ConfigService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
@@ -14,15 +16,44 @@ import java.util.Set;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class FileValidationService {
 
-    private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-    private static final Set<String> ALLOWED_EXTENSIONS = new HashSet<>(Arrays.asList("jpg", "jpeg", "png", "webp"));
-    private static final Set<String> ALLOWED_CONTENT_TYPES = new HashSet<>(Arrays.asList(
+    private final ConfigService configService;
+
+    private static final String CONFIG_MAX_FILE_SIZE = "file_max_size";
+    private static final String CONFIG_ALLOWED_FILE_TYPES = "file_allowed_types";
+
+    private static final long DEFAULT_MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+    private static final Set<String> DEFAULT_ALLOWED_EXTENSIONS = new HashSet<>(Arrays.asList("jpg", "jpeg", "png", "webp"));
+    private static final Set<String> DEFAULT_ALLOWED_CONTENT_TYPES = new HashSet<>(Arrays.asList(
             "image/jpeg",
             "image/png",
             "image/webp"
     ));
+
+    /**
+     * 获取最大文件大小
+     */
+    private long getMaxFileSize() {
+        Long maxSize = configService.getConfigLong(CONFIG_MAX_FILE_SIZE);
+        return maxSize != null ? maxSize : DEFAULT_MAX_FILE_SIZE;
+    }
+
+    /**
+     * 获取允许的文件扩展名
+     */
+    private Set<String> getAllowedExtensions() {
+        String allowedTypes = configService.getConfigValue(CONFIG_ALLOWED_FILE_TYPES);
+        if (allowedTypes != null && !allowedTypes.isEmpty()) {
+            Set<String> extensions = Arrays.stream(allowedTypes.split(","))
+                    .map(String::trim)
+                    .map(String::toLowerCase)
+                    .collect(java.util.stream.Collectors.toSet());
+            return extensions;
+        }
+        return DEFAULT_ALLOWED_EXTENSIONS;
+    }
 
     /**
      * 验证图片文件
@@ -37,8 +68,9 @@ public class FileValidationService {
         }
 
         // 检查文件大小
-        if (file.getSize() > MAX_FILE_SIZE) {
-            throw new IllegalArgumentException("文件大小不能超过5MB");
+        long maxSize = getMaxFileSize();
+        if (file.getSize() > maxSize) {
+            throw new IllegalArgumentException("文件大小不能超过" + (maxSize / 1024 / 1024) + "MB");
         }
 
         // 检查文件名
@@ -54,13 +86,14 @@ public class FileValidationService {
 
         // 检查文件扩展名
         String extension = getFileExtension(originalFilename).toLowerCase();
-        if (!ALLOWED_EXTENSIONS.contains(extension)) {
-            throw new IllegalArgumentException("文件类型不支持，仅支持JPG、PNG、WebP格式");
+        Set<String> allowedExtensions = getAllowedExtensions();
+        if (!allowedExtensions.contains(extension)) {
+            throw new IllegalArgumentException("文件类型不支持，仅支持" + String.join("、", allowedExtensions).toUpperCase() + "格式");
         }
 
         // 检查文件内容类型
         String contentType = file.getContentType();
-        if (contentType == null || !ALLOWED_CONTENT_TYPES.contains(contentType)) {
+        if (contentType == null || !DEFAULT_ALLOWED_CONTENT_TYPES.contains(contentType)) {
             throw new IllegalArgumentException("文件类型不支持，仅支持JPG、PNG、WebP格式");
         }
 
@@ -92,8 +125,9 @@ public class FileValidationService {
      * @throws IllegalArgumentException 大小验证失败异常
      */
     public void validateFileSize(long size) throws IllegalArgumentException {
-        if (size > MAX_FILE_SIZE) {
-            throw new IllegalArgumentException("文件大小不能超过5MB");
+        long maxSize = getMaxFileSize();
+        if (size > maxSize) {
+            throw new IllegalArgumentException("文件大小不能超过" + (maxSize / 1024 / 1024) + "MB");
         }
     }
 
@@ -104,11 +138,12 @@ public class FileValidationService {
      * @throws IllegalArgumentException 类型验证失败异常
      */
     public void validateFileType(String extension, String contentType) throws IllegalArgumentException {
-        if (!ALLOWED_EXTENSIONS.contains(extension.toLowerCase())) {
-            throw new IllegalArgumentException("文件类型不支持，仅支持JPG、PNG、WebP格式");
+        Set<String> allowedExtensions = getAllowedExtensions();
+        if (!allowedExtensions.contains(extension.toLowerCase())) {
+            throw new IllegalArgumentException("文件类型不支持，仅支持" + String.join("、", allowedExtensions).toUpperCase() + "格式");
         }
 
-        if (contentType == null || !ALLOWED_CONTENT_TYPES.contains(contentType)) {
+        if (contentType == null || !DEFAULT_ALLOWED_CONTENT_TYPES.contains(contentType)) {
             throw new IllegalArgumentException("文件类型不支持，仅支持JPG、PNG、WebP格式");
         }
     }

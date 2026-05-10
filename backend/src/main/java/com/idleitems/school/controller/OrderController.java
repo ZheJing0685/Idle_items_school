@@ -1,6 +1,7 @@
 package com.idleitems.school.controller;
 
 import com.idleitems.school.common.Result;
+import com.idleitems.school.config.ApiPaths;
 import com.idleitems.school.dto.order.CancelOrderRequest;
 import com.idleitems.school.dto.order.CreateOrderRequest;
 import com.idleitems.school.dto.order.OrderSummaryResponse;
@@ -16,7 +17,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/orders")
+@RequestMapping(ApiPaths.Order.BASE)
 @RequiredArgsConstructor
 public class OrderController {
 

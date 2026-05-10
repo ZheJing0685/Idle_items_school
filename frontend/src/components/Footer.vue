@@ -62,7 +62,7 @@
               <router-link to="/">首页</router-link>
               <router-link to="/items">发现好物</router-link>
               <router-link to="/publish">发布闲置</router-link>
-              <router-link to="/orders">我的订单</router-link>
+              <router-link to="/user/orders">我的订单</router-link>
             </nav>
           </div>
 

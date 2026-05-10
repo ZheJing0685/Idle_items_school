@@ -18,7 +18,10 @@ class UploadUtil {
 
     const maxSize = 5 * 1024 * 1024; // 5MB
     if (file.size > maxSize) {
-      return { valid: false, message: `文件大小不能超过 ${this.getFileSize(maxSize)}` };
+      return {
+        valid: false,
+        message: `文件大小不能超过 ${this.getFileSize(maxSize)}`,
+      };
     }
 
     const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
@@ -32,12 +35,12 @@ class UploadUtil {
   static generateFileHash(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.onload = function(event) {
+      reader.onload = function (event) {
         const arrayBuffer = event.target.result;
         const hash = UploadUtil.calculateHash(arrayBuffer);
         resolve(hash);
       };
-      reader.onerror = function() {
+      reader.onerror = function () {
         reject(new Error('文件读取失败'));
       };
       reader.readAsArrayBuffer(file);
@@ -48,7 +51,7 @@ class UploadUtil {
     const uint8Array = new Uint8Array(arrayBuffer);
     let hash = 0;
     for (let i = 0; i < uint8Array.length; i++) {
-      hash = ((hash << 5) - hash) + uint8Array[i];
+      hash = (hash << 5) - hash + uint8Array[i];
       hash |= 0;
     }
     return Math.abs(hash).toString(16);

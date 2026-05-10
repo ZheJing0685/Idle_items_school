@@ -6,8 +6,10 @@
         <path d="M45 55L55 65L75 45" stroke="var(--text-muted)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" v-if="type === 'success'"/>
         <path d="M60 40V60M60 70V72" stroke="var(--text-muted)" stroke-width="3" stroke-linecap="round" v-else-if="type === 'warning'"/>
         <path d="M45 45L75 75M75 45L45 75" stroke="var(--text-muted)" stroke-width="3" stroke-linecap="round" v-else-if="type === 'error'"/>
-        <rect x="35" y="40" width="50" height="35" rx="4" stroke="var(--text-muted)" stroke-width="2" v-else/>
-        <path d="M45 55H75M45 65H65" stroke="var(--text-muted)" stroke-width="2" stroke-linecap="round" v-else/>
+        <g v-else>
+          <rect x="35" y="40" width="50" height="35" rx="4" stroke="var(--text-muted)" stroke-width="2"/>
+          <path d="M45 55H75M45 65H65" stroke="var(--text-muted)" stroke-width="2" stroke-linecap="round"/>
+        </g>
       </svg>
     </div>
     <h3 class="empty-title">{{ title }}</h3>

@@ -33,41 +33,7 @@ public class VerificationController {
     @PostMapping("/submit")
     public Result<Void> submitVerification(@RequestAttribute("userId") Long userId, @RequestBody Map<String, Object> data) {
         try {
-            // 查找现有认证记录
-            VerificationRecord record = verificationRecordRepository.findByUserId(userId)
-                    .orElse(new VerificationRecord());
-            
-            // 更新认证信息
-            record.setUserId(userId);
-            record.setRealName((String) data.get("name"));
-            
-            // 根据认证类型设置不同的字段
-            String verificationType = (String) data.get("verificationType");
-            if ("1".equals(verificationType)) {
-                // 身份证认证
-                record.setIdCard((String) data.get("idCard"));
-                record.setIdCardFront((String) data.get("idCardFront"));
-                record.setIdCardBack((String) data.get("idCardBack"));
-                record.setType(VerificationRecord.Type.ID_CARD);
-            } else if ("2".equals(verificationType)) {
-                // 学生证认证
-                record.setStudentId((String) data.get("studentId"));
-                record.setSchool((String) data.get("school"));
-                record.setStudentCard((String) data.get("studentCard"));
-                record.setType(VerificationRecord.Type.STUDENT_CARD);
-            } else if ("3".equals(verificationType)) {
-                // 教师证认证
-                record.setTeacherId((String) data.get("teacherId"));
-                record.setSchool((String) data.get("school"));
-                record.setTeacherCard((String) data.get("teacherCard"));
-                record.setType(VerificationRecord.Type.TEACHER_CARD);
-            }
-            
-            record.setStatus(VerificationRecord.Status.PENDING);
-            
-            // 保存到数据库
-            verificationRecordRepository.save(record);
-            
+            processVerificationData(userId, data);
             return Result.success("提交成功", null);
         } catch (Exception e) {
             return Result.error("提交失败: " + e.getMessage());
@@ -103,45 +69,48 @@ public class VerificationController {
     @PostMapping("/resubmit")
     public Result<Void> resubmitVerification(@RequestAttribute("userId") Long userId, @RequestBody Map<String, Object> data) {
         try {
-            // 查找现有认证记录
-            VerificationRecord record = verificationRecordRepository.findByUserId(userId)
-                    .orElse(new VerificationRecord());
-            
-            // 更新认证信息
-            record.setUserId(userId);
-            record.setRealName((String) data.get("name"));
-            
-            // 根据认证类型设置不同的字段
-            String verificationType = (String) data.get("verificationType");
-            if ("1".equals(verificationType)) {
-                // 身份证认证
-                record.setIdCard((String) data.get("idCard"));
-                record.setIdCardFront((String) data.get("idCardFront"));
-                record.setIdCardBack((String) data.get("idCardBack"));
-                record.setType(VerificationRecord.Type.ID_CARD);
-            } else if ("2".equals(verificationType)) {
-                // 学生证认证
-                record.setStudentId((String) data.get("studentId"));
-                record.setSchool((String) data.get("school"));
-                record.setStudentCard((String) data.get("studentCard"));
-                record.setType(VerificationRecord.Type.STUDENT_CARD);
-            } else if ("3".equals(verificationType)) {
-                // 教师证认证
-                record.setTeacherId((String) data.get("teacherId"));
-                record.setSchool((String) data.get("school"));
-                record.setTeacherCard((String) data.get("teacherCard"));
-                record.setType(VerificationRecord.Type.TEACHER_CARD);
-            }
-            
-            record.setStatus(VerificationRecord.Status.PENDING);
-            
-            // 保存到数据库
-            verificationRecordRepository.save(record);
-            
+            processVerificationData(userId, data);
             return Result.success("重新提交成功", null);
         } catch (Exception e) {
             return Result.error("重新提交失败: " + e.getMessage());
         }
+    }
+    
+    private void processVerificationData(Long userId, Map<String, Object> data) {
+        // 查找现有认证记录
+        VerificationRecord record = verificationRecordRepository.findByUserId(userId)
+                .orElse(new VerificationRecord());
+        
+        // 更新认证信息
+        record.setUserId(userId);
+        record.setRealName((String) data.get("name"));
+        
+        // 根据认证类型设置不同的字段
+        String verificationType = (String) data.get("verificationType");
+        if ("1".equals(verificationType)) {
+            // 身份证认证
+            record.setIdCard((String) data.get("idCard"));
+            record.setIdCardFront((String) data.get("idCardFront"));
+            record.setIdCardBack((String) data.get("idCardBack"));
+            record.setType(VerificationRecord.Type.ID_CARD);
+        } else if ("2".equals(verificationType)) {
+            // 学生证认证
+            record.setStudentId((String) data.get("studentId"));
+            record.setSchool((String) data.get("school"));
+            record.setStudentCard((String) data.get("studentCard"));
+            record.setType(VerificationRecord.Type.STUDENT_CARD);
+        } else if ("3".equals(verificationType)) {
+            // 教师证认证
+            record.setTeacherId((String) data.get("teacherId"));
+            record.setSchool((String) data.get("school"));
+            record.setTeacherCard((String) data.get("teacherCard"));
+            record.setType(VerificationRecord.Type.TEACHER_CARD);
+        }
+        
+        record.setStatus(VerificationRecord.Status.PENDING);
+        
+        // 保存到数据库
+        verificationRecordRepository.save(record);
     }
     
     private String getStatusMessage(VerificationRecord.Status status) {

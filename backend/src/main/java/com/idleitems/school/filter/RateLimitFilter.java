@@ -56,19 +56,25 @@ public class RateLimitFilter implements Filter {
             key = "rate_limit:" + uri + ":" + clientIP;
         }
 
-        Long result = redisTemplate.execute(
-                rateLimitScript,
-                Collections.singletonList(key),
-                limit, window
-        );
+        try {
+            Long result = redisTemplate.execute(
+                    rateLimitScript,
+                    Collections.singletonList(key),
+                    limit, window
+            );
 
-        if (result != null && result > 0) {
+            if (result != null && result > 0) {
+                chain.doFilter(request, response);
+            } else {
+                httpResponse.setStatus(429);
+                httpResponse.setContentType("application/json;charset=UTF-8");
+                httpResponse.getWriter().write("{\"code\":429,\"message\":\"请求过于频繁，请稍后再试\",\"data\":null}");
+                httpResponse.getWriter().flush();
+            }
+        } catch (Exception e) {
+            // 降级处理：Redis不可用时放行请求
+            log.warn("Redis限流服务不可用，降级放行: {}", e.getMessage());
             chain.doFilter(request, response);
-        } else {
-            httpResponse.setStatus(429);
-            httpResponse.setContentType("application/json;charset=UTF-8");
-            httpResponse.getWriter().write("{\"code\":429,\"message\":\"请求过于频繁，请稍后再试\",\"data\":null}");
-            httpResponse.getWriter().flush();
         }
     }
 

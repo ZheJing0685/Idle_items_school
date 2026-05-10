@@ -8,15 +8,24 @@
       <h3 class="item-title">{{ item.title }}</h3>
       <div class="item-price">
         <span class="current-price">¥{{ item.price }}</span>
-        <span v-if="item.originalPrice" class="original-price">¥{{ item.originalPrice }}</span>
+        <span v-if="item.originalPrice" class="original-price"
+          >¥{{ item.originalPrice }}</span
+        >
       </div>
       <div class="item-meta">
         <span class="seller">{{ item.sellerNickname || '未知卖家' }}</span>
         <span class="view-count">👁 {{ item.viewCount || 0 }}</span>
         <span class="time">{{ formatTime(item.createdAt) }}</span>
       </div>
-      <div class="item-tags" v-if="item.tags && parseTags(item.tags).length > 0">
-        <span class="item-tag" v-for="(tag, index) in parseTags(item.tags).slice(0, 3)" :key="index">
+      <div
+        class="item-tags"
+        v-if="item.tags && parseTags(item.tags).length > 0"
+      >
+        <span
+          class="item-tag"
+          v-for="(tag, index) in parseTags(item.tags).slice(0, 3)"
+          :key="index"
+        >
           {{ tag }}
         </span>
       </div>
@@ -31,13 +40,14 @@ import { useRouter } from 'vue-router';
 const props = defineProps({
   item: {
     type: Object,
-    required: true
-  }
+    required: true,
+  },
 });
 
 const router = useRouter();
 
-const defaultImage = 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=placeholder%20image%20for%20second-hand%20item%20on%20campus%20platform&image_size=landscape_4_3';
+const defaultImage =
+  'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=placeholder%20image%20for%20second-hand%20item%20on%20campus%20platform&image_size=landscape_4_3';
 
 const navigateToDetail = () => {
   router.push(`/item/${props.item.id}`);
@@ -51,7 +61,7 @@ const formatTime = (time) => {
   const days = Math.floor(diff / (1000 * 60 * 60 * 24));
   const hours = Math.floor(diff / (1000 * 60 * 60));
   const minutes = Math.floor(diff / (1000 * 60));
-  
+
   if (days > 0) return `${days}天前`;
   if (hours > 0) return `${hours}小时前`;
   if (minutes > 0) return `${minutes}分钟前`;

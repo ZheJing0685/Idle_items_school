@@ -22,11 +22,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(UploadController.class)
 @AutoConfigureMockMvc(addFilters = false)
 @DisplayName("UploadController 接口测试")
+@SuppressWarnings("deprecation")
 class UploadControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
+    @SuppressWarnings("deprecation")
     @MockBean
     private FileService fileService;
 

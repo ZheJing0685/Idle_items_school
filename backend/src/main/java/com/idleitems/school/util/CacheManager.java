@@ -80,6 +80,7 @@ public class CacheManager {
      * 清除匹配模式的缓存（使用SCAN替代KEYS，生产环境安全）
      * @param pattern 键模式，如 "item:*"
      */
+    @SuppressWarnings("deprecation")
     public void deletePattern(String pattern) {
         try {
             Set<String> keys = new HashSet<>();

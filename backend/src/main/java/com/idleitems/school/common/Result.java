@@ -89,6 +89,7 @@ public class Result<T> {
         return result;
     }
 
+    @SuppressWarnings("unchecked")
     public static <T> Result<T> error(String message, Map<String, ?> data) {
         Result<T> result = new Result<>();
         result.setCode(ErrorCode.VALIDATION_ERROR.getCode());

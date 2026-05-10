@@ -6,13 +6,23 @@
     </div>
 
     <div class="stats-grid stats-grid-primary">
-      <div v-for="card in primaryStatCards" :key="card.key" class="stat-card" :class="card.type">
+      <div
+        v-for="card in primaryStatCards"
+        :key="card.key"
+        class="stat-card"
+        :class="card.type"
+      >
         <span class="stat-label">{{ card.label }}</span>
         <strong class="stat-value">{{ card.value }}</strong>
       </div>
     </div>
     <div class="stats-grid stats-grid-secondary">
-      <div v-for="card in secondaryStatCards" :key="card.key" class="stat-card" :class="card.type">
+      <div
+        v-for="card in secondaryStatCards"
+        :key="card.key"
+        class="stat-card"
+        :class="card.type"
+      >
         <span class="stat-label">{{ card.label }}</span>
         <strong class="stat-value">{{ card.value }}</strong>
       </div>
@@ -21,8 +31,15 @@
     <div class="content-card">
       <div class="toolbar">
         <div class="search-wrapper">
-          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          <svg
+            class="search-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.35-4.35" />
           </svg>
           <input
             v-model="searchKeyword"
@@ -90,7 +107,7 @@
                   type="checkbox"
                   v-model="selectedOrders"
                   :value="order.id"
-                  :disabled="!canAdminCancelOrder(order)"
+                  :disabled="!canAdminCancelOrder(order.orderStatus)"
                 />
               </td>
               <td>
@@ -240,13 +257,13 @@
       <template #footer>
         <el-button @click="detailDialogVisible = false">关闭</el-button>
         <el-button
-          v-if="currentOrder && canAdminApproveRefund(currentOrder)"
+          v-if="currentOrder && canAdminApproveRefund(currentOrder.orderStatus)"
           type="primary"
           @click="handleApproveRefund(currentOrder)"
           >审批退款</el-button
         >
         <el-button
-          v-if="currentOrder && canAdminCancelOrder(currentOrder)"
+          v-if="currentOrder && canAdminCancelOrder(currentOrder.orderStatus)"
           type="danger"
           @click="handleCancel(currentOrder)"
           >取消订单</el-button
@@ -309,23 +326,56 @@ const paginationEnd = computed(() =>
 );
 const isAllSelected = computed(
   () =>
-    orders.value.filter(canAdminCancelOrder).length > 0 &&
+    orders.value.filter((o) => canAdminCancelOrder(o.orderStatus)).length > 0 &&
     selectedOrders.value.length ===
-      orders.value.filter(canAdminCancelOrder).length
+      orders.value.filter((o) => canAdminCancelOrder(o.orderStatus)).length
 );
 const primaryStatCards = computed(() => [
-  { key: 'total', label: '订单总数', type: 'card-total', value: stats.value.total },
-  { key: 'pendingPayment', label: '待支付', type: 'card-pending', value: stats.value.pendingPayment },
-  { key: 'pendingShipment', label: '待发货', type: 'card-pending', value: stats.value.pendingShipment },
-  { key: 'shipped', label: '待收货', type: 'card-info', value: stats.value.shipped },
+  {
+    key: 'total',
+    label: '订单总数',
+    type: 'card-total',
+    value: stats.value.total,
+  },
+  {
+    key: 'pendingPayment',
+    label: '待支付',
+    type: 'card-pending',
+    value: stats.value.pendingPayment,
+  },
+  {
+    key: 'pendingShipment',
+    label: '待发货',
+    type: 'card-pending',
+    value: stats.value.pendingShipment,
+  },
+  {
+    key: 'shipped',
+    label: '待收货',
+    type: 'card-info',
+    value: stats.value.shipped,
+  },
 ]);
 const secondaryStatCards = computed(() => [
-  { key: 'refundRequested', label: '退款中', type: 'card-danger', value: stats.value.refundRequested },
-  { key: 'completed', label: '已完成', type: 'card-success', value: stats.value.completed },
-  { key: 'amount', label: '成交总额', type: 'card-secondary', value: `¥${Number(stats.value.amount || 0).toLocaleString()}` },
+  {
+    key: 'refundRequested',
+    label: '退款中',
+    type: 'card-danger',
+    value: stats.value.refundRequested,
+  },
+  {
+    key: 'completed',
+    label: '已完成',
+    type: 'card-success',
+    value: stats.value.completed,
+  },
+  {
+    key: 'amount',
+    label: '成交总额',
+    type: 'card-secondary',
+    value: `¥${Number(stats.value.amount || 0).toLocaleString()}`,
+  },
 ]);
-
-
 
 const formatPrice = (price) => {
   const value = Number(price || 0);
@@ -342,7 +392,10 @@ const fetchOrders = async () => {
       page: page.value,
       size: pageSize.value,
       keyword: searchKeyword.value.trim() || undefined,
-      status: orderStatus.value || undefined,
+      status:
+        orderStatus.value && orderStatus.value !== 'ALL'
+          ? orderStatus.value
+          : undefined,
       paymentMethod: paymentMethod.value || undefined,
     };
     const response = await api.admin.orders.getOrders(params);
@@ -350,7 +403,7 @@ const fetchOrders = async () => {
     total.value = response.data.totalElements || 0;
     selectedOrders.value = selectedOrders.value.filter((id) =>
       orders.value.some(
-        (order) => order.id === id && canAdminCancelOrder(order)
+        (order) => order.id === id && canAdminCancelOrder(order.orderStatus)
       )
     );
   } catch (error) {
@@ -399,7 +452,9 @@ const changePage = async (nextPage) => {
 };
 const handleSelectAll = (event) => {
   selectedOrders.value = event.target.checked
-    ? orders.value.filter(canAdminCancelOrder).map((order) => order.id)
+    ? orders.value
+        .filter((o) => canAdminCancelOrder(o.orderStatus))
+        .map((order) => order.id)
     : [];
 };
 
@@ -450,7 +505,8 @@ const handleBulkCancel = async () => {
   const cancellableIds = orders.value
     .filter(
       (order) =>
-        selectedOrders.value.includes(order.id) && canAdminCancelOrder(order)
+        selectedOrders.value.includes(order.id) &&
+        canAdminCancelOrder(order.orderStatus)
     )
     .map((order) => order.id);
   if (!cancellableIds.length) {

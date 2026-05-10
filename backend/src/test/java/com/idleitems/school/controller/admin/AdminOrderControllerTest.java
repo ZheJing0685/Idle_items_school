@@ -4,16 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.idleitems.school.dto.order.AdminOrderResponse;
 import com.idleitems.school.dto.order.CancelOrderRequest;
 import com.idleitems.school.entity.Order;
-import com.idleitems.school.repository.CategoryRepository;
-import com.idleitems.school.repository.ItemRepository;
-import com.idleitems.school.repository.OrderRepository;
-import com.idleitems.school.repository.UserRepository;
-import com.idleitems.school.repository.VerificationRecordRepository;
 import com.idleitems.school.service.AdminLogService;
-import com.idleitems.school.service.CategoryService;
+import com.idleitems.school.service.DictService;
 import com.idleitems.school.service.OrderService;
-import com.idleitems.school.util.CacheManager;
-import com.idleitems.school.security.JwtUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,9 +30,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(AdminController.class)
+@WebMvcTest(AdminOrderController.class)
 @AutoConfigureMockMvc(addFilters = false)
-@DisplayName("AdminController 订单接口测试")
+@DisplayName("AdminOrderController 订单管理接口测试")
 class AdminOrderControllerTest {
 
     @Autowired
@@ -49,34 +42,13 @@ class AdminOrderControllerTest {
     private ObjectMapper objectMapper;
 
     @MockBean
-    private UserRepository userRepository;
-
-    @MockBean
-    private ItemRepository itemRepository;
-
-    @MockBean
-    private OrderRepository orderRepository;
-
-    @MockBean
-    private CategoryRepository categoryRepository;
-
-    @MockBean
-    private VerificationRecordRepository verificationRecordRepository;
+    private OrderService orderService;
 
     @MockBean
     private AdminLogService adminLogService;
 
     @MockBean
-    private CacheManager cacheManager;
-
-    @MockBean
-    private OrderService orderService;
-
-    @MockBean
-    private CategoryService categoryService;
-
-    @MockBean
-    private JwtUtil jwtUtil;
+    private DictService dictService;
 
     @Test
     @DisplayName("测试获取订单统计 - 返回统一统计结构")
@@ -131,6 +103,7 @@ class AdminOrderControllerTest {
 
         when(orderService.adminCancelOrder(1L, 99L, "管理员介入取消")).thenReturn(savedOrder);
         when(orderService.toAdminOrderSummary(savedOrder)).thenReturn(buildResponse("CANCELLED"));
+        when(dictService.getDictLabel("ORDER_STATUS", "CANCELLED")).thenReturn("已取消");
 
         mockMvc.perform(put("/api/admin/orders/1/cancel")
                         .requestAttr("userId", 99L)
@@ -151,6 +124,7 @@ class AdminOrderControllerTest {
 
         when(orderService.approveRefund(1L, 99L, "APPROVED")).thenReturn(refundedOrder);
         when(orderService.toAdminOrderSummary(refundedOrder)).thenReturn(buildResponse("REFUNDED"));
+        when(dictService.getDictLabel("ORDER_STATUS", "REFUNDED")).thenReturn("已退款");
 
         mockMvc.perform(put("/api/admin/orders/1/refund/approve")
                         .requestAttr("userId", 99L))

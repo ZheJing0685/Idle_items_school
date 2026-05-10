@@ -102,7 +102,9 @@
   /* === 布局 === */
   --container-width: 1200px;
   --header-height: 72px;
-  --sidebar-width: 280px;
+  --sidebar-width: 200px;
+  --sidebar-collapsed-width: 72px;
+  --admin-header-height: 64px;
 
   /* === 兼容旧变量名 === */
   --primary-color-rgb: 0 180 195;

@@ -213,21 +213,34 @@ public class StatisticsController {
         long daysBetween = java.time.temporal.ChronoUnit.DAYS.between(start.toLocalDate(), end.toLocalDate());
         int maxDays = (int) Math.min(daysBetween, 30);
 
+        // 使用聚合查询一次性获取所有日期的订单数据
+        List<Object[]> groupedData = orderRepository.countOrdersAndAmountGroupedByDate(start, end);
+        
+        // 将查询结果转换为 Map，以便快速查找
+        Map<String, Object[]> dateDataMap = new HashMap<>();
+        for (Object[] row : groupedData) {
+            String dateStr = row[0].toString();
+            dateDataMap.put(dateStr, row);
+        }
+
+        // 生成完整的时间序列（包括没有数据的日期）
         for (int i = maxDays; i >= 0; i--) {
             LocalDate date = end.minusDays(i).toLocalDate();
-            LocalDateTime dayStart = date.atStartOfDay();
-            LocalDateTime dayEnd = date.atTime(LocalTime.MAX);
-
-            List<Order> dayOrders = orderRepository.findByCreatedAtBetween(dayStart, dayEnd);
-            BigDecimal dayAmount = dayOrders.stream()
-                    .filter(o -> o.getOrderStatus() == Order.OrderStatus.COMPLETED)
-                    .map(Order::getPrice)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            String dateStr = date.toString();
+            
+            long count = 0;
+            BigDecimal amount = BigDecimal.ZERO;
+            
+            Object[] data = dateDataMap.get(dateStr);
+            if (data != null) {
+                count = (Long) data[1];
+                amount = (BigDecimal) data[2];
+            }
 
             trend.add(DashboardResponse.OrderTrendItem.builder()
-                    .date(date.toString())
-                    .count((long) dayOrders.size())
-                    .amount(dayAmount)
+                    .date(dateStr)
+                    .count(count)
+                    .amount(amount)
                     .build());
         }
 

@@ -170,5 +170,3 @@ defineExpose({
     </template>
   </el-table-column>
 </template>
-
-

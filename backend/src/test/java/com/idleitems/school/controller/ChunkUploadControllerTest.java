@@ -24,17 +24,21 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(ChunkUploadController.class)
 @AutoConfigureMockMvc(addFilters = false)
 @DisplayName("ChunkUploadController 接口测试")
+@SuppressWarnings("deprecation")
 class ChunkUploadControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
+    @SuppressWarnings("deprecation")
     @MockBean
     private ChunkUploadService chunkUploadService;
 
+    @SuppressWarnings("deprecation")
     @MockBean
     private FileService fileService;
 
+    @SuppressWarnings("deprecation")
     @MockBean
     private FileValidationService fileValidationService;
 

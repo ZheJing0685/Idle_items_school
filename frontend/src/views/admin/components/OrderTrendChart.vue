@@ -9,7 +9,7 @@ import { LineChart } from 'echarts/charts';
 import {
   TooltipComponent,
   LegendComponent,
-  GridComponent
+  GridComponent,
 } from 'echarts/components';
 import { CanvasRenderer } from 'echarts/renderers';
 
@@ -18,14 +18,14 @@ echarts.use([
   TooltipComponent,
   LegendComponent,
   GridComponent,
-  CanvasRenderer
+  CanvasRenderer,
 ]);
 
 const props = defineProps({
   data: {
     type: Array,
-    default: () => []
-  }
+    default: () => [],
+  },
 });
 
 const chartRef = ref(null);
@@ -41,45 +41,45 @@ const initChart = () => {
 const updateChart = () => {
   if (!chartInstance) return;
 
-  const dates = props.data.map(item => item.date);
-  const orderCounts = props.data.map(item => item.count);
-  const amounts = props.data.map(item => item.amount);
+  const dates = props.data.map((item) => item.date);
+  const orderCounts = props.data.map((item) => item.count);
+  const amounts = props.data.map((item) => item.amount);
 
   const option = {
     tooltip: {
       trigger: 'axis',
-      axisPointer: { type: 'cross' }
+      axisPointer: { type: 'cross' },
     },
     legend: {
       data: ['订单数', '交易额'],
-      bottom: 0
+      bottom: 0,
     },
     grid: {
       left: '3%',
       right: '4%',
       bottom: '15%',
       top: '10%',
-      containLabel: true
+      containLabel: true,
     },
     xAxis: {
       type: 'category',
       data: dates,
-      boundaryGap: false
+      boundaryGap: false,
     },
     yAxis: [
       {
         type: 'value',
         name: '订单数',
-        position: 'left'
+        position: 'left',
       },
       {
         type: 'value',
         name: '交易额(元)',
         position: 'right',
         axisLabel: {
-          formatter: (value) => '¥' + value
-        }
-      }
+          formatter: (value) => '¥' + value,
+        },
+      },
     ],
     series: [
       {
@@ -87,7 +87,7 @@ const updateChart = () => {
         type: 'line',
         smooth: true,
         data: orderCounts,
-        itemStyle: { color: '#6366f1' }
+        itemStyle: { color: '#6366f1' },
       },
       {
         name: '交易额',
@@ -95,9 +95,9 @@ const updateChart = () => {
         smooth: true,
         yAxisIndex: 1,
         data: amounts,
-        itemStyle: { color: '#22c55e' }
-      }
-    ]
+        itemStyle: { color: '#22c55e' },
+      },
+    ],
   };
 
   chartInstance.setOption(option);

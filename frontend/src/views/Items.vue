@@ -17,7 +17,12 @@
           <el-cascader
             v-model="categoryPath"
             :options="categoryTreeOptions"
-            :props="{ value: 'id', label: 'name', children: 'children', checkStrictly: true }"
+            :props="{
+              value: 'id',
+              label: 'name',
+              children: 'children',
+              checkStrictly: true,
+            }"
             placeholder="全部分类"
             clearable
             @change="handleCategoryChange"
@@ -31,11 +36,12 @@
             class="filter-select filter-select--narrow"
           >
             <el-option label="全部" value="" />
-            <el-option label="全新" value="NEW" />
-            <el-option label="九成新" value="LIKE_NEW" />
-            <el-option label="八成新" value="GOOD" />
-            <el-option label="七成新" value="FAIR" />
-            <el-option label="六成新及以下" value="POOR" />
+            <el-option
+              v-for="option in conditionOptions"
+              :key="option.value"
+              :label="option.label"
+              :value="option.value"
+            />
           </el-select>
 
           <el-select
@@ -45,9 +51,12 @@
             class="filter-select filter-select--narrow"
           >
             <el-option label="全部" value="" />
-            <el-option label="自提" value="1" />
-            <el-option label="快递" value="2" />
-            <el-option label="两者皆可" value="3" />
+            <el-option
+              v-for="option in deliveryMethodOptions"
+              :key="option.value"
+              :label="option.label"
+              :value="option.value"
+            />
           </el-select>
 
           <el-select
@@ -147,7 +156,8 @@
                 class="item-tag"
                 v-for="(tag, index) in parseTags(item.tags).slice(0, 3)"
                 :key="index"
-              >{{ tag }}</span>
+                >{{ tag }}</span
+              >
             </div>
             <div class="item-price-row">
               <span class="item-price">¥{{ item.price }}</span>
@@ -240,13 +250,23 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick, watch } from 'vue';
+import { ref, onMounted, nextTick, watch, computed } from 'vue';
 import { useRoute } from 'vue-router';
-import itemStore from '../store/item';
+import { useItemStore } from '../store';
 import api from '../api';
+import { useDictStore } from '../store/dict.js';
 
 const route = useRoute();
-const store = itemStore();
+const store = useItemStore();
+const dictStore = useDictStore();
+
+// 获取字典选项
+const conditionOptions = computed(() =>
+  dictStore.getDictOptions('ITEM_CONDITION')
+);
+const deliveryMethodOptions = computed(() =>
+  dictStore.getDictOptions('DELIVERY_METHOD')
+);
 
 const categoryId = ref('');
 const categoryPath = ref([]);
@@ -266,7 +286,9 @@ watch(
   (newQuery) => {
     if (newQuery.category !== categoryId.value) {
       categoryId.value = newQuery.category || '';
-      categoryPath.value = categoryId.value ? findCategoryPath(categoryTreeOptions.value, Number(categoryId.value)) : [];
+      categoryPath.value = categoryId.value
+        ? findCategoryPath(categoryTreeOptions.value, Number(categoryId.value))
+        : [];
       currentPage.value = 1;
       loadItems();
     }
@@ -306,8 +328,7 @@ const getConditionText = (condition) => {
 const getDeliveryText = (method) => {
   const map = {
     1: '自提',
-    2: '快递',
-    3: '两者皆可',
+    2: '上门',
   };
   return map[method] || method;
 };
@@ -327,7 +348,10 @@ const findCategoryPath = (nodes, targetId, path = []) => {
   for (const node of nodes) {
     if (node.id === targetId) return [...path, node.id];
     if (node.children && node.children.length > 0) {
-      const found = findCategoryPath(node.children, targetId, [...path, node.id]);
+      const found = findCategoryPath(node.children, targetId, [
+        ...path,
+        node.id,
+      ]);
       if (found.length > 0) return found;
     }
   }
@@ -399,10 +423,15 @@ const handleCurrentChange = (page) => {
 };
 
 onMounted(async () => {
+  // 加载字典数据
+  await dictStore.preloadCommonDicts();
   await loadCategories();
   if (route.query.category) {
     categoryId.value = route.query.category;
-    categoryPath.value = findCategoryPath(categoryTreeOptions.value, Number(categoryId.value));
+    categoryPath.value = findCategoryPath(
+      categoryTreeOptions.value,
+      Number(categoryId.value)
+    );
   }
   if (route.query.keyword) {
     keyword.value = route.query.keyword;

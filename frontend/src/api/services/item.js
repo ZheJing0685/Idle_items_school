@@ -11,18 +11,26 @@ const CACHE_EXPIRY = {
 
 const item = {
   getItems: (params) =>
-    requestManager.request(API_PATHS.ITEM.LIST, () => instance.get(API_PATHS.ITEM.LIST, { params }), {
-      useCache: true,
-      useMerge: true,
-      params,
-      cacheExpiry: CACHE_EXPIRY.MEDIUM,
-    }),
+    requestManager.request(
+      API_PATHS.ITEM.LIST,
+      () => instance.get(API_PATHS.ITEM.LIST, { params }),
+      {
+        useCache: true,
+        useMerge: true,
+        params,
+        cacheExpiry: CACHE_EXPIRY.MEDIUM,
+      }
+    ),
   getHotItems: () =>
-    requestManager.request(API_PATHS.ITEM.HOT, () => instance.get(API_PATHS.ITEM.HOT), {
-      useCache: true,
-      useMerge: true,
-      cacheExpiry: CACHE_EXPIRY.LONG,
-    }),
+    requestManager.request(
+      API_PATHS.ITEM.HOT,
+      () => instance.get(API_PATHS.ITEM.HOT),
+      {
+        useCache: true,
+        useMerge: true,
+        cacheExpiry: CACHE_EXPIRY.LONG,
+      }
+    ),
   searchItems: (keyword, page, size, sortBy) =>
     requestManager.request(
       API_PATHS.ITEM.SEARCH,
@@ -38,20 +46,29 @@ const item = {
       }
     ),
   getItem: (id) =>
-    requestManager.request(API_PATHS.ITEM.DETAIL(id), () => instance.get(API_PATHS.ITEM.DETAIL(id)), {
-      useCache: true,
-      useMerge: true,
-      params: { id },
-      cacheExpiry: CACHE_EXPIRY.MEDIUM,
-    }),
+    requestManager.request(
+      API_PATHS.ITEM.DETAIL(id),
+      () => instance.get(API_PATHS.ITEM.DETAIL(id)),
+      {
+        useCache: true,
+        useMerge: true,
+        params: { id },
+        cacheExpiry: CACHE_EXPIRY.MEDIUM,
+      }
+    ),
   createItem: (data) => instance.post(API_PATHS.ITEM.CREATE, data),
   updateItem: (id, data) => instance.put(API_PATHS.ITEM.UPDATE(id), data),
   offShelf: (id) => instance.put(API_PATHS.ITEM.OFF_SHELF(id)),
+  onShelf: (id) => instance.put(API_PATHS.ITEM.ON_SHELF(id)),
   uploadImage: (data) => instance.post(API_PATHS.ITEM.UPLOAD, data),
   uploadChunk: (data) => instance.post(API_PATHS.ITEM.UPLOAD_CHUNK, data),
   completeUpload: (data) => instance.post(API_PATHS.ITEM.UPLOAD_COMPLETE, data),
   checkUploadedChunks: (fileHash, uploadId) =>
-    instance.get(API_PATHS.ITEM.UPLOAD_CHECK, { params: { fileHash, uploadId } }),
+    instance.get(API_PATHS.ITEM.UPLOAD_CHECK, {
+      params: { fileHash, uploadId },
+    }),
+  getItemOrders: (id) => instance.get(API_PATHS.ITEM.ORDERS(id)),
+  getItemActiveOrders: (id) => instance.get(API_PATHS.ITEM.ACTIVE_ORDERS(id)),
 };
 
 export default item;

@@ -6,6 +6,7 @@ import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data
@@ -56,6 +57,48 @@ public class User {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @Column(name = "is_deleted", nullable = false)
+    private Boolean isDeleted = false;
+
+    @Column(name = "create_by")
+    private Long createBy;
+
+    @Column(name = "update_by")
+    private Long updateBy;
+
+    @Column(name = "last_login_time")
+    private LocalDateTime lastLoginTime;
+
+    @Column(name = "last_login_ip", length = 50)
+    private String lastLoginIp;
+
+    @Column(name = "login_count", nullable = false)
+    private Integer loginCount = 0;
+
+    @Column(name = "credit_score", nullable = false)
+    private Integer creditScore = 100;
+
+    @Column(name = "total_transactions", nullable = false)
+    private Integer totalTransactions = 0;
+
+    @Column(name = "total_sales", nullable = false)
+    private Integer totalSales = 0;
+
+    @Column(name = "total_purchases", nullable = false)
+    private Integer totalPurchases = 0;
+
+    @Column(name = "gender")
+    private Integer gender;
+
+    @Column(name = "birthday")
+    private LocalDate birthday;
+
+    @Column(name = "bio", length = 500)
+    private String bio;
+
+    @Column(name = "school_name", length = 100)
+    private String schoolName;
 
     public enum Role {
         STUDENT, ADMIN

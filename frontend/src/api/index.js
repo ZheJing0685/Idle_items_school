@@ -8,7 +8,13 @@ import verification from './services/verification';
 import review from './services/review';
 import order from './services/order';
 import admin from './services/admin';
-import { setToken, getToken, clearToken, setUnauthorizedHandler } from './config/axios';
+import chat from './services/chat';
+import {
+  setToken,
+  getToken,
+  clearToken,
+  setUnauthorizedHandler,
+} from './config/axios';
 
 const api = {
   auth,
@@ -20,6 +26,7 @@ const api = {
   review,
   order,
   admin,
+  chat,
   setToken,
   getToken,
   clearToken,
