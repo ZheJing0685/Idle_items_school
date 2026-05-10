@@ -233,9 +233,9 @@ docker-compose up -d
 
 | 服务 | 地址 |
 |------|------|
-| 前端页面 | http://localhost |
-| 后端 API | http://localhost:8080 |
-| API 文档 | http://localhost:8080/swagger-ui.html |
+| 前端页面 | http://localhost:5173 |
+| 后端 API | http://localhost:7000 |
+| API 文档 | http://localhost:7000/swagger-ui.html |
 | MySQL | localhost:3306 |
 
 ### 本地开发
@@ -254,7 +254,7 @@ mvn clean install
 mvn spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
-后端默认运行在 `http://localhost:8080`。
+后端默认运行在 `http://localhost:7000`。
 
 #### 前端
 
@@ -276,8 +276,8 @@ npm run dev
 
 项目集成了 [Knife4j](https://doc.xiaominfo.com/)（基于 OpenAPI 3），启动后端后访问：
 
-- **Swagger UI**: http://localhost:8080/swagger-ui.html
-- **Knife4j 文档**: http://localhost:8080/doc.html
+- **Swagger UI**: http://localhost:7000/swagger-ui/index.html
+- **Knife4j 文档**: http://localhost:7000/doc.html
 
 ### 主要 API 模块
 
