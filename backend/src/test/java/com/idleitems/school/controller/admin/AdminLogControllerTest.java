@@ -1,19 +1,26 @@
 package com.idleitems.school.controller.admin;
 
+import com.idleitems.school.aspect.PermissionAspect;
 import com.idleitems.school.entity.AdminLog;
+import com.idleitems.school.entity.User;
+import com.idleitems.school.repository.UserRepository;
 import com.idleitems.school.service.AdminLogService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -23,6 +30,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(AdminLogController.class)
 @AutoConfigureMockMvc(addFilters = false)
+@EnableAspectJAutoProxy
+@Import(PermissionAspect.class)
 @DisplayName("AdminLogController 操作日志接口测试")
 class AdminLogControllerTest {
 
@@ -31,6 +40,17 @@ class AdminLogControllerTest {
 
     @MockBean
     private AdminLogService adminLogService;
+
+    @MockBean
+    private UserRepository userRepository;
+
+    @BeforeEach
+    void setUp() {
+        User adminUser = new User();
+        adminUser.setId(99L);
+        adminUser.setRole(User.Role.ADMIN);
+        when(userRepository.findById(99L)).thenReturn(Optional.of(adminUser));
+    }
 
     @Test
     @DisplayName("测试获取操作日志列表")

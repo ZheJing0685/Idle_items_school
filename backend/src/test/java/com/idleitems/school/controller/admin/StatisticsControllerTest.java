@@ -1,5 +1,6 @@
 package com.idleitems.school.controller.admin;
 
+import com.idleitems.school.aspect.PermissionAspect;
 import com.idleitems.school.dto.statistics.DashboardResponse;
 import com.idleitems.school.entity.Item;
 import com.idleitems.school.entity.Order;
@@ -8,12 +9,15 @@ import com.idleitems.school.repository.CategoryRepository;
 import com.idleitems.school.repository.ItemRepository;
 import com.idleitems.school.repository.OrderRepository;
 import com.idleitems.school.repository.UserRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.web.servlet.MockMvc;
@@ -22,6 +26,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -31,6 +36,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(StatisticsController.class)
 @AutoConfigureMockMvc(addFilters = false)
+@EnableAspectJAutoProxy
+@Import(PermissionAspect.class)
 @DisplayName("StatisticsController 统计分析接口测试")
 class StatisticsControllerTest {
 
@@ -48,6 +55,14 @@ class StatisticsControllerTest {
 
     @MockBean
     private CategoryRepository categoryRepository;
+
+    @BeforeEach
+    void setUp() {
+        User adminUser = new User();
+        adminUser.setId(99L);
+        adminUser.setRole(User.Role.ADMIN);
+        when(userRepository.findById(99L)).thenReturn(Optional.of(adminUser));
+    }
 
     @Test
     @DisplayName("测试获取仪表盘数据")

@@ -1,5 +1,6 @@
 package com.idleitems.school.controller.admin;
 
+import com.idleitems.school.aspect.PermissionAspect;
 import com.idleitems.school.entity.Item;
 import com.idleitems.school.entity.Order;
 import com.idleitems.school.entity.User;
@@ -8,12 +9,16 @@ import com.idleitems.school.repository.UserRepository;
 import com.idleitems.school.service.AdminLogService;
 import com.idleitems.school.service.DictService;
 import com.idleitems.school.service.OrderService;
+import com.idleitems.school.service.UserService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
@@ -27,6 +32,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(AdminBatchController.class)
 @AutoConfigureMockMvc(addFilters = false)
+@EnableAspectJAutoProxy
+@Import(PermissionAspect.class)
 @DisplayName("AdminBatchController 批量操作接口测试")
 @SuppressWarnings("deprecation")
 class AdminBatchControllerTest {
@@ -53,6 +60,18 @@ class AdminBatchControllerTest {
     @SuppressWarnings("deprecation")
     @MockBean
     private DictService dictService;
+
+    @SuppressWarnings("deprecation")
+    @MockBean
+    private UserService userService;
+
+    @BeforeEach
+    void setUp() {
+        User adminUser = new User();
+        adminUser.setId(99L);
+        adminUser.setRole(User.Role.ADMIN);
+        when(userRepository.findById(99L)).thenReturn(Optional.of(adminUser));
+    }
 
     @Test
     @DisplayName("测试批量审核通过物品")

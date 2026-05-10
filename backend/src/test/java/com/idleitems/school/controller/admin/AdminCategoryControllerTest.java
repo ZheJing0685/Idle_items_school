@@ -1,17 +1,23 @@
 package com.idleitems.school.controller.admin;
 
+import com.idleitems.school.aspect.PermissionAspect;
 import com.idleitems.school.dto.CategoryDTO;
 import com.idleitems.school.entity.Category;
+import com.idleitems.school.entity.User;
 import com.idleitems.school.repository.CategoryRepository;
 import com.idleitems.school.repository.ItemRepository;
+import com.idleitems.school.repository.UserRepository;
 import com.idleitems.school.service.AdminLogService;
 import com.idleitems.school.service.CategoryService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.web.servlet.MockMvc;
@@ -29,6 +35,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(AdminCategoryController.class)
 @AutoConfigureMockMvc(addFilters = false)
+@EnableAspectJAutoProxy
+@Import(PermissionAspect.class)
 @DisplayName("AdminCategoryController 分类管理接口测试")
 @SuppressWarnings("deprecation")
 class AdminCategoryControllerTest {
@@ -46,11 +54,23 @@ class AdminCategoryControllerTest {
 
     @SuppressWarnings("deprecation")
     @MockBean
+    private UserRepository userRepository;
+
+    @SuppressWarnings("deprecation")
+    @MockBean
     private CategoryService categoryService;
 
     @SuppressWarnings("deprecation")
     @MockBean
     private AdminLogService adminLogService;
+
+    @BeforeEach
+    void setUp() {
+        User adminUser = new User();
+        adminUser.setId(99L);
+        adminUser.setRole(User.Role.ADMIN);
+        when(userRepository.findById(99L)).thenReturn(Optional.of(adminUser));
+    }
 
     @Test
     @DisplayName("测试获取分类列表")

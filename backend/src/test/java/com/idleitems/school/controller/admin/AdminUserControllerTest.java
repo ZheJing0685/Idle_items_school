@@ -1,16 +1,20 @@
 package com.idleitems.school.controller.admin;
 
+import com.idleitems.school.aspect.PermissionAspect;
 import com.idleitems.school.dto.UserDTO;
 import com.idleitems.school.entity.User;
 import com.idleitems.school.repository.UserRepository;
 import com.idleitems.school.service.AdminLogService;
 import com.idleitems.school.service.UserService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.web.servlet.MockMvc;
@@ -28,6 +32,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(AdminUserController.class)
 @AutoConfigureMockMvc(addFilters = false)
+@EnableAspectJAutoProxy
+@Import(PermissionAspect.class)
 @DisplayName("AdminUserController 用户管理接口测试")
 class AdminUserControllerTest {
 
@@ -42,6 +48,14 @@ class AdminUserControllerTest {
 
     @MockBean
     private UserService userService;
+
+    @BeforeEach
+    void setUp() {
+        User adminUser = new User();
+        adminUser.setId(99L);
+        adminUser.setRole(User.Role.ADMIN);
+        when(userRepository.findById(99L)).thenReturn(Optional.of(adminUser));
+    }
 
     @Test
     @DisplayName("测试获取用户列表")
