@@ -119,6 +119,7 @@
 | [Docker](https://www.docker.com/) + Docker Compose | 容器化部署 |
 | [GitHub Actions](https://github.com/features/actions) | CI/CD 流水线 |
 | [Nginx](https://nginx.org/) | 前端静态资源服务 & 反向代理 |
+| [Qodana](https://www.jetbrains.com/qodana/) | 代码质量分析 |
 
 ---
 
@@ -174,7 +175,8 @@ Idle_items_school/
 │   └── package.json
 │
 ├── docker-compose.yml          # Docker Compose 编排
-└── qodana.yaml                 # 代码质量配置
+├── qodana.yaml                 # 代码质量配置
+└── sql/                        # 数据库初始化脚本
 ```
 
 ---
@@ -252,7 +254,7 @@ mvn clean install
 mvn spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
-后端默认运行在 `http://localhost:7000`。
+后端默认运行在 `http://localhost:8080`。
 
 #### 前端
 
@@ -274,8 +276,8 @@ npm run dev
 
 项目集成了 [Knife4j](https://doc.xiaominfo.com/)（基于 OpenAPI 3），启动后端后访问：
 
-- **Swagger UI**: http://localhost:7000/swagger-ui.html
-- **Knife4j 文档**: http://localhost:7000/doc.html
+- **Swagger UI**: http://localhost:8080/swagger-ui.html
+- **Knife4j 文档**: http://localhost:8080/doc.html
 
 ### 主要 API 模块
 
@@ -358,6 +360,17 @@ mvn test
 mvn package -DskipTests
 ```
 
+### 代码质量检查
+
+项目集成了 JetBrains Qodana 进行静态代码分析：
+
+```bash
+# 本地运行 Qodana（需要 Docker）
+docker run --rm -v $(pwd):/project -p 8080:8080 jetbrains/qodana-jvm
+```
+
+访问 http://localhost:8080 查看代码质量报告。
+
 ---
 
 ## CI/CD
@@ -389,6 +402,7 @@ mvn package -DskipTests
 - **触发条件**: `main` / `develop` 分支的 push 和 PR
 - **前端测试**: Node.js 20 + Vitest + Playwright
 - **后端测试**: JDK 17 + Maven
+- **代码质量**: Qodana 静态分析
 - **构建产物**: 前端 `dist/` + 后端 `school-1.0.0.jar`，保留 7 天
 
 ---
@@ -477,13 +491,28 @@ users ──1:N──> items ──1:N──> item_images
 - **代码审查**: 每次修改后进行逻辑完整性、边界条件、安全风险、性能影响审查
 - **测试覆盖**: 单元测试覆盖率 ≥ 80%，核心流程集成测试覆盖
 - **代码风格**: ESLint + Prettier（前端），Checkstyle（后端）
+- **静态分析**: Qodana 代码质量检查
 - **数据库迁移**: 所有表结构变更通过 Flyway 迁移脚本管理
+
+### Git 提交规范
+
+遵循 [Conventional Commits](https://www.conventionalcommits.org/) 规范：
+
+```
+feat: 新功能
+fix: 修复 Bug
+docs: 文档更新
+style: 代码格式调整
+refactor: 代码重构
+test: 测试相关
+chore: 构建/工具变更
+```
 
 ---
 
 ## 路线图
 
-### ✅ 已完成（短期）
+### ✅ 已完成
 
 - [x] 用户注册 / 登录 / JWT 认证
 - [x] 闲置物品发布 / 浏览 / 搜索
@@ -494,15 +523,17 @@ users ──1:N──> items ──1:N──> item_images
 - [x] 图片上传与处理
 - [x] Docker 容器化部署
 - [x] CI/CD 自动化流水线
+- [x] WebSocket 即时通讯
+- [x] 用户中心界面重构（卡片式设计）
+- [x] Qodana 代码质量集成
 
-### 🚧 进行中（中期）
+### 🚧 进行中
 
 - [ ] 评价系统完善
-- [ ] 即时通讯功能优化
 - [ ] 纠纷处理流程
 - [ ] 数据统计与分析增强
 
-### 📋 计划中（长期）
+### 📋 计划中
 
 - [ ] AI 图像识别（自动分类、估价）
 - [ ] 移动端适配 / 小程序
@@ -521,20 +552,6 @@ users ──1:N──> items ──1:N──> item_images
 3. 提交更改：`git commit -m 'feat: add some feature'`
 4. 推送分支：`git push origin feature/your-feature`
 5. 提交 Pull Request
-
-### Commit 规范
-
-遵循 [Conventional Commits](https://www.conventionalcommits.org/) 规范：
-
-```
-feat: 新功能
-fix: 修复 Bug
-docs: 文档更新
-style: 代码格式调整
-refactor: 代码重构
-test: 测试相关
-chore: 构建/工具变更
-```
 
 ---
 
