@@ -73,10 +73,20 @@ ehthumbs.db
 .env.*.local
 !.env.example
 
+# Backend environment configs
+backend/.env
+backend/.env.local
+backend/.env.*.local
+!backend/.env.example
+
 # Frontend environment configs
+frontend/.env
+frontend/.env.local
+frontend/.env.*.local
 frontend/.env.development
 frontend/.env.production
 frontend/.env.staging
+!frontend/.env.example
 
 # ==================== Docker ====================
 docker-compose.override.yml
