@@ -89,9 +89,10 @@ export default defineConfig({
     hookTimeout: 10000,
     coverage: {
       provider: 'v8',
-      include: ['src/**/*.{ts,vue}'],
-      reportsDirectory: 'tests/coverage',
-      reporter: ['text', 'json', 'html', 'lcov'],
+      reporter: ['text', 'json', 'html'],
+      reportsDirectory: './coverage',
+      include: ['src/**/*.{ts,js,vue}'],
+      exclude: ['node_modules/', 'dist/', 'src/**/*.d.ts'],
       thresholds: { statements: 5, branches: 40, functions: 25, lines: 5 },
     },
   },
