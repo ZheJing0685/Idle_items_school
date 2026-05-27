@@ -8,13 +8,14 @@ import net.coobird.thumbnailator.geometry.Positions;
 import org.springframework.stereotype.Component;
 
 import javax.imageio.ImageIO;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.ImageWriter;
+import javax.imageio.stream.ImageOutputStream;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 
 @Slf4j
 @Component
@@ -33,204 +34,207 @@ public class ImageProcessingService {
     private static final float DEFAULT_WATERMARK_OPACITY = 0.3f;
     private static final String DEFAULT_WATERMARK_TEXT = "Idle Items School";
 
-    /**
-     * 获取最大宽度
-     */
+    private static final int MIN_DIMENSION = 50;
+
+    private BufferedImage cachedWatermark;
+    private String cachedWatermarkText;
+
     private int getMaxWidth() {
         Integer maxWidth = configService.getConfigInt(CONFIG_MAX_WIDTH);
         return maxWidth != null ? maxWidth : DEFAULT_MAX_WIDTH;
     }
 
-    /**
-     * 获取默认质量
-     */
     private float getDefaultQuality() {
         Float quality = configService.getConfigFloat(CONFIG_DEFAULT_QUALITY);
         return quality != null ? quality : DEFAULT_QUALITY;
     }
 
-    /**
-     * 获取水印透明度
-     */
     private float getWatermarkOpacity() {
         Float opacity = configService.getConfigFloat(CONFIG_WATERMARK_OPACITY);
         return opacity != null ? opacity : DEFAULT_WATERMARK_OPACITY;
     }
 
-    /**
-     * 获取水印文字
-     */
     private String getWatermarkText() {
         String text = configService.getConfigValue(CONFIG_WATERMARK_TEXT);
         return text != null && !text.isEmpty() ? text : DEFAULT_WATERMARK_TEXT;
     }
 
-    /**
-     * 处理图片
-     * @param inputFile 输入文件
-     * @param outputFile 输出文件
-     * @param format 输出格式
-     * @return 处理后的图片信息
-     * @throws IOException 处理异常
-     */
     public ImageInfo processImage(File inputFile, File outputFile, String format) throws IOException {
-        // 读取图片
         BufferedImage image = ImageIO.read(inputFile);
-        
-        // 调整尺寸
-        int width = image.getWidth();
-        int height = image.getHeight();
-        
-        // 计算新尺寸
-        int[] newDimensions = calculateNewDimensions(width, height);
+        return processImage(inputFile, outputFile, format, image.getWidth(), image.getHeight());
+    }
+
+    /**
+     * 处理图片：缩放 + 水印 + EXIF清理
+     * 通过重新编码图片，自动清除EXIF等元数据（GPS定位、设备信息等隐私数据）
+     */
+    public ImageInfo processImage(File inputFile, File outputFile, String format,
+                                   int knownWidth, int knownHeight) throws IOException {
+        int maxWidth = getMaxWidth();
+
+        boolean needsResize = knownWidth > maxWidth || knownHeight > maxWidth;
+        boolean needsFormatConversion = !"jpg".equalsIgnoreCase(format);
+        float quality = getDefaultQuality();
+        boolean needsRecompress = needsFormatConversion || quality < 1.0f;
+
+        if (!needsResize && !needsRecompress) {
+            // 即使不需要缩放，也要重新编码以清除EXIF
+            stripExifMetadata(inputFile, outputFile, format);
+            return new ImageInfo(knownWidth, knownHeight, outputFile.length(), format);
+        }
+
+        int[] newDimensions = calculateNewDimensions(knownWidth, knownHeight);
         int newWidth = newDimensions[0];
         int newHeight = newDimensions[1];
-        
-        // 获取配置值
-        float quality = getDefaultQuality();
+
         float watermarkOpacity = getWatermarkOpacity();
-        
-        // 处理图片
+
         Thumbnails.Builder<? extends File> builder = Thumbnails.of(inputFile)
                 .size(newWidth, newHeight)
                 .outputFormat(format)
-                .outputQuality(quality);
-        
-        // 添加水印
-        builder.watermark(Positions.BOTTOM_RIGHT, createWatermark(), watermarkOpacity);
-        
-        // 保存处理后的图片
+                .outputQuality(quality)
+                .keepAspectRatio(true);
+
+        builder.watermark(Positions.BOTTOM_RIGHT, getOrCreateWatermark(), watermarkOpacity);
         builder.toFile(outputFile);
-        
-        // 返回图片信息
-        return new ImageInfo(
-                newWidth,
-                newHeight,
-                outputFile.length(),
-                format
-        );
+
+        return new ImageInfo(newWidth, newHeight, outputFile.length(), format);
     }
 
     /**
-     * 处理图片
-     * @param imageBytes 图片字节数组
-     * @param format 输出格式
-     * @return 处理后的图片字节数组和信息
-     * @throws IOException 处理异常
+     * 清除图片EXIF元数据
+     * 通过重新编码图片，移除GPS定位、拍摄设备、时间等隐私信息
      */
+    private void stripExifMetadata(File inputFile, File outputFile, String format) throws IOException {
+        BufferedImage image = ImageIO.read(inputFile);
+        if (image == null) {
+            throw new IOException("无法读取图片文件: " + inputFile.getAbsolutePath());
+        }
+
+        String imageFormat = normalizeFormat(format);
+        try (ImageOutputStream ios = ImageIO.createImageOutputStream(outputFile)) {
+            ImageWriter writer = ImageIO.getImageWritersByFormatName(imageFormat).next();
+
+            // JPEG输出时应用压缩质量
+            if ("jpg".equalsIgnoreCase(imageFormat) || "jpeg".equalsIgnoreCase(imageFormat)) {
+                ImageWriteParam param = writer.getDefaultWriteParam();
+                if (param.canWriteCompressed()) {
+                    param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+                    param.setCompressionQuality(getDefaultQuality());
+                }
+                writer.setOutput(ios);
+                writer.write(null, new javax.imageio.IIOImage(image, null, null), param);
+            } else {
+                writer.setOutput(ios);
+                writer.write(image);
+            }
+            writer.dispose();
+        }
+        log.debug("EXIF元数据已清除: {} -> {}", inputFile.getName(), outputFile.getName());
+    }
+
+    /**
+     * 规范化图片格式名称
+     */
+    private String normalizeFormat(String format) {
+        if (format == null) return "jpg";
+        String lower = format.toLowerCase();
+        if ("jpeg".equals(lower)) return "jpg";
+        return lower;
+    }
+
     public ProcessedImageResult processImage(byte[] imageBytes, String format) throws IOException {
-        // 创建输入流
-        ByteArrayInputStream inputStream = new ByteArrayInputStream(imageBytes);
-        
-        // 读取图片
-        BufferedImage image = ImageIO.read(inputStream);
-        
-        // 调整尺寸
+        BufferedImage image = ImageIO.read(new ByteArrayInputStream(imageBytes));
+
         int width = image.getWidth();
         int height = image.getHeight();
-        
-        // 计算新尺寸
+        int maxWidth = getMaxWidth();
+
+        boolean needsResize = width > maxWidth || height > maxWidth;
+        float quality = getDefaultQuality();
+        boolean needsRecompress = quality < 1.0f || !"jpg".equalsIgnoreCase(format);
+
+        if (!needsResize && !needsRecompress) {
+            return new ProcessedImageResult(
+                    imageBytes,
+                    new ImageInfo(width, height, imageBytes.length, format)
+            );
+        }
+
         int[] newDimensions = calculateNewDimensions(width, height);
         int newWidth = newDimensions[0];
         int newHeight = newDimensions[1];
-        
-        // 获取配置值
-        float quality = getDefaultQuality();
         float watermarkOpacity = getWatermarkOpacity();
-        
-        // 创建输出流
+
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        
-        // 处理图片
-        Thumbnails.Builder<? extends InputStream> builder = Thumbnails.of(inputStream)
+
+        Thumbnails.Builder<? extends InputStream> builder = Thumbnails.of(new ByteArrayInputStream(imageBytes))
                 .size(newWidth, newHeight)
                 .outputFormat(format)
                 .outputQuality(quality);
-        
-        // 添加水印
-        builder.watermark(Positions.BOTTOM_RIGHT, createWatermark(), watermarkOpacity);
-        
-        // 保存处理后的图片
+
+        builder.watermark(Positions.BOTTOM_RIGHT, getOrCreateWatermark(), watermarkOpacity);
         builder.toOutputStream(outputStream);
-        
-        // 返回结果
+
         return new ProcessedImageResult(
                 outputStream.toByteArray(),
-                new ImageInfo(
-                        newWidth,
-                        newHeight,
-                        outputStream.size(),
-                        format
-                )
+                new ImageInfo(newWidth, newHeight, outputStream.size(), format)
         );
     }
 
-    /**
-     * 计算新尺寸
-     * @param width 原始宽度
-     * @param height 原始高度
-     * @return 新尺寸 [width, height]
-     */
     private int[] calculateNewDimensions(int width, int height) {
         int maxWidth = getMaxWidth();
-        
+
         if (width <= maxWidth && height <= maxWidth) {
-            return new int[]{width, height};
+            return new int[]{Math.max(width, MIN_DIMENSION), Math.max(height, MIN_DIMENSION)};
         }
-        
+
         double aspectRatio = (double) width / height;
+
+        if (aspectRatio > 10.0 || aspectRatio < 0.1) {
+            log.warn("异常宽高比 {}/{} = {}, 强制限制", width, height, aspectRatio);
+        }
+
         int newWidth, newHeight;
-        
         if (width > height) {
             newWidth = maxWidth;
-            newHeight = (int) (maxWidth / aspectRatio);
+            newHeight = Math.max((int) (maxWidth / aspectRatio), MIN_DIMENSION);
         } else {
             newHeight = maxWidth;
-            newWidth = (int) (maxWidth * aspectRatio);
+            newWidth = Math.max((int) (maxWidth * aspectRatio), MIN_DIMENSION);
         }
-        
+
         return new int[]{newWidth, newHeight};
     }
 
-    /**
-     * 创建水印
-     * @return 水印图片
-     */
-    private BufferedImage createWatermark() {
-        // 获取水印配置
-        float watermarkOpacity = getWatermarkOpacity();
-        String watermarkText = getWatermarkText();
-        
-        // 创建一个简单的文字水印
+    private BufferedImage getOrCreateWatermark() {
+        String currentText = getWatermarkText();
+        if (cachedWatermark != null && cachedWatermarkText != null && cachedWatermarkText.equals(currentText)) {
+            return cachedWatermark;
+        }
+        cachedWatermark = createWatermarkImage(currentText);
+        cachedWatermarkText = currentText;
+        return cachedWatermark;
+    }
+
+    private BufferedImage createWatermarkImage(String text) {
         int width = 200;
         int height = 50;
         BufferedImage watermark = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2d = watermark.createGraphics();
-        
-        // 设置透明度
-        g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, watermarkOpacity));
-        
-        // 设置字体
+        g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
         g2d.setFont(new Font("Arial", Font.BOLD, 16));
-        
-        // 设置颜色
         g2d.setColor(Color.WHITE);
-        
-        // 绘制文字
+
         FontMetrics metrics = g2d.getFontMetrics();
-        int x = (width - metrics.stringWidth(watermarkText)) / 2;
+        int x = (width - metrics.stringWidth(text)) / 2;
         int y = (height - metrics.getHeight()) / 2 + metrics.getAscent();
-        g2d.drawString(watermarkText, x, y);
-        
-        // 释放资源
+        g2d.drawString(text, x, y);
         g2d.dispose();
-        
+
         return watermark;
     }
 
-    /**
-     * 图片信息类
-     */
     public static class ImageInfo {
         private final int width;
         private final int height;
@@ -244,26 +248,12 @@ public class ImageProcessingService {
             this.format = format;
         }
 
-        public int getWidth() {
-            return width;
-        }
-
-        public int getHeight() {
-            return height;
-        }
-
-        public long getSize() {
-            return size;
-        }
-
-        public String getFormat() {
-            return format;
-        }
+        public int getWidth() { return width; }
+        public int getHeight() { return height; }
+        public long getSize() { return size; }
+        public String getFormat() { return format; }
     }
 
-    /**
-     * 处理图片结果类
-     */
     public static class ProcessedImageResult {
         private final byte[] imageBytes;
         private final ImageInfo imageInfo;
@@ -273,12 +263,7 @@ public class ImageProcessingService {
             this.imageInfo = imageInfo;
         }
 
-        public byte[] getImageBytes() {
-            return imageBytes;
-        }
-
-        public ImageInfo getImageInfo() {
-            return imageInfo;
-        }
+        public byte[] getImageBytes() { return imageBytes; }
+        public ImageInfo getImageInfo() { return imageInfo; }
     }
 }

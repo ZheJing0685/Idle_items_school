@@ -13,28 +13,11 @@
         </div>
         <div class="header-actions">
           <button class="btn btn-ghost" @click="handleRefresh" title="刷新">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-            >
-              <path d="M21.5 2v6h-6M2.5 22v-6h6" />
-              <path d="M2 12A10 10 0 1 0 22 12" />
-            </svg>
+            <RefreshCw :size="16" />
             刷新
           </button>
           <button class="btn btn-primary" @click="handleExport">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-            >
-              <path
-                d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"
-              />
-            </svg>
+            <Download :size="16" />
             导出日志
           </button>
         </div>
@@ -42,16 +25,7 @@
 
       <div class="filters-bar">
         <div class="filter-search">
-          <svg
-            class="search-icon"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          >
-            <circle cx="11" cy="11" r="8" />
-            <path d="M21 21l-4.35-4.35" />
-          </svg>
+          <Search :size="16" class="search-icon" />
           <input
             v-model="searchKeyword"
             type="text"
@@ -97,148 +71,92 @@
       </div>
 
       <div class="table-wrapper">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th class="col-time">时间</th>
-              <th class="col-admin">操作人</th>
-              <th class="col-type">类型</th>
-              <th class="col-action">操作</th>
-              <th class="col-target">目标</th>
-              <th class="col-detail">详情</th>
-              <th class="col-ip">IP地址</th>
-              <th class="col-user-agent">用户代理</th>
-              <th class="col-actions">操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="log in logs" :key="log.id" class="table-row">
-              <td class="col-time">
-                <span class="time-value">{{
-                  formatDateTime(log.createdAt)
-                }}</span>
-              </td>
-              <td class="col-admin">
-                <div class="admin-cell">
-                  <div class="admin-avatar">
-                    {{
-                      log.adminName?.charAt(0) ||
-                      log.userName?.charAt(0) ||
-                      '系'
-                    }}
-                  </div>
-                  <span class="admin-name">{{
-                    log.adminName || log.userName || '系统'
-                  }}</span>
+        <el-table
+          :data="logs"
+          style="width: 100%"
+          @selection-change="handleSelectionChange"
+          row-key="id"
+        >
+          <el-table-column type="selection" width="50" />
+          <el-table-column label="时间" width="160">
+            <template #default="{ row }">
+              <span class="time-value">{{ formatDateTime(row.createdAt) }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="操作人" width="120">
+            <template #default="{ row }">
+              <div class="admin-cell">
+                <div class="admin-avatar">
+                  {{ row.adminName?.charAt(0) || row.userName?.charAt(0) || '系' }}
                 </div>
-              </td>
-              <td class="col-type">
-                <span class="badge" :class="getTypeClass(log.operationType)">
-                  {{ getTypeText(log.operationType) }}
-                </span>
-              </td>
-              <td class="col-action">
-                <span class="action-text">{{ log.action }}</span>
-              </td>
-              <td class="col-target">
-                <span class="target-text"
-                  >{{ log.targetType }} #{{ log.targetId }}</span
-                >
-              </td>
-              <td class="col-detail">
-                <button class="detail-btn" @click="handleViewDetails(log)">
-                  {{ truncateText(log.details, 30) }}
-                </button>
-              </td>
-              <td class="col-ip">
-                <span class="ip-value">{{ log.ipAddress }}</span>
-              </td>
-              <td class="col-user-agent">
-                <el-popover placement="top" width="300" trigger="hover">
-                  <template #reference>
-                    <span class="user-agent-preview">{{
-                      truncateText(log.userAgent, 20)
-                    }}</span>
-                  </template>
-                  <span class="user-agent-full">{{ log.userAgent }}</span>
-                </el-popover>
-              </td>
-              <td class="col-actions">
-                <button
-                  class="action-btn"
-                  @click="handleViewDetails(log)"
-                  title="查看详情"
-                >
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.5"
-                  >
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                    <circle cx="12" cy="12" r="3" />
-                  </svg>
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+                <span class="admin-name">{{ row.adminName || row.userName || '系统' }}</span>
+              </div>
+            </template>
+          </el-table-column>
+          <el-table-column label="类型" width="80">
+            <template #default="{ row }">
+              <span class="badge" :class="getTypeClass(row.operationType)">
+                {{ getTypeText(row.operationType) }}
+              </span>
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="120">
+            <template #default="{ row }">
+              <span class="action-text">{{ row.action }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="目标" width="130">
+            <template #default="{ row }">
+              <span class="target-text">{{ row.targetType }} #{{ row.targetId }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="详情" min-width="150">
+            <template #default="{ row }">
+              <button class="detail-btn" @click="handleViewDetails(row)">
+                {{ truncateText(row.details, 30) }}
+              </button>
+            </template>
+          </el-table-column>
+          <el-table-column label="IP地址" width="130">
+            <template #default="{ row }">
+              <span class="ip-value">{{ row.ipAddress }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="用户代理" min-width="150">
+            <template #default="{ row }">
+              <el-popover placement="top" width="300" trigger="hover">
+                <template #reference>
+                  <span class="user-agent-preview">{{ truncateText(row.userAgent, 20) }}</span>
+                </template>
+                <span class="user-agent-full">{{ row.userAgent }}</span>
+              </el-popover>
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="80" fixed="right">
+            <template #default="{ row }">
+              <button
+                class="action-btn"
+                @click="handleViewDetails(row)"
+                title="查看详情"
+                aria-label="查看详情"
+              >
+                <Eye :size="16" />
+              </button>
+            </template>
+          </el-table-column>
+        </el-table>
       </div>
 
       <div class="pagination-wrapper">
-        <div class="pagination-info">
-          显示 {{ (page - 1) * pageSize + 1 }} -
-          {{ Math.min(page * pageSize, total) }} 条，共 {{ total }} 条
-        </div>
-        <div class="pagination-controls">
-          <select
-            v-model="pageSize"
-            class="page-size-select"
-            @change="handleSizeChange"
-          >
-            <option :value="20">20 条/页</option>
-            <option :value="50">50 条/页</option>
-            <option :value="100">100 条/页</option>
-            <option :value="200">200 条/页</option>
-          </select>
-          <div class="pagination-buttons">
-            <button
-              class="page-btn"
-              :disabled="page === 1"
-              @click="
-                page--;
-                fetchLogs();
-              "
-            >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path d="M15 18l-6-6 6-6" />
-              </svg>
-            </button>
-            <span class="page-indicator">{{ page }} / {{ totalPages }}</span>
-            <button
-              class="page-btn"
-              :disabled="page >= totalPages"
-              @click="
-                page++;
-                fetchLogs();
-              "
-            >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path d="M9 18l6-6-6-6" />
-              </svg>
-            </button>
-          </div>
-        </div>
+        <el-pagination
+          v-model:current-page="page"
+          v-model:page-size="pageSize"
+          :total="total"
+          :page-sizes="[20, 50, 100, 200]"
+          layout="total, sizes, prev, pager, next, jumper"
+          @size-change="handleSizeChange"
+          @current-change="fetchLogs"
+        />
       </div>
     </div>
 
@@ -307,7 +225,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
 import {
   ElMessage,
@@ -317,6 +235,7 @@ import {
   ElDatePicker,
 } from 'element-plus';
 import api from '../../api';
+import { RefreshCw, Download, Search, Eye } from 'lucide-vue-next';
 
 const searchKeyword = ref('');
 const operationType = ref('');
@@ -334,17 +253,22 @@ watch(dateRange, (val) => {
     endDate.value = '';
   }
 });
-const logs = ref([]);
+const logs = ref<any[]>([]);
 const page = ref(1);
 const pageSize = ref(50);
 const total = ref(0);
 const dialogVisible = ref(false);
-const currentLog = ref(null);
+const currentLog = ref<any>(null);
+const selectedLogs = ref<any[]>([]);
+
+const handleSelectionChange = (selection: any[]) => {
+  selectedLogs.value = selection;
+};
 
 const totalPages = computed(() => Math.ceil(total.value / pageSize.value) || 1);
 
-const getTypeClass = (type) => {
-  const map = {
+const getTypeClass = (type: string) => {
+  const map: Record<string, string> = {
     USER: 'badge-primary',
     ITEM: 'badge-success',
     ORDER: 'badge-warning',
@@ -355,8 +279,8 @@ const getTypeClass = (type) => {
   return map[type] || 'badge-default';
 };
 
-const getTypeText = (type) => {
-  const map = {
+const getTypeText = (type: string) => {
+  const map: Record<string, string> = {
     USER: '用户',
     ITEM: '物品',
     ORDER: '订单',
@@ -367,7 +291,7 @@ const getTypeText = (type) => {
   return map[type] || type;
 };
 
-const formatDateTime = (dateString) => {
+const formatDateTime = (dateString: string) => {
   if (!dateString) return '-';
   const date = new Date(dateString);
   return date.toLocaleString('zh-CN', {
@@ -380,12 +304,12 @@ const formatDateTime = (dateString) => {
   });
 };
 
-const truncateText = (text, length) => {
+const truncateText = (text: string, length: number) => {
   if (!text) return '-';
   return text.length > length ? text.slice(0, length) + '...' : text;
 };
 
-const formatDetails = (details) => {
+const formatDetails = (details: any) => {
   try {
     const parsed = typeof details === 'string' ? JSON.parse(details) : details;
     return JSON.stringify(parsed, null, 2);
@@ -396,7 +320,7 @@ const formatDetails = (details) => {
 
 const fetchLogs = async () => {
   try {
-    const params = { page: page.value, size: pageSize.value };
+    const params: Record<string, any> = { page: page.value, size: pageSize.value };
     if (searchKeyword.value) params.keyword = searchKeyword.value;
     if (operationType.value) params.type = operationType.value;
     if (logType.value) params.logType = logType.value;
@@ -447,22 +371,21 @@ const handleRefresh = () => {
   ElMessage.success('已刷新数据');
 };
 
-const handleViewDetails = (log) => {
+const handleViewDetails = (log: any) => {
   currentLog.value = log;
   dialogVisible.value = true;
 };
 
 const handleExport = async () => {
   try {
-    const params = {};
+    const params: Record<string, any> = {};
     if (searchKeyword.value) params.keyword = searchKeyword.value;
     if (operationType.value) params.type = operationType.value;
     if (logType.value) params.logType = logType.value;
     if (startDate.value) params.startDate = startDate.value;
     if (endDate.value) params.endDate = endDate.value;
 
-    const response = await api.admin.logs.getExport(params);
-    const blob = response.data;
+    const blob = await api.admin.logs.getExport(params);
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;

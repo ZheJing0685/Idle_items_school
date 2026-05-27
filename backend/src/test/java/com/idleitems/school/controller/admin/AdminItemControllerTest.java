@@ -1,35 +1,30 @@
 package com.idleitems.school.controller.admin;
 
 import com.idleitems.school.aspect.PermissionAspect;
-import com.idleitems.school.dto.ItemDTO;
 import com.idleitems.school.entity.Item;
 import com.idleitems.school.entity.User;
-import com.idleitems.school.repository.ItemRepository;
-import com.idleitems.school.repository.OrderRepository;
-import com.idleitems.school.repository.ReviewRepository;
-import com.idleitems.school.repository.UserRepository;
 import com.idleitems.school.service.AdminLogService;
 import com.idleitems.school.service.DictService;
 import com.idleitems.school.service.ItemService;
-import com.idleitems.school.util.CacheManager;
+import com.idleitems.school.cache.CacheService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Optional;
 
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -40,58 +35,44 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @EnableAspectJAutoProxy
 @Import(PermissionAspect.class)
 @DisplayName("AdminItemController 物品管理接口测试")
-@SuppressWarnings("deprecation")
 class AdminItemControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
-    @SuppressWarnings("deprecation")
-    @MockBean
-    private ItemRepository itemRepository;
+    @MockitoBean
+    private com.idleitems.school.repository.UserRepository userRepository;
 
-    @SuppressWarnings("deprecation")
-    @MockBean
-    private UserRepository userRepository;
-
-    @SuppressWarnings("deprecation")
-    @MockBean
-    private OrderRepository orderRepository;
-
-    @SuppressWarnings("deprecation")
-    @MockBean
-    private ReviewRepository reviewRepository;
-
-    @SuppressWarnings("deprecation")
-    @MockBean
+    @MockitoBean
     private AdminLogService adminLogService;
 
-    @SuppressWarnings("deprecation")
-    @MockBean
+    @MockitoBean
     private DictService dictService;
 
-    @SuppressWarnings("deprecation")
-    @MockBean
-    private CacheManager cacheManager;
+    @MockitoBean
+    private CacheService cacheService;
 
-    @SuppressWarnings("deprecation")
-    @MockBean
+    @MockitoBean
     private ItemService itemService;
+
+    @MockitoBean
+    private com.idleitems.school.service.UserService userService;
 
     @BeforeEach
     void setUp() {
         User adminUser = new User();
         adminUser.setId(99L);
         adminUser.setRole(User.Role.ADMIN);
-        when(userRepository.findById(99L)).thenReturn(Optional.of(adminUser));
+        when(userRepository.findById(99L)).thenReturn(java.util.Optional.of(adminUser));
     }
 
     @Test
     @DisplayName("测试获取物品列表")
     void testGetItems() throws Exception {
         Item item = buildItem();
-        when(itemRepository.findByStatus(any(Item.ItemStatus.class), any(PageRequest.class)))
+        when(itemService.getAdminItems(any(Pageable.class), any()))
                 .thenReturn(new PageImpl<>(List.of(item), PageRequest.of(0, 10), 1));
+        when(itemService.getSellerItemCount(anyLong())).thenReturn(0);
 
         mockMvc.perform(get("/api/admin/items")
                         .param("status", "ON_SALE"))
@@ -102,9 +83,8 @@ class AdminItemControllerTest {
     @Test
     @DisplayName("测试获取物品统计")
     void testGetItemStats() throws Exception {
-        when(itemRepository.count()).thenReturn(100L);
-        when(itemRepository.findByStatus(any(Item.ItemStatus.class), any(PageRequest.class)))
-                .thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 1), 50));
+        when(itemService.countItems()).thenReturn(100L);
+        when(itemService.countItemsByStatus(any())).thenReturn(50L);
 
         mockMvc.perform(get("/api/admin/items/stats"))
                 .andExpect(status().isOk())
@@ -116,11 +96,10 @@ class AdminItemControllerTest {
     @DisplayName("测试审核通过物品")
     void testApproveItem() throws Exception {
         Item item = buildItem();
-        when(itemRepository.findById(1L)).thenReturn(Optional.of(item));
-        when(itemRepository.save(any(Item.class))).thenReturn(item);
-        when(dictService.getDictLabel("ITEM_STATUS", "ON_SALE")).thenReturn("在售");
+        when(itemService.getItemById(1L)).thenReturn(item);
+        when(itemService.approveItem(1L)).thenReturn(item);
 
-        mockMvc.perform(put("/api/admin/items/1/approve")
+        mockMvc.perform(post("/api/admin/items/1/approve")
                         .requestAttr("userId", 99L))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200));
@@ -130,11 +109,10 @@ class AdminItemControllerTest {
     @DisplayName("测试驳回物品")
     void testRejectItem() throws Exception {
         Item item = buildItem();
-        when(itemRepository.findById(1L)).thenReturn(Optional.of(item));
-        when(itemRepository.save(any(Item.class))).thenReturn(item);
-        when(dictService.getDictLabel("ITEM_STATUS", "REJECTED")).thenReturn("已驳回");
+        when(itemService.getItemById(1L)).thenReturn(item);
+        when(itemService.rejectItem(1L, "违规内容")).thenReturn(item);
 
-        mockMvc.perform(put("/api/admin/items/1/reject")
+        mockMvc.perform(post("/api/admin/items/1/reject")
                         .requestAttr("userId", 99L)
                         .param("reason", "违规内容"))
                 .andExpect(status().isOk())
@@ -145,11 +123,10 @@ class AdminItemControllerTest {
     @DisplayName("测试强制下架物品")
     void testForceOffShelfItem() throws Exception {
         Item item = buildItem();
-        when(itemRepository.findById(1L)).thenReturn(Optional.of(item));
-        when(itemRepository.save(any(Item.class))).thenReturn(item);
-        when(dictService.getDictLabel("ITEM_STATUS", "OFF_SHELF")).thenReturn("已下架");
+        when(itemService.getItemById(1L)).thenReturn(item);
+        when(itemService.forceOffShelfItem(1L, "违规操作")).thenReturn(item);
 
-        mockMvc.perform(put("/api/admin/items/1/off-shelf")
+        mockMvc.perform(post("/api/admin/items/1/off-shelf")
                         .requestAttr("userId", 99L)
                         .param("reason", "违规操作"))
                 .andExpect(status().isOk())
@@ -160,8 +137,8 @@ class AdminItemControllerTest {
     @DisplayName("测试删除物品")
     void testDeleteItem() throws Exception {
         Item item = buildItem();
-        when(itemRepository.findById(1L)).thenReturn(Optional.of(item));
-        when(orderRepository.existsByItemId(1L)).thenReturn(false);
+        when(itemService.getItemById(1L)).thenReturn(item);
+        when(itemService.existsOrderByItemId(1L)).thenReturn(false);
 
         mockMvc.perform(delete("/api/admin/items/1")
                         .requestAttr("userId", 99L))
@@ -173,12 +150,12 @@ class AdminItemControllerTest {
     @DisplayName("测试删除有关联订单的物品 - 应失败")
     void testDeleteItemWithOrders() throws Exception {
         Item item = buildItem();
-        when(itemRepository.findById(1L)).thenReturn(Optional.of(item));
-        when(orderRepository.existsByItemId(1L)).thenReturn(true);
+        when(itemService.getItemById(1L)).thenReturn(item);
+        when(itemService.existsOrderByItemId(1L)).thenReturn(true);
 
         mockMvc.perform(delete("/api/admin/items/1")
                         .requestAttr("userId", 99L))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isForbidden());
     }
 
     private Item buildItem() {

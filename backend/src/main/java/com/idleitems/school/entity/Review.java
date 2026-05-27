@@ -2,11 +2,16 @@ package com.idleitems.school.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import java.time.LocalDateTime;
 
 @Data
 @Entity
-@Table(name = "reviews")
+@Table(name = "reviews", uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"order_id", "reviewer_id"})
+})
 public class Review {
 
     @Id
@@ -37,20 +42,11 @@ public class Review {
     @Column(name = "is_anonymous")
     private Boolean isAnonymous = false;
 
+    @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
 }

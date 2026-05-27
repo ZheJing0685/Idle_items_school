@@ -1,19 +1,9 @@
 <template>
   <div class="verification-status" :class="statusClass">
     <div class="status-icon">
-      <svg v-if="status === 'approved'" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
-        <polyline points="22 4 12 14.01 9 11.01"/>
-      </svg>
-      <svg v-else-if="status === 'pending'" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="10"/>
-        <polyline points="12 6 12 12 16 14"/>
-      </svg>
-      <svg v-else width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="10"/>
-        <line x1="15" y1="9" x2="9" y2="15"/>
-        <line x1="9" y1="9" x2="15" y2="15"/>
-      </svg>
+      <CheckCircle v-if="status === 'approved'" :size="48" />
+      <Clock v-else-if="status === 'pending'" :size="48" />
+      <XCircle v-else :size="48" />
     </div>
     <div class="status-content">
       <h3 class="status-title">{{ title }}</h3>
@@ -26,14 +16,15 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue';
+import { CheckCircle, Clock, XCircle } from 'lucide-vue-next';
 
 const props = defineProps({
   status: {
     type: String,
     required: true,
-    validator: (v) => ['approved', 'pending', 'rejected'].includes(v)
+    validator: (v: string) => ['approved', 'pending', 'rejected'].includes(v)
   },
   title: String,
   description: String,
@@ -56,18 +47,18 @@ const statusClass = computed(() => `status-${props.status}`);
 }
 
 .verification-status.status-approved {
-  background: oklch(62% 0.12 158 / 0.1);
-  border: 1px solid oklch(62% 0.12 158 / 0.3);
+  background: var(--color-success-alpha-10);
+  border: 1px solid var(--color-success-alpha-20);
 }
 
 .verification-status.status-pending {
-  background: oklch(75% 0.14 85 / 0.1);
-  border: 1px solid oklch(75% 0.14 85 / 0.3);
+  background: var(--color-warning-alpha-10);
+  border: 1px solid var(--color-warning-alpha-20);
 }
 
 .verification-status.status-rejected {
-  background: oklch(60% 0.20 25 / 0.1);
-  border: 1px solid oklch(60% 0.20 25 / 0.3);
+  background: var(--color-danger-alpha-10);
+  border: 1px solid var(--color-danger-alpha-20);
 }
 
 .status-icon {

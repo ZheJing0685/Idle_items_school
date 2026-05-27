@@ -1,5 +1,10 @@
-<script setup>
+<script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue';
+import type { PropType } from 'vue';
+
+interface TableRow {
+  [key: string]: any
+}
 
 const props = defineProps({
   column: {
@@ -7,7 +12,7 @@ const props = defineProps({
     required: true,
   },
   tableData: {
-    type: Array,
+    type: Array as PropType<TableRow[]>,
     default: () => [],
   },
   minWidth: {
@@ -38,7 +43,7 @@ const englishCharWidth = 8;
 const numberWidth = 10;
 const padding = 20;
 
-const calculateTextWidth = (text) => {
+const calculateTextWidth = (text: string) => {
   if (!text || typeof text !== 'string') {
     return 0;
   }

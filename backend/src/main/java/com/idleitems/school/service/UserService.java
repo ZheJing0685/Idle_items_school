@@ -1,5 +1,8 @@
 package com.idleitems.school.service;
 
+import com.idleitems.school.common.BusinessException;
+import com.idleitems.school.common.ErrorCode;
+import com.idleitems.school.dto.UpdateProfileRequest;
 import com.idleitems.school.dto.UserStatsDTO;
 import com.idleitems.school.entity.Item;
 import com.idleitems.school.entity.User;
@@ -8,14 +11,12 @@ import com.idleitems.school.repository.OrderRepository;
 import com.idleitems.school.repository.ReviewRepository;
 import com.idleitems.school.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -26,11 +27,17 @@ public class UserService {
     private final ReviewRepository reviewRepository;
     private final ItemRepository itemRepository;
     private final OrderRepository orderRepository;
-    private final BCryptPasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
 
-    public User register(User user) {
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        return userRepository.save(user);
+    // ========== 查询方法 ==========
+
+    public User getUserById(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND, "用户不存在"));
+    }
+
+    public User findById(Long id) {
+        return getUserById(id);
     }
 
     public Optional<User> findByUsername(String username) {
@@ -45,11 +52,6 @@ public class UserService {
         return userRepository.findByPhone(phone);
     }
 
-    public User findById(Long id) {
-        return userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("用户不存在"));
-    }
-
     public boolean existsByUsername(String username) {
         return userRepository.existsByUsername(username);
     }
@@ -62,25 +64,65 @@ public class UserService {
         return userRepository.existsByPhone(phone);
     }
 
-    public User update(User user) {
+    // ========== 写入方法 ==========
+
+    public User save(User user) {
         return userRepository.save(user);
     }
 
-    public User getUserById(Long userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("用户不存在"));
+    public User register(User user) {
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        return userRepository.save(user);
     }
 
-    public User createUser(String username, String email, String password, String phone, 
+    public User updateUser(Long userId, UpdateProfileRequest request) {
+        User user = getUserById(userId);
+
+        if (request.getNickname() != null) {
+            user.setNickname(request.getNickname());
+        }
+        if (request.getPhone() != null) {
+            if (!request.getPhone().equals(user.getPhone()) && existsByPhone(request.getPhone())) {
+                throw new BusinessException(ErrorCode.CONFLICT, "手机号已被使用");
+            }
+            user.setPhone(request.getPhone());
+        }
+        if (request.getAvatar() != null) {
+            user.setAvatar(request.getAvatar());
+        }
+        if (request.getStudentId() != null) {
+            user.setStudentId(request.getStudentId());
+        }
+        if (request.getGender() != null) {
+            user.setGender(request.getGender());
+        }
+        if (request.getBirthday() != null && !request.getBirthday().isEmpty()) {
+            user.setBirthday(java.time.LocalDate.parse(request.getBirthday()));
+        } else if (request.getBirthday() != null) {
+            user.setBirthday(null);
+        }
+        if (request.getBio() != null) {
+            user.setBio(request.getBio());
+        }
+        if (request.getSchoolName() != null) {
+            user.setSchoolName(request.getSchoolName());
+        }
+
+        return userRepository.save(user);
+    }
+
+    // ========== 管理员方法 ==========
+
+    public User createUser(String username, String email, String password, String phone,
                           User.Role role, User.UserStatus status, String nickname, String studentId) {
         if (existsByUsername(username)) {
-            throw new IllegalArgumentException("用户名已存在");
+            throw new BusinessException(ErrorCode.CONFLICT, "用户名已存在");
         }
         if (existsByEmail(email)) {
-            throw new IllegalArgumentException("邮箱已存在");
+            throw new BusinessException(ErrorCode.CONFLICT, "邮箱已存在");
         }
         if (phone != null && existsByPhone(phone)) {
-            throw new IllegalArgumentException("手机号已存在");
+            throw new BusinessException(ErrorCode.CONFLICT, "手机号已存在");
         }
 
         User user = new User();
@@ -103,49 +145,45 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public User updateUserAdmin(Long userId, String email, String phone, User.Role role, 
+    public User updateUserAdmin(Long userId, String email, String phone, User.Role role,
                                User.UserStatus status, String nickname, String studentId,
                                Integer gender, String bio, String schoolName) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("用户不存在"));
+        User user = getUserById(userId);
 
         if (email != null && !email.equals(user.getEmail())) {
             if (existsByEmail(email)) {
-                throw new IllegalArgumentException("邮箱已存在");
+                throw new BusinessException(ErrorCode.CONFLICT, "邮箱已存在");
             }
             user.setEmail(email);
         }
 
         if (phone != null && !phone.equals(user.getPhone())) {
             if (existsByPhone(phone)) {
-                throw new IllegalArgumentException("手机号已存在");
+                throw new BusinessException(ErrorCode.CONFLICT, "手机号已存在");
             }
             user.setPhone(phone);
         }
 
-        if (role != null) {
-            user.setRole(role);
-        }
-        if (status != null) {
-            user.setStatus(status);
-        }
-        if (nickname != null) {
-            user.setNickname(nickname);
-        }
-        if (studentId != null) {
-            user.setStudentId(studentId);
-        }
-        if (gender != null) {
-            user.setGender(gender);
-        }
-        if (bio != null) {
-            user.setBio(bio);
-        }
-        if (schoolName != null) {
-            user.setSchoolName(schoolName);
-        }
+        if (role != null) user.setRole(role);
+        if (status != null) user.setStatus(status);
+        if (nickname != null) user.setNickname(nickname);
+        if (studentId != null) user.setStudentId(studentId);
+        if (gender != null) user.setGender(gender);
+        if (bio != null) user.setBio(bio);
+        if (schoolName != null) user.setSchoolName(schoolName);
 
         return userRepository.save(user);
+    }
+
+    public void deleteUsers(List<Long> userIds) {
+        for (Long userId : userIds) {
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND, "用户不存在: " + userId));
+            if (user.getRole() == User.Role.ADMIN) {
+                throw new BusinessException(ErrorCode.OPERATION_NOT_ALLOWED, "不能删除管理员用户");
+            }
+            userRepository.deleteById(userId);
+        }
     }
 
     public List<User> getUsersForExport(String keyword, User.Role role, User.UserStatus status) {
@@ -160,59 +198,13 @@ public class UserService {
         }
     }
 
-    public void deleteUsers(List<Long> userIds) {
-        for (Long userId : userIds) {
-            User user = userRepository.findById(userId)
-                    .orElseThrow(() -> new IllegalArgumentException("用户不存在: " + userId));
-            if (user.getRole() == User.Role.ADMIN) {
-                throw new IllegalArgumentException("不能删除管理员用户");
-            }
-            userRepository.deleteById(userId);
-        }
-    }
-
-    public User updateUser(Long userId, Map<String, Object> updates) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("用户不存在"));
-
-        if (updates.containsKey("nickname")) {
-            user.setNickname((String) updates.get("nickname"));
-        }
-        if (updates.containsKey("phone")) {
-            user.setPhone((String) updates.get("phone"));
-        }
-        if (updates.containsKey("avatar")) {
-            user.setAvatar((String) updates.get("avatar"));
-        }
-        if (updates.containsKey("studentId")) {
-            user.setStudentId((String) updates.get("studentId"));
-        }
-        if (updates.containsKey("gender")) {
-            user.setGender((Integer) updates.get("gender"));
-        }
-        if (updates.containsKey("birthday")) {
-            String birthdayStr = (String) updates.get("birthday");
-            if (birthdayStr != null && !birthdayStr.isEmpty()) {
-                user.setBirthday(java.time.LocalDate.parse(birthdayStr));
-            } else {
-                user.setBirthday(null);
-            }
-        }
-        if (updates.containsKey("bio")) {
-            user.setBio((String) updates.get("bio"));
-        }
-        if (updates.containsKey("schoolName")) {
-            user.setSchoolName((String) updates.get("schoolName"));
-        }
-
-        return userRepository.save(user);
-    }
+    // ========== 统计方法 ==========
 
     public UserStatsDTO getUserStats(Long userId) {
         User user = getUserById(userId);
         long totalItems = itemRepository.countByUserId(userId);
         long soldItems = orderRepository.countBySellerIdAndStatus(userId, com.idleitems.school.entity.Order.OrderStatus.COMPLETED);
-        long completedDeals = user.getTotalTransactions() != null ? user.getTotalTransactions() : 0;
+        long completedDeals = user.getTotalTransactions() != null ? user.getTotalTransactions().longValue() : 0L;
         int creditScore = user.getCreditScore() != null ? user.getCreditScore() : 100;
         double rating = Optional.ofNullable(reviewRepository.getAverageRatingByUserId(userId))
                 .orElse(BigDecimal.valueOf(creditScore)).doubleValue();
@@ -225,29 +217,25 @@ public class UserService {
                 .build();
     }
 
+    // ========== 关联方法 ==========
+
     public void enrichItemWithSellerInfo(Item item, int sellerItemCount) {
-        if (item == null) {
+        if (item == null || item.getUserId() == null) {
             return;
         }
 
-        if (item.getUserId() == null) {
-            return;
-        }
-
-        User user = userRepository.findById(item.getUserId()).orElse(null);
-        if (user != null) {
+        userRepository.findById(item.getUserId()).ifPresent(user -> {
             item.setSellerNickname(
                 user.getNickname() != null && !user.getNickname().isEmpty()
                     ? user.getNickname()
                     : user.getUsername()
             );
             item.setSellerVerified(user.getVerified() != null ? user.getVerified() : false);
-            
-            // 从评价表计算卖家真实评分
+
             BigDecimal averageRating = reviewRepository.getAverageRatingByUserId(item.getUserId());
             item.setSellerRating(averageRating != null ? averageRating.doubleValue() : 0.0);
-            
+
             item.setSellerItemsCount(sellerItemCount);
-        }
+        });
     }
 }

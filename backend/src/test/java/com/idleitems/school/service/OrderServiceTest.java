@@ -2,6 +2,7 @@ package com.idleitems.school.service;
 
 import com.idleitems.school.dto.order.CancelOrderRequest;
 import com.idleitems.school.dto.order.CreateOrderRequest;
+import com.idleitems.school.common.BusinessException;
 import com.idleitems.school.entity.Item;
 import com.idleitems.school.entity.Order;
 import com.idleitems.school.repository.ItemRepository;
@@ -84,7 +85,7 @@ class OrderServiceTest {
         when(orderRepository.findById(999L)).thenReturn(Optional.empty());
 
         // Act & Assert
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(BusinessException.class, () -> {
             orderService.getOrderById(999L, 1L);
         });
     }
@@ -95,7 +96,7 @@ class OrderServiceTest {
         when(orderRepository.findById(1L)).thenReturn(Optional.of(testOrder));
 
         // Act & Assert
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(BusinessException.class, () -> {
             orderService.getOrderById(1L, 999L);
         });
     }
@@ -129,7 +130,7 @@ class OrderServiceTest {
         when(orderRepository.findByIdWithLock(1L)).thenReturn(Optional.of(testOrder));
 
         // Act & Assert
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(BusinessException.class, () -> {
             orderService.cancelOrder(1L, 999L, request);
         });
     }
@@ -144,7 +145,7 @@ class OrderServiceTest {
         when(orderRepository.findByIdWithLock(1L)).thenReturn(Optional.of(testOrder));
 
         // Act & Assert
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(BusinessException.class, () -> {
             orderService.cancelOrder(1L, 1L, request);
         });
     }

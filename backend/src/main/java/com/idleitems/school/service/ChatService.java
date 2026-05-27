@@ -1,5 +1,7 @@
 package com.idleitems.school.service;
 
+import com.idleitems.school.common.BusinessException;
+import com.idleitems.school.common.ErrorCode;
 import com.idleitems.school.dto.ChatDTO;
 import com.idleitems.school.entity.Chat;
 import com.idleitems.school.entity.ChatMessage;
@@ -12,13 +14,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -29,17 +31,19 @@ public class ChatService {
     private final ChatMessageRepository chatMessageRepository;
     private final UserRepository userRepository;
 
+    private static final int MAX_MESSAGE_LENGTH = 2000;
+    private static final int RECALL_TIME_LIMIT_MINUTES = 2;
+
     @Transactional
     public Chat createChat(Long buyerId, Long sellerId, Long itemId) {
         // 检查是否已存在聊天会话
         Page<Chat> existingChats = chatRepository.findByBuyerIdOrSellerId(buyerId, sellerId, Pageable.unpaged());
         for (Chat chat : existingChats.getContent()) {
             if (chat.getItemId().equals(itemId)) {
-                return chat; // 已存在聊天会话，直接返回
+                return chat;
             }
         }
 
-        // 创建新的聊天会话
         Chat chat = new Chat();
         chat.setBuyerId(buyerId);
         chat.setSellerId(sellerId);
@@ -49,113 +53,126 @@ public class ChatService {
 
     @Transactional
     public ChatMessage sendMessage(Long chatId, Long senderId, Long receiverId, String content, ChatMessage.MessageType messageType) {
-        Chat chat = chatRepository.findById(chatId.longValue())
-                .orElseThrow(() -> new IllegalArgumentException("聊天会话不存在"));
+        Chat chat = chatRepository.findById(chatId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "聊天会话不存在"));
 
-        // 验证发送者是否是聊天会话的参与者
         if (!chat.getBuyerId().equals(senderId) && !chat.getSellerId().equals(senderId)) {
-            throw new IllegalArgumentException("无权发送消息");
+            throw new BusinessException(ErrorCode.OPERATION_NOT_ALLOWED, "无权发送消息");
+        }
+
+        // 消息内容校验
+        if (content == null || content.trim().isEmpty()) {
+            throw new BusinessException(ErrorCode.BAD_REQUEST, "消息内容不能为空");
+        }
+        if (content.length() > MAX_MESSAGE_LENGTH) {
+            throw new BusinessException(ErrorCode.BAD_REQUEST,
+                    "消息内容不能超过" + MAX_MESSAGE_LENGTH + "个字符");
         }
 
         ChatMessage message = new ChatMessage();
         message.setChatId(chatId);
         message.setSenderId(senderId);
         message.setReceiverId(receiverId);
-        message.setContent(content);
+        message.setContent(content.trim());
         message.setMessageType(messageType);
         message.setIsRead(false);
 
-        return chatMessageRepository.save(message);
+        ChatMessage savedMessage = chatMessageRepository.save(message);
+
+        // 更新会话最后消息
+        chat.setLastMessage(content.length() > 50 ? content.substring(0, 50) + "..." : content);
+        chat.setLastMessageTime(LocalDateTime.now());
+        chatRepository.save(chat);
+
+        return savedMessage;
     }
 
     public Page<Chat> getChatsByUserId(Long userId, Pageable pageable) {
         return chatRepository.findByBuyerIdOrSellerId(userId, userId, pageable);
     }
-    
+
     public List<Chat> getChatsByUserIdList(Long userId) {
         return chatRepository.findAllChatsByUserId(userId);
     }
 
+    /**
+     * 获取用户聊天列表（优化版：批量查询最近消息，避免N+1）
+     */
     public List<ChatDTO> getChatsByUserIdListWithUserInfo(Long userId) {
         List<Chat> chats = chatRepository.findAllChatsByUserId(userId);
-        List<ChatDTO> chatDTOs = new ArrayList<>();
-        
+        if (chats.isEmpty()) {
+            return List.of();
+        }
+
+        // 批量查询用户信息
+        Set<Long> userIds = chats.stream()
+                .flatMap(c -> java.util.stream.Stream.of(c.getBuyerId(), c.getSellerId()))
+                .collect(Collectors.toSet());
+        Map<Long, User> userMap = userRepository.findAllById(userIds).stream()
+                .collect(Collectors.toMap(User::getId, u -> u));
+
+        // 批量查询每个会话的最近一条消息（避免N+1）
+        Map<Long, ChatMessage> lastMessageMap = new HashMap<>();
         for (Chat chat : chats) {
-            // 获取买家信息
-            Optional<User> buyerOpt = userRepository.findById(chat.getBuyerId());
-            String buyerNickname = null;
-            String buyerUsername = null;
-            String buyerAvatar = null;
-            if (buyerOpt.isPresent()) {
-                User buyer = buyerOpt.get();
-                buyerNickname = buyer.getNickname();
-                buyerUsername = buyer.getUsername();
-                buyerAvatar = buyer.getAvatar();
+            List<ChatMessage> recentMessages = chatMessageRepository.findByChatIdOrderByCreatedAtDesc(
+                    chat.getId(), PageRequest.of(0, 1));
+            if (!recentMessages.isEmpty()) {
+                lastMessageMap.put(chat.getId(), recentMessages.get(0));
             }
-            
-            // 获取卖家信息
-            Optional<User> sellerOpt = userRepository.findById(chat.getSellerId());
-            String sellerNickname = null;
-            String sellerUsername = null;
-            String sellerAvatar = null;
-            if (sellerOpt.isPresent()) {
-                User seller = sellerOpt.get();
-                sellerNickname = seller.getNickname();
-                sellerUsername = seller.getUsername();
-                sellerAvatar = seller.getAvatar();
-            }
-            
-            // 获取最后一条消息
-            String lastMessage = null;
-            Long lastMessageSenderId = null;
-            Long lastMessageTime = null;
-            try {
-                List<ChatMessage> recentMessages = chatMessageRepository.findByChatIdOrderByCreatedAtDesc(
-                    chat.getId(), 
-                    PageRequest.of(0, 1)
-                );
-                if (!recentMessages.isEmpty()) {
-                    ChatMessage lastMsg = recentMessages.get(0);
-                    lastMessage = lastMsg.getContent();
-                    lastMessageSenderId = lastMsg.getSenderId();
-                    lastMessageTime = lastMsg.getCreatedAt() != null 
-                        ? lastMsg.getCreatedAt().atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli() 
-                        : null;
-                }
-            } catch (Exception e) {
-                log.warn("获取最后一条消息失败, chatId={}", chat.getId(), e);
-            }
-            
+        }
+
+        // 构建DTO
+        List<ChatDTO> chatDTOs = new ArrayList<>();
+        for (Chat chat : chats) {
+            User buyer = userMap.get(chat.getBuyerId());
+            User seller = userMap.get(chat.getSellerId());
+            ChatMessage lastMsg = lastMessageMap.get(chat.getId());
+
+            String lastMessage = lastMsg != null ? lastMsg.getContent() : null;
+            Long lastMessageTime = lastMsg != null && lastMsg.getCreatedAt() != null
+                    ? lastMsg.getCreatedAt().atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
+                    : null;
+
             chatDTOs.add(ChatDTO.fromEntity(
-                chat, 
-                buyerNickname, buyerUsername, buyerAvatar,
-                sellerNickname, sellerUsername, sellerAvatar,
-                lastMessage, lastMessageSenderId, lastMessageTime
+                    chat,
+                    buyer != null ? buyer.getNickname() : null,
+                    buyer != null ? buyer.getUsername() : null,
+                    buyer != null ? buyer.getAvatar() : null,
+                    seller != null ? seller.getNickname() : null,
+                    seller != null ? seller.getUsername() : null,
+                    seller != null ? seller.getAvatar() : null,
+                    lastMessage, lastMsg != null ? lastMsg.getSenderId() : null, lastMessageTime
             ));
         }
-        
+
         return chatDTOs;
     }
 
+    /**
+     * 获取聊天消息（不自动标记已读，避免读操作中的写操作）
+     */
     public Page<ChatMessage> getMessagesByChatId(Long chatId, Long userId, Pageable pageable) {
-        Chat chat = chatRepository.findById(chatId.longValue())
-                .orElseThrow(() -> new IllegalArgumentException("聊天会话不存在"));
+        Chat chat = chatRepository.findById(chatId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "聊天会话不存在"));
 
-        // 验证用户是否是聊天会话的参与者
         if (!chat.getBuyerId().equals(userId) && !chat.getSellerId().equals(userId)) {
-            throw new IllegalArgumentException("无权查看消息");
+            throw new BusinessException(ErrorCode.OPERATION_NOT_ALLOWED, "无权查看消息");
         }
 
-        // 标记当前页消息为已读
-        Page<ChatMessage> messages = chatMessageRepository.findByChatIdOrderByCreatedAtAsc(chatId, pageable);
-        for (ChatMessage message : messages.getContent()) {
-            if (message.getReceiverId().equals(userId) && !message.getIsRead()) {
-                message.setIsRead(true);
-                message.setReadAt(LocalDateTime.now());
-            }
-        }
+        return chatMessageRepository.findByChatIdOrderByCreatedAtAsc(chatId, pageable);
+    }
 
-        return messages;
+    /**
+     * 异步标记消息为已读
+     */
+    @Async
+    @Transactional
+    public void markMessagesAsReadAsync(Long chatId, Long userId) {
+        try {
+            markMessagesAsRead(chatId, userId);
+        } catch (Exception e) {
+            log.error("异步标记消息已读失败: chatId={}, userId={}", chatId, userId, e);
+        }
     }
 
     @Transactional
@@ -165,5 +182,42 @@ public class ChatService {
             message.setIsRead(true);
             message.setReadAt(LocalDateTime.now());
         }
+        chatMessageRepository.saveAll(unreadMessages);
+    }
+
+    /**
+     * 撤回消息（仅限发送者本人，且在2分钟内）
+     */
+    @Transactional
+    public ChatMessage recallMessage(Long messageId, Long userId) {
+        ChatMessage message = chatMessageRepository.findById(messageId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "消息不存在"));
+
+        if (!message.getSenderId().equals(userId)) {
+            throw new BusinessException(ErrorCode.OPERATION_NOT_ALLOWED, "只能撤回自己发送的消息");
+        }
+
+        // 检查撤回时间限制（2分钟内）
+        if (message.getCreatedAt() != null) {
+            long minutesSinceSent = java.time.temporal.ChronoUnit.MINUTES.between(
+                    message.getCreatedAt(), LocalDateTime.now());
+            if (minutesSinceSent > RECALL_TIME_LIMIT_MINUTES) {
+                throw new BusinessException(ErrorCode.OPERATION_NOT_ALLOWED,
+                        "消息发送超过" + RECALL_TIME_LIMIT_MINUTES + "分钟，无法撤回");
+            }
+        }
+
+        // 检查消息是否已读
+        if (Boolean.TRUE.equals(message.getIsRead())) {
+            throw new BusinessException(ErrorCode.OPERATION_NOT_ALLOWED, "消息已被阅读，无法撤回");
+        }
+
+        message.setContent("[消息已撤回]");
+        message.setMessageType(ChatMessage.MessageType.SYSTEM);
+
+        ChatMessage saved = chatMessageRepository.save(message);
+        log.info("消息已撤回: messageId={}, userId={}", messageId, userId);
+
+        return saved;
     }
 }

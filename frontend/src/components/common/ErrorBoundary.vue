@@ -9,12 +9,12 @@
   <slot v-else />
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onErrorCaptured } from 'vue';
 
-const error = ref(null);
+const error = ref<Error | null>(null);
 
-onErrorCaptured((err) => {
+onErrorCaptured((err: Error) => {
   error.value = err;
   return false;
 });
@@ -31,38 +31,38 @@ const handleRefresh = () => {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background-color: #f5f5f5;
+  background-color: var(--bg-base);
 }
 
 .error-content {
   text-align: center;
-  padding: 40px;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  padding: var(--space-10);
+  background: var(--bg-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
 }
 
 .error-content h2 {
-  color: #f56c6c;
-  margin-bottom: 16px;
+  color: var(--error-color);
+  margin-bottom: var(--space-4);
 }
 
 .error-content p {
-  color: #666;
-  margin-bottom: 24px;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-6);
 }
 
 .error-content button {
-  padding: 10px 24px;
-  background-color: #409eff;
-  color: white;
+  padding: var(--space-3) var(--space-6);
+  background-color: var(--primary-color);
+  color: var(--text-inverse);
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radius-md);
   cursor: pointer;
-  font-size: 14px;
+  font-size: var(--text-base);
 }
 
 .error-content button:hover {
-  background-color: #66b1ff;
+  background-color: var(--primary-light);
 }
 </style>

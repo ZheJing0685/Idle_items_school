@@ -2,23 +2,23 @@
   <div class="forgot-password-page">
     <div class="forgot-password-container">
       <h2>忘记密码</h2>
-      
+
       <!-- 步骤1: 输入邮箱 -->
       <div v-if="step === 1" class="step-content">
         <p class="step-desc">请输入您注册时使用的邮箱，我们将发送验证码到该邮箱</p>
         <el-form :model="form" :rules="rules" ref="formRef">
           <el-form-item prop="email">
-            <el-input 
-              v-model="form.email" 
+            <el-input
+              v-model="form.email"
               placeholder="请输入邮箱"
               prefix-icon="Message"
             />
           </el-form-item>
-          <el-button 
-            type="primary" 
-            :loading="loading" 
+          <el-button
+            type="primary"
+            :loading="loading"
             @click="sendCode"
-            style="width: 100%"
+            class="full-width"
           >
             发送验证码
           </el-button>
@@ -30,18 +30,18 @@
         <p class="step-desc">验证码已发送到 {{ form.email }}，请查收</p>
         <el-form :model="form" :rules="rules" ref="formRef">
           <el-form-item prop="code">
-            <el-input 
-              v-model="form.code" 
+            <el-input
+              v-model="form.code"
               placeholder="请输入6位验证码"
               prefix-icon="Key"
               maxlength="6"
             />
           </el-form-item>
-          <el-button 
-            type="primary" 
-            :loading="loading" 
+          <el-button
+            type="primary"
+            :loading="loading"
             @click="verifyCode"
-            style="width: 100%"
+            class="full-width"
           >
             验证
           </el-button>
@@ -53,8 +53,8 @@
         <p class="step-desc">请设置您的新密码</p>
         <el-form :model="form" :rules="rules" ref="formRef">
           <el-form-item prop="newPassword">
-            <el-input 
-              v-model="form.newPassword" 
+            <el-input
+              v-model="form.newPassword"
               type="password"
               placeholder="请输入新密码"
               prefix-icon="Lock"
@@ -62,19 +62,19 @@
             />
           </el-form-item>
           <el-form-item prop="confirmPassword">
-            <el-input 
-              v-model="form.confirmPassword" 
+            <el-input
+              v-model="form.confirmPassword"
               type="password"
               placeholder="请确认新密码"
               prefix-icon="Lock"
               show-password
             />
           </el-form-item>
-          <el-button 
-            type="primary" 
-            :loading="loading" 
+          <el-button
+            type="primary"
+            :loading="loading"
             @click="resetPassword"
-            style="width: 100%"
+            class="full-width"
           >
             重置密码
           </el-button>
@@ -83,7 +83,7 @@
 
       <!-- 步骤4: 成功 -->
       <div v-if="step === 4" class="step-content success">
-        <el-icon :size="64" color="#67C23A"><CircleCheck /></el-icon>
+        <el-icon :size="64" class="success-icon"><CircleCheck /></el-icon>
         <h3>密码重置成功</h3>
         <p>请使用新密码登录</p>
         <el-button type="primary" @click="goToLogin">去登录</el-button>
@@ -96,15 +96,16 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, reactive } from 'vue';
 import { useRouter } from 'vue-router';
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElForm } from 'element-plus';
 import { CircleCheck } from '@element-plus/icons-vue';
-import axios from '@/api/config/axios';
+import api from '@/api';
+import { validatePassword } from '../utils/validator';
 
 const router = useRouter();
-const formRef = ref(null);
+const formRef = ref<InstanceType<typeof ElForm> | null>(null);
 const loading = ref(false);
 const step = ref(1);
 
@@ -115,7 +116,7 @@ const form = reactive({
   confirmPassword: ''
 });
 
-const validateConfirmPassword = (rule, value, callback) => {
+const validateConfirmPassword = (rule: any, value: string, callback: any) => {
   if (value !== form.newPassword) {
     callback(new Error('两次输入的密码不一致'));
   } else {
@@ -134,7 +135,17 @@ const rules = {
   ],
   newPassword: [
     { required: true, message: '请输入新密码', trigger: 'blur' },
-    { min: 6, max: 20, message: '密码长度为6-20位', trigger: 'blur' }
+    { min: 8, max: 32, message: '密码长度8-32个字符', trigger: 'blur' },
+    {
+      validator: (_rule: any, value: string, callback: (error?: Error) => void) => {
+        if (!validatePassword(value)) {
+          callback(new Error('密码必须包含大小写字母、数字和特殊字符'));
+        } else {
+          callback();
+        }
+      },
+      trigger: 'blur',
+    },
   ],
   confirmPassword: [
     { required: true, message: '请确认新密码', trigger: 'blur' },
@@ -145,13 +156,14 @@ const rules = {
 // 发送验证码
 const sendCode = async () => {
   try {
-    await formRef.value.validate();
+    await formRef.value!.validate();
     loading.value = true;
-    await axios.post('/api/auth/forgot-password', { email: form.email });
+    await api.auth.forgotPassword(form.email);
     ElMessage.success('验证码已发送');
     step.value = 2;
-  } catch (error) {
-    ElMessage.error(error.response?.data?.message || '发送失败');
+  } catch (error: any) {
+    const msg = error.response?.data?.message || error.message || '发送失败';
+    ElMessage.error(msg);
   } finally {
     loading.value = false;
   }
@@ -160,16 +172,14 @@ const sendCode = async () => {
 // 验证验证码
 const verifyCode = async () => {
   try {
-    await formRef.value.validate();
+    await formRef.value!.validate();
     loading.value = true;
-    await axios.post('/api/auth/verify-code', { 
-      email: form.email, 
-      code: form.code 
-    });
+    await api.auth.verifyCode(form.email, form.code);
     ElMessage.success('验证成功');
     step.value = 3;
-  } catch (error) {
-    ElMessage.error(error.response?.data?.message || '验证失败');
+  } catch (error: any) {
+    const msg = error.response?.data?.message || error.message || '验证失败';
+    ElMessage.error(msg);
   } finally {
     loading.value = false;
   }
@@ -178,17 +188,14 @@ const verifyCode = async () => {
 // 重置密码
 const resetPassword = async () => {
   try {
-    await formRef.value.validate();
+    await formRef.value!.validate();
     loading.value = true;
-    await axios.post('/api/auth/reset-password', {
-      email: form.email,
-      code: form.code,
-      newPassword: form.newPassword
-    });
+    await api.auth.resetPassword(form.email, form.code, form.newPassword);
     ElMessage.success('密码重置成功');
     step.value = 4;
-  } catch (error) {
-    ElMessage.error(error.response?.data?.message || '重置失败');
+  } catch (error: any) {
+    const msg = error.response?.data?.message || error.message || '重置失败';
+    ElMessage.error(msg);
   } finally {
     loading.value = false;
   }
@@ -203,57 +210,67 @@ const goToLogin = () => {
 <style scoped>
 .forgot-password-page {
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
 }
 
 .forgot-password-container {
   width: 400px;
-  padding: 40px;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  max-width: 90vw;
+  padding: var(--space-10);
+  background: var(--bg-surface);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
 }
 
 h2 {
   text-align: center;
-  margin-bottom: 24px;
-  color: #333;
+  margin-bottom: var(--space-6);
+  color: var(--text-primary);
 }
 
 .step-desc {
   text-align: center;
-  color: #666;
-  margin-bottom: 24px;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-6);
 }
 
 .step-content {
-  margin-bottom: 20px;
+  margin-bottom: var(--space-5);
 }
 
 .success {
   text-align: center;
 }
 
+.success-icon {
+  color: var(--success-color);
+}
+
 .success h3 {
-  margin: 16px 0 8px;
-  color: #333;
+  margin: var(--space-4) 0 var(--space-2);
+  color: var(--text-primary);
 }
 
 .success p {
-  color: #666;
-  margin-bottom: 24px;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-6);
 }
 
 .back-link {
   text-align: center;
-  margin-top: 20px;
+  margin-top: var(--space-5);
 }
 
 .back-link a {
-  color: #409eff;
+  color: var(--primary-color);
   text-decoration: none;
+}
+
+.full-width {
+  width: 100%;
 }
 </style>

@@ -5,6 +5,7 @@ import com.idleitems.school.common.ErrorCode;
 import com.idleitems.school.common.Result;
 import io.jsonwebtoken.JwtException;
 import jakarta.persistence.PessimisticLockException;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.NoHandlerFoundException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,8 +29,10 @@ public class GlobalExceptionHandler {
 
     // 业务异常处理
     @ExceptionHandler(BusinessException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Result<Void> handleBusinessException(BusinessException e) {
+    public Result<Void> handleBusinessException(BusinessException e, HttpServletResponse response) {
+        if (e.getHttpStatus() > 0) {
+            response.setStatus(e.getHttpStatus());
+        }
         log.warn("业务异常: code={}, message={}", e.getCode(), e.getMessage());
         return Result.error(e.getCode(), e.getMessage());
     }
@@ -119,6 +123,14 @@ public class GlobalExceptionHandler {
         return Result.error(ErrorCode.FORBIDDEN.getCode(), "无权访问");
     }
     
+    // 非法状态异常处理
+    @ExceptionHandler(IllegalStateException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Result<Void> handleIllegalStateException(IllegalStateException e) {
+        log.warn("非法状态: {}", e.getMessage());
+        return Result.error(ErrorCode.OPERATION_NOT_ALLOWED.getCode(), e.getMessage());
+    }
+
     // 数据完整性违反异常处理
     @ExceptionHandler(DataIntegrityViolationException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
@@ -148,7 +160,15 @@ public class GlobalExceptionHandler {
         log.warn("请求体解析失败: {}", e.getMessage());
         return Result.error(ErrorCode.BAD_REQUEST.getCode(), "请求体格式错误");
     }
-    
+
+    // 静态资源未找到异常处理
+    @ExceptionHandler(NoResourceFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public Result<Void> handleNoResourceFound(NoResourceFoundException e) {
+        log.warn("静态资源未找到: {}", e.getMessage());
+        return Result.error(ErrorCode.NOT_FOUND.getCode(), "资源不存在");
+    }
+
     // 系统异常处理
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)

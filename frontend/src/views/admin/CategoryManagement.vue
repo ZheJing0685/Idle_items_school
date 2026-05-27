@@ -8,14 +8,7 @@
     <div class="stats-row">
       <div class="stat-card">
         <div class="stat-icon stat-icon-total">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-          >
-            <path d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-          </svg>
+          <List :size="24" />
         </div>
         <div class="stat-content">
           <span class="stat-value">{{ stats.total }}</span>
@@ -24,15 +17,7 @@
       </div>
       <div class="stat-card">
         <div class="stat-icon stat-icon-active">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-          >
-            <circle cx="12" cy="12" r="9" />
-            <path d="M12 7v5l3 3" />
-          </svg>
+          <Clock :size="24" />
         </div>
         <div class="stat-content">
           <span class="stat-value">{{ stats.active }}</span>
@@ -41,16 +26,7 @@
       </div>
       <div class="stat-card">
         <div class="stat-icon stat-icon-level1">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-          >
-            <path d="M12 2L2 7l10 5 10-5-10-5z" />
-            <path d="M2 17l10 5 10-5" />
-            <path d="M2 12l10 5 10-5" />
-          </svg>
+          <Layers :size="24" />
         </div>
         <div class="stat-content">
           <span class="stat-value">{{ stats.level1 }}</span>
@@ -59,19 +35,7 @@
       </div>
       <div class="stat-card">
         <div class="stat-icon stat-icon-level2">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-          >
-            <path d="M3 12s0-2 2-2 2 2 2 2-2 2-2 2" />
-            <path d="M13 12s0-2 2-2 2 2 2 2-2 2-2 2" />
-            <path d="M3 6s0-2 2-2 2 2 2 2-2 2-2 2" />
-            <path d="M13 6s0-2 2-2 2 2 2 2-2 2-2 2" />
-            <path d="M3 18s0-2 2-2 2 2 2 2-2 2-2 2" />
-            <path d="M13 18s0-2 2-2 2 2 2 2-2 2-2 2" />
-          </svg>
+          <Grid :size="24" />
         </div>
         <div class="stat-content">
           <span class="stat-value">{{ stats.level2 }}</span>
@@ -89,46 +53,24 @@
               class="btn btn-icon"
               @click="handleExpandAll"
               :title="allExpanded ? '全部收起' : '全部展开'"
+              :aria-label="allExpanded ? '全部收起' : '全部展开'"
             >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.5"
-              >
-                <path v-if="allExpanded" d="M7 15l5-5 5 5" />
-                <path v-else d="M7 9l5 5 5-5" />
-              </svg>
+              <ChevronUp v-if="allExpanded" :size="16" />
+              <ChevronDown v-else :size="16" />
             </button>
             <button
               class="btn btn-icon"
               @click="handleRefreshTree"
               title="刷新"
+              aria-label="刷新"
             >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.5"
-              >
-                <path d="M21.5 2v6h-6M2.5 22v-6h6" />
-                <path d="M2 12A10 10 0 1 0 22 12" />
-              </svg>
+              <RefreshCw :size="16" />
             </button>
           </div>
         </div>
 
         <div class="tree-search">
-          <svg
-            class="search-icon"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          >
-            <circle cx="11" cy="11" r="8" />
-            <path d="M21 21l-4.35-4.35" />
-          </svg>
+          <Search :size="16" class="search-icon" />
           <input
             v-model="treeFilterText"
             type="text"
@@ -139,14 +81,7 @@
 
         <div class="tree-toolbar">
           <button class="btn btn-primary btn-sm" @click="handleAddRoot">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-            >
-              <path d="M12 5v14M5 12h14" />
-            </svg>
+            <Plus :size="16" />
             添加一级分类
           </button>
           <div class="tree-batch" v-if="selectedTreeKeys.length > 0">
@@ -178,7 +113,7 @@
             @node-click="handleNodeClick"
             @check-change="handleCheckChange"
           >
-            <template #default="{ node, data }">
+            <template #default="{ data }">
               <div class="tree-node" :class="{ 'is-disabled': !data.status }">
                 <div class="tree-node-content">
                   <span class="tree-node-icon" v-if="data.icon">
@@ -198,51 +133,26 @@
                     class="tree-action-btn"
                     @click="handleEditNode(data)"
                     title="编辑"
+                    aria-label="编辑"
                   >
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.5"
-                    >
-                      <path
-                        d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"
-                      />
-                      <path
-                        d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"
-                      />
-                    </svg>
+                    <Edit3 :size="14" />
                   </button>
                   <button
                     v-if="data.level === 1"
                     class="tree-action-btn tree-action-success"
                     @click="handleAddChild(data)"
                     title="添加子分类"
+                    aria-label="添加子分类"
                   >
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.5"
-                    >
-                      <path d="M12 5v14M5 12h14" />
-                    </svg>
+                    <Plus :size="14" />
                   </button>
                   <button
                     class="tree-action-btn tree-action-danger"
                     @click="handleDeleteNode(data)"
                     title="删除"
+                    aria-label="删除"
                   >
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.5"
-                    >
-                      <path
-                        d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"
-                      />
-                    </svg>
+                    <Trash2 :size="14" />
                   </button>
                 </div>
               </div>
@@ -250,16 +160,7 @@
           </el-tree>
 
           <div class="tree-empty" v-if="filteredTreeData.length === 0">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-            >
-              <path
-                d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-              />
-            </svg>
+            <Package :size="48" />
             <span>暂无分类数据</span>
           </div>
         </div>
@@ -268,15 +169,7 @@
       <div class="detail-panel">
         <template v-if="panelMode === 'empty'">
           <div class="detail-empty">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-            >
-              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-              <path d="M3 9h18M9 21V9" />
-            </svg>
+            <Table :size="48" />
             <h4>请选择分类查看详情</h4>
             <p>点击左侧分类树中的节点，即可在此处查看分类详情</p>
           </div>
@@ -289,16 +182,7 @@
                 <img :src="currentCategory.icon" :alt="currentCategory.name" />
               </div>
               <div class="detail-icon detail-icon-placeholder" v-else>
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                >
-                  <path
-                    d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-                  />
-                </svg>
+                <Package :size="32" />
               </div>
               <div class="detail-title-group">
                 <h3 class="detail-name">{{ currentCategory.name }}</h3>
@@ -326,19 +210,7 @@
             </div>
             <div class="detail-header-right">
               <button class="btn btn-primary btn-sm" @click="handleEditCurrent">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                >
-                  <path
-                    d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"
-                  />
-                  <path
-                    d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"
-                  />
-                </svg>
+                <Edit3 :size="14" />
                 编辑
               </button>
             </div>
@@ -426,14 +298,7 @@
               {{ panelMode === 'edit' ? '编辑分类' : '新增分类' }}
             </h3>
             <button class="btn btn-ghost btn-sm" @click="handleCancelEdit">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.5"
-              >
-                <path d="M18 6L6 18M6 6l12 12" />
-              </svg>
+              <X :size="16" />
               取消
             </button>
           </div>
@@ -494,16 +359,7 @@
                   :before-upload="beforeIconUpload"
                 >
                   <div class="upload-area" v-if="!editForm.icon">
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.5"
-                    >
-                      <path
-                        d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"
-                      />
-                    </svg>
+                    <Upload :size="24" />
                     <span>点击上传图标</span>
                   </div>
                   <div class="icon-preview" v-else>
@@ -513,15 +369,7 @@
                       class="remove-btn"
                       @click.stop="editForm.icon = ''"
                     >
-                      <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="1.5"
-                      >
-                        <circle cx="12" cy="12" r="10" />
-                        <path d="M15 9l-6 6M9 9l6 6" />
-                      </svg>
+                      <XCircle :size="16" />
                     </button>
                   </div>
                 </el-upload>
@@ -575,29 +423,11 @@
             </div>
             <div class="tab-actions">
               <button class="btn btn-ghost btn-sm" @click="handleExport">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                >
-                  <path
-                    d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"
-                  />
-                </svg>
+                <Download :size="16" />
                 导出
               </button>
               <button class="btn btn-ghost btn-sm" @click="triggerImport">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                >
-                  <path
-                    d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"
-                  />
-                </svg>
+                <Upload :size="16" />
                 导入
               </button>
               <input
@@ -611,95 +441,57 @@
           </div>
 
           <div class="table-wrapper">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th class="col-checkbox">
-                    <input
-                      type="checkbox"
-                      @change="handleSelectAll"
-                      :checked="isAllSelected"
-                    />
-                  </th>
-                  <th class="col-name">分类名称</th>
-                  <th class="col-level">级别</th>
-                  <th class="col-parent">父分类</th>
-                  <th class="col-sort">排序</th>
-                  <th class="col-count">物品数</th>
-                  <th class="col-status">状态</th>
-                  <th class="col-date">创建时间</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr
-                  v-for="category in tableCategories"
-                  :key="category.id"
-                  class="table-row"
-                >
-                  <td class="col-checkbox">
-                    <input
-                      type="checkbox"
-                      v-model="selectedCategories"
-                      :value="category.id"
-                    />
-                  </td>
-                  <td class="col-name">
-                    <div class="category-cell">
-                      <span
-                        class="category-name"
-                        :style="{
-                          paddingLeft: (category.level - 1) * 20 + 'px',
-                        }"
-                      >
-                        <span
-                          v-if="category.level > 1"
-                          class="level-indicator"
-                        ></span>
-                        {{ category.name }}
-                      </span>
-                    </div>
-                  </td>
-                  <td class="col-level">
+            <el-table
+              :data="tableCategories"
+              style="width: 100%"
+              @selection-change="handleSelectionChange"
+              row-key="id"
+            >
+              <el-table-column type="selection" width="50" />
+              <el-table-column label="分类名称" min-width="160">
+                <template #default="{ row }">
+                  <div class="category-cell">
                     <span
-                      class="badge"
-                      :class="
-                        category.level === 1 ? 'badge-primary' : 'badge-info'
-                      "
+                      class="category-name"
+                      :style="{ paddingLeft: (row.level - 1) * 20 + 'px' }"
                     >
-                      {{ category.level }}级
+                      <span v-if="row.level > 1" class="level-indicator"></span>
+                      {{ row.name }}
                     </span>
-                  </td>
-                  <td class="col-parent">
-                    <span class="parent-name">{{
-                      category.parentName || '无'
-                    }}</span>
-                  </td>
-                  <td class="col-sort">
-                    <span class="sort-value">{{ category.sort }}</span>
-                  </td>
-                  <td class="col-count">
-                    <span class="item-count">{{
-                      category.itemCount || 0
-                    }}</span>
-                  </td>
-                  <td class="col-status">
-                    <span
-                      class="status-tag"
-                      :class="
-                        category.status ? 'status-active' : 'status-inactive'
-                      "
-                    >
-                      {{ category.status ? '启用' : '禁用' }}
-                    </span>
-                  </td>
-                  <td class="col-date">
-                    <span class="create-time">{{
-                      formatDate(category.createdAt)
-                    }}</span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+                  </div>
+                </template>
+              </el-table-column>
+              <el-table-column label="级别" width="80">
+                <template #default="{ row }">
+                  <span class="badge" :class="row.level === 1 ? 'badge-primary' : 'badge-info'">
+                    {{ row.level }}级
+                  </span>
+                </template>
+              </el-table-column>
+              <el-table-column label="父分类" width="120">
+                <template #default="{ row }">
+                  <span class="parent-name">{{ row.parentName || '无' }}</span>
+                </template>
+              </el-table-column>
+              <el-table-column prop="sort" label="排序" width="80" />
+              <el-table-column label="物品数" width="80">
+                <template #default="{ row }">
+                  <span class="item-count">{{ row.itemCount || 0 }}</span>
+                </template>
+              </el-table-column>
+              <el-table-column label="状态" width="80">
+                <template #default="{ row }">
+                  <span class="status-tag" :class="row.status ? 'status-active' : 'status-inactive'">
+                    {{ row.status ? '启用' : '禁用' }}
+                  </span>
+                </template>
+              </el-table-column>
+              <el-table-column label="创建时间" min-width="120">
+                <template #default="{ row }">
+                  <span class="create-time">{{ formatDate(row.createdAt) }}</span>
+                </template>
+              </el-table-column>
+            </el-table>
           </div>
 
           <div class="table-footer" v-if="selectedCategories.length > 0">
@@ -720,61 +512,15 @@
           </div>
 
           <div class="pagination-wrapper">
-            <div class="pagination-info">
-              显示 {{ (tablePage - 1) * tablePageSize + 1 }} -
-              {{ Math.min(tablePage * tablePageSize, tableTotal) }} 条，共
-              {{ tableTotal }} 条
-            </div>
-            <div class="pagination-controls">
-              <select
-                v-model="tablePageSize"
-                class="page-size-select"
-                @change="handleTableSizeChange"
-              >
-                <option :value="10">10 条/页</option>
-                <option :value="20">20 条/页</option>
-                <option :value="50">50 条/页</option>
-              </select>
-              <div class="pagination-buttons">
-                <button
-                  class="page-btn"
-                  :disabled="tablePage === 1"
-                  @click="
-                    tablePage--;
-                    fetchTableCategories();
-                  "
-                >
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
-                    <path d="M15 18l-6-6 6-6" />
-                  </svg>
-                </button>
-                <span class="page-indicator"
-                  >{{ tablePage }} / {{ tableTotalPages }}</span
-                >
-                <button
-                  class="page-btn"
-                  :disabled="tablePage >= tableTotalPages"
-                  @click="
-                    tablePage++;
-                    fetchTableCategories();
-                  "
-                >
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
-                    <path d="M9 18l6-6-6-6" />
-                  </svg>
-                </button>
-              </div>
-            </div>
+            <el-pagination
+              v-model:current-page="tablePage"
+              v-model:page-size="tablePageSize"
+              :total="tableTotal"
+              :page-sizes="[10, 20, 50]"
+              layout="total, sizes, prev, pager, next, jumper"
+              @size-change="handleTableSizeChange"
+              @current-change="fetchTableCategories"
+            />
           </div>
         </el-tab-pane>
 
@@ -826,34 +572,20 @@
                     fetchChangeLogs();
                   "
                 >
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
-                    <path d="M15 18l-6-6 6-6" />
-                  </svg>
-                </button>
-                <span class="page-indicator"
-                  >{{ logPage }} / {{ logTotalPages }}</span
-                >
-                <button
-                  class="page-btn"
-                  :disabled="logPage >= logTotalPages"
-                  @click="
-                    logPage++;
-                    fetchChangeLogs();
-                  "
-                >
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
-                    <path d="M9 18l6-6-6-6" />
-                  </svg>
+                <ChevronLeft :size="16" />
+              </button>
+              <span class="page-indicator"
+                >{{ logPage }} / {{ logTotalPages }}</span
+              >
+              <button
+                class="page-btn"
+                :disabled="logPage >= logTotalPages"
+                @click="
+                  logPage++;
+                  fetchChangeLogs();
+                "
+              >
+                <ChevronRight :size="16" />
                 </button>
               </div>
             </div>
@@ -864,35 +596,36 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, watch, onMounted, nextTick } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import api from '../../api';
+import { List, Clock, Layers, Grid, ChevronUp, ChevronDown, RefreshCw, Search, Plus, Edit3, Trash2, X, Upload, XCircle, Package, Table, Download, ChevronLeft, ChevronRight } from 'lucide-vue-next';
 
 const stats = ref({ total: 0, active: 0, level1: 0, level2: 0 });
-const allCategories = ref([]);
-const level1Categories = ref([]);
-const categoryTree = ref([]);
-const treeRef = ref(null);
+const allCategories = ref<any[]>([]);
+const level1Categories = ref<any[]>([]);
+const categoryTree = ref<any[]>([]);
+const treeRef = ref<any>(null);
 const treeFilterText = ref('');
 const allExpanded = ref(true);
 const selectedTreeKeys = ref([]);
 
-const currentCategory = ref(null);
+const currentCategory = ref<any>(null);
 const panelMode = ref('empty');
-const editForm = ref(null);
+const editForm = ref<any>(null);
 const saving = ref(false);
 
 const activeTab = ref('management');
-const tableCategories = ref([]);
+const tableCategories = ref<any[]>([]);
 const tableStatus = ref('');
 const tablePage = ref(1);
 const tablePageSize = ref(20);
 const tableTotal = ref(0);
-const selectedCategories = ref([]);
-const importInputRef = ref(null);
+const selectedCategories = ref<any[]>([]);
+const importInputRef = ref<HTMLInputElement | null>(null);
 
-const changeLogs = ref([]);
+const changeLogs = ref<any[]>([]);
 const logPage = ref(1);
 const logPageSize = ref(20);
 const logTotal = ref(0);
@@ -916,17 +649,17 @@ const filteredTreeData = computed(() => {
   return categoryTree.value;
 });
 
-watch(treeFilterText, (val) => {
+watch(treeFilterText, (val: string) => {
   treeRef.value?.filter(val);
 });
 
-const buildTree = (list) => {
-  const map = {};
-  const roots = [];
-  list.forEach((item) => {
-    map[item.id] = { ...item, children: [] };
+const buildTree = (list: any[]) => {
+  const map: Record<string, any> = {};
+  const roots: any[] = [];
+  list.forEach((item: any) => {
+    map[item.id] = { ...item, children: [] as any[] };
   });
-  list.forEach((item) => {
+  list.forEach((item: any) => {
     if (
       item.parentId &&
       item.parentId !== '0' &&
@@ -938,18 +671,18 @@ const buildTree = (list) => {
       roots.push(map[item.id]);
     }
   });
-  roots.forEach((root) => {
+  roots.forEach((root: any) => {
     if (root.children.length === 0) delete root.children;
   });
   return roots;
 };
 
-const filterTreeNode = (value, data) => {
+const filterTreeNode = (value: string, data: any) => {
   if (!value) return true;
   return data.name.includes(value);
 };
 
-const formatDate = (dateString) => {
+const formatDate = (dateString: string) => {
   if (!dateString) return '-';
   return new Date(dateString).toLocaleDateString('zh-CN', {
     year: 'numeric',
@@ -958,7 +691,7 @@ const formatDate = (dateString) => {
   });
 };
 
-const formatDateTime = (dateString) => {
+const formatDateTime = (dateString: string) => {
   if (!dateString) return '-';
   return new Date(dateString).toLocaleString('zh-CN', {
     year: 'numeric',
@@ -969,14 +702,14 @@ const formatDateTime = (dateString) => {
   });
 };
 
-const getLogTypeClass = (type) => {
-  const map = {
-    创建: 'badge-success',
-    编辑: 'badge-primary',
-    删除: 'badge-danger',
-    启用: 'badge-success',
-    禁用: 'badge-warning',
-    导入: 'badge-info',
+const getLogTypeClass = (type: string) => {
+  const map: Record<string, string> = {
+    '创建': 'badge-success',
+    '编辑': 'badge-primary',
+    '删除': 'badge-danger',
+    '启用': 'badge-success',
+    '禁用': 'badge-warning',
+    '导入': 'badge-info',
   };
   return map[type] || 'badge-info';
 };
@@ -999,7 +732,7 @@ const fetchAllCategories = async () => {
       const list = res.data.content || res.data || [];
       allCategories.value = list;
       categoryTree.value = buildTree(list);
-      level1Categories.value = list.filter((c) => c.level === 1);
+      level1Categories.value = list.filter((c: any) => c.level === 1);
     }
   } catch {
     ElMessage.error('获取分类数据失败');
@@ -1008,7 +741,7 @@ const fetchAllCategories = async () => {
 
 const fetchTableCategories = async () => {
   try {
-    const params = { page: tablePage.value, size: tablePageSize.value };
+    const params: Record<string, any> = { page: tablePage.value, size: tablePageSize.value };
     if (tableStatus.value) params.status = tableStatus.value;
     const res = await api.admin.categories.getCategories(params);
     if (res.code === 200) {
@@ -1036,14 +769,14 @@ const fetchChangeLogs = async () => {
 const handleExpandAll = () => {
   allExpanded.value = !allExpanded.value;
   nextTick(() => {
-    const nodes = treeRef.value?.store?.root?.childNodes || [];
-    const toggleAll = (nodeList, expand) => {
-      nodeList.forEach((node) => {
+    const nodes = (treeRef.value?.store?.root?.childNodes || []) as any[];
+    const toggleAll = (nodeList: any[], expand: boolean) => {
+      nodeList.forEach((node: any) => {
         node.expanded = expand;
         if (node.childNodes?.length) toggleAll(node.childNodes, expand);
       });
     };
-    toggleAll(nodes, allExpanded.value);
+    toggleAll(nodes as any[], allExpanded.value);
   });
 };
 
@@ -1052,7 +785,7 @@ const handleRefreshTree = () => {
   fetchStats();
 };
 
-const handleNodeClick = (data) => {
+const handleNodeClick = (data: any) => {
   currentCategory.value = { ...data };
   panelMode.value = 'detail';
 };
@@ -1073,7 +806,7 @@ const handleAddRoot = () => {
   panelMode.value = 'create';
 };
 
-const handleAddChild = (parent) => {
+const handleAddChild = (parent: any) => {
   editForm.value = {
     name: '',
     parentId: parent.id,
@@ -1085,7 +818,7 @@ const handleAddChild = (parent) => {
   panelMode.value = 'create';
 };
 
-const handleEditNode = (data) => {
+const handleEditNode = (data: any) => {
   editForm.value = { ...data, status: data.status ? 1 : 0 };
   panelMode.value = 'edit';
 };
@@ -1117,8 +850,8 @@ const handleSave = async () => {
   try {
     const isEdit = panelMode.value === 'edit';
     const res = isEdit
-      ? await api.admin.categories.update(editForm.value.id, editForm.value)
-      : await api.admin.categories.create(editForm.value);
+      ? await api.admin.categories.updateCategory(editForm.value.id, editForm.value)
+      : await api.admin.categories.createCategory(editForm.value);
     if (res.code === 200) {
       ElMessage.success(isEdit ? '分类已更新' : '分类已添加');
       const savedData = res.data || editForm.value;
@@ -1138,7 +871,7 @@ const handleSave = async () => {
   }
 };
 
-const handleDeleteNode = (data) => {
+const handleDeleteNode = (data: any) => {
   if (data.itemCount > 0) {
     ElMessage.warning('该分类下有物品，无法删除');
     return;
@@ -1170,7 +903,7 @@ const handleDeleteNode = (data) => {
     .catch(() => {});
 };
 
-const handleSelectAll = (e) => {
+const handleSelectAll = (e: any) => {
   selectedCategories.value = e.target.checked
     ? tableCategories.value.map((c) => c.id)
     : [];
@@ -1179,6 +912,10 @@ const handleSelectAll = (e) => {
 const handleTableSizeChange = () => {
   tablePage.value = 1;
   fetchTableCategories();
+};
+
+const handleSelectionChange = (selection: any[]) => {
+  selectedCategories.value = selection.map((item: any) => item.id);
 };
 
 const handleBatchEnable = async () => {
@@ -1347,8 +1084,7 @@ const handleBulkDelete = async () => {
 
 const handleExport = async () => {
   try {
-    const res = await api.admin.categories.exportCategories();
-    const blob = new Blob([res], { type: 'text/csv;charset=utf-8;' });
+    const blob = await api.admin.categories.exportCategories();
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
@@ -1367,7 +1103,7 @@ const triggerImport = () => {
   importInputRef.value?.click();
 };
 
-const handleImportFile = async (event) => {
+const handleImportFile = async (event: any) => {
   const file = event.target.files?.[0];
   if (!file) return;
   if (!file.name.endsWith('.csv')) {
@@ -1393,13 +1129,13 @@ const handleImportFile = async (event) => {
   event.target.value = '';
 };
 
-const handleIconSuccess = (response) => {
+const handleIconSuccess = (response: any) => {
   if (response.code === 200) {
     editForm.value.icon = response.data.url;
   }
 };
 
-const beforeIconUpload = (file) => {
+const beforeIconUpload = (file: any) => {
   const isJpgOrPng =
     file.type === 'image/jpeg' ||
     file.type === 'image/png' ||

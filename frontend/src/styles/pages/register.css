@@ -37,7 +37,7 @@
   position: relative;
   z-index: 1;
   text-align: center;
-  color: white;
+  color: var(--text-inverse);
 }
 
 .visual-logo {
@@ -52,7 +52,7 @@
   font-family: var(--font-display);
   font-size: var(--text-2xl);
   font-weight: 800;
-  color: white;
+  color: var(--text-inverse);
   letter-spacing: -0.02em;
 }
 
@@ -62,7 +62,7 @@
   font-weight: 800;
   line-height: 1.2;
   margin-bottom: var(--space-4);
-  color: white;
+  color: var(--text-inverse);
 }
 
 .visual-accent {

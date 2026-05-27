@@ -78,7 +78,7 @@ jwt:
   refresh-expiration: "${JWT_REFRESH_EXPIRATION:604800000}"
 
 file:
-  upload-path: ./uploads/
+  upload-path: D:\Project\Idle_items_school\backend\uploads\
 
 springdoc:
   swagger-ui:

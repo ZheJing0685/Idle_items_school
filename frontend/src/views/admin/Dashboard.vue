@@ -11,15 +11,7 @@
         <div class="stat-header">
           <span class="stat-label">总用户数</span>
           <div class="stat-icon">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-            >
-              <circle cx="12" cy="8" r="4" />
-              <path d="M4 21v-2a4 4 0 014-4h8a4 4 0 014 4v2" />
-            </svg>
+            <Users :size="20" stroke-width="1.5" />
           </div>
         </div>
         <div class="stat-value">{{ formatNumber(stats.totalUsers) }}</div>
@@ -32,16 +24,7 @@
         <div class="stat-header">
           <span class="stat-label">总物品数</span>
           <div class="stat-icon">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-            >
-              <path
-                d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-              />
-            </svg>
+            <Package :size="20" stroke-width="1.5" />
           </div>
         </div>
         <div class="stat-value">{{ formatNumber(stats.totalItems) }}</div>
@@ -54,15 +37,7 @@
         <div class="stat-header">
           <span class="stat-label">总订单数</span>
           <div class="stat-icon">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-            >
-              <rect x="3" y="4" width="18" height="18" rx="2" />
-              <path d="M7 8h10M7 12h10M7 16h6" />
-            </svg>
+            <ClipboardList :size="20" stroke-width="1.5" />
           </div>
         </div>
         <div class="stat-value">{{ formatNumber(stats.totalOrders) }}</div>
@@ -75,14 +50,7 @@
         <div class="stat-header">
           <span class="stat-label">总交易额</span>
           <div class="stat-icon">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-            >
-              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
-            </svg>
+            <DollarSign :size="20" stroke-width="1.5" />
           </div>
         </div>
         <div class="stat-value">¥{{ formatNumber(stats.totalAmount) }}</div>
@@ -98,219 +66,90 @@
       <div class="actions-grid">
         <router-link to="/admin/users" class="action-card">
           <div class="action-icon">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-            >
-              <circle cx="12" cy="8" r="4" />
-              <path d="M4 21v-2a4 4 0 014-4h8a4 4 0 014 4v2" />
-            </svg>
+            <Users :size="20" stroke-width="1.5" />
           </div>
           <div class="action-content">
             <h4 class="action-title">用户管理</h4>
             <p class="action-desc">管理平台用户账号与权限</p>
           </div>
-          <svg
-            class="action-arrow"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-          >
-            <path d="M9 18l6-6-6-6" />
-          </svg>
+          <ChevronRight class="action-arrow" :size="20" stroke-width="1.5" />
         </router-link>
 
         <router-link to="/admin/verification" class="action-card">
           <div class="action-icon">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-            >
-              <path d="M9 12l2 2 4-4" />
-              <circle cx="12" cy="12" r="9" />
-            </svg>
+            <CheckCircle :size="20" stroke-width="1.5" />
           </div>
           <div class="action-content">
             <h4 class="action-title">实名认证</h4>
             <p class="action-desc">审核用户实名认证申请</p>
           </div>
-          <svg
-            class="action-arrow"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-          >
-            <path d="M9 18l6-6-6-6" />
-          </svg>
+          <ChevronRight class="action-arrow" :size="20" stroke-width="1.5" />
         </router-link>
 
         <router-link to="/admin/items" class="action-card">
           <div class="action-icon">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-            >
-              <path
-                d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-              />
-            </svg>
+            <Package :size="20" stroke-width="1.5" />
           </div>
           <div class="action-content">
             <h4 class="action-title">物品管理</h4>
             <p class="action-desc">审核与管理平台物品信息</p>
           </div>
-          <svg
-            class="action-arrow"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-          >
-            <path d="M9 18l6-6-6-6" />
-          </svg>
+          <ChevronRight class="action-arrow" :size="20" stroke-width="1.5" />
         </router-link>
 
         <router-link to="/admin/categories" class="action-card">
           <div class="action-icon">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-            >
-              <path d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
+            <Menu :size="20" stroke-width="1.5" />
           </div>
           <div class="action-content">
             <h4 class="action-title">分类管理</h4>
             <p class="action-desc">管理物品分类与标签</p>
           </div>
-          <svg
-            class="action-arrow"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-          >
-            <path d="M9 18l6-6-6-6" />
-          </svg>
+          <ChevronRight class="action-arrow" :size="20" stroke-width="1.5" />
         </router-link>
 
         <router-link to="/admin/category-feedbacks" class="action-card">
           <div class="action-icon">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-            >
-              <path
-                d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"
-              />
-            </svg>
+            <MessageSquare :size="20" stroke-width="1.5" />
           </div>
           <div class="action-content">
             <h4 class="action-title">分类反馈</h4>
             <p class="action-desc">查看用户分类反馈建议</p>
           </div>
-          <svg
-            class="action-arrow"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-          >
-            <path d="M9 18l6-6-6-6" />
-          </svg>
+          <ChevronRight class="action-arrow" :size="20" stroke-width="1.5" />
         </router-link>
 
         <router-link to="/admin/orders" class="action-card">
           <div class="action-icon">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-            >
-              <rect x="3" y="4" width="18" height="18" rx="2" />
-              <path d="M7 8h10M7 12h10M7 16h6" />
-            </svg>
+            <ClipboardList :size="20" stroke-width="1.5" />
           </div>
           <div class="action-content">
             <h4 class="action-title">订单管理</h4>
             <p class="action-desc">查看与管理平台订单</p>
           </div>
-          <svg
-            class="action-arrow"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-          >
-            <path d="M9 18l6-6-6-6" />
-          </svg>
+          <ChevronRight class="action-arrow" :size="20" stroke-width="1.5" />
         </router-link>
 
         <router-link to="/admin/statistics" class="action-card">
           <div class="action-icon">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-            >
-              <path d="M3 3v18h18" />
-              <path d="M7 14l4-4 4 4 5-5" />
-            </svg>
+            <TrendingUp :size="20" stroke-width="1.5" />
           </div>
           <div class="action-content">
             <h4 class="action-title">数据统计</h4>
             <p class="action-desc">查看平台运营数据分析</p>
           </div>
-          <svg
-            class="action-arrow"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-          >
-            <path d="M9 18l6-6-6-6" />
-          </svg>
+          <ChevronRight class="action-arrow" :size="20" stroke-width="1.5" />
         </router-link>
 
         <router-link to="/admin/logs" class="action-card">
           <div class="action-icon">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-            >
-              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-              <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" />
-            </svg>
+            <FileText :size="20" stroke-width="1.5" />
           </div>
           <div class="action-content">
             <h4 class="action-title">操作日志</h4>
             <p class="action-desc">查看系统操作日志记录</p>
           </div>
-          <svg
-            class="action-arrow"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-          >
-            <path d="M9 18l6-6-6-6" />
-          </svg>
+          <ChevronRight class="action-arrow" :size="20" stroke-width="1.5" />
         </router-link>
       </div>
     </div>
@@ -343,49 +182,10 @@
             class="activity-item"
           >
             <div class="activity-icon" :class="activity.type">
-              <svg
-                v-if="activity.type === 'user'"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.5"
-              >
-                <circle cx="12" cy="8" r="4" />
-                <path d="M4 21v-2a4 4 0 014-4h8a4 4 0 014 4v2" />
-              </svg>
-              <svg
-                v-else-if="activity.type === 'item'"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.5"
-              >
-                <path
-                  d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-                />
-              </svg>
-              <svg
-                v-else-if="activity.type === 'order'"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.5"
-              >
-                <rect x="3" y="4" width="18" height="18" rx="2" />
-                <path d="M7 8h10M7 12h10M7 16h6" />
-              </svg>
-              <svg
-                v-else
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.5"
-              >
-                <path
-                  d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"
-                />
-                <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" />
-              </svg>
+              <Users v-if="activity.type === 'user'" :size="20" stroke-width="1.5" />
+              <Package v-else-if="activity.type === 'item'" :size="20" stroke-width="1.5" />
+              <ClipboardList v-else-if="activity.type === 'order'" :size="20" stroke-width="1.5" />
+              <FileText v-else :size="20" stroke-width="1.5" />
             </div>
             <div class="activity-content">
               <p class="activity-text">{{ activity.text }}</p>
@@ -398,10 +198,11 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { ElMessage } from 'element-plus';
 import api from '../../api';
+import { Users, Package, ClipboardList, DollarSign, CheckCircle, ChevronRight, Menu, MessageSquare, TrendingUp, FileText } from 'lucide-vue-next';
 
 const loading = ref(false);
 
@@ -488,7 +289,7 @@ const recentActivities = ref([
   },
 ]);
 
-const formatNumber = (num) => {
+const formatNumber = (num: number) => {
   if (num === null || num === undefined) return '0';
   return Number(num).toLocaleString();
 };

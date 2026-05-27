@@ -3,8 +3,11 @@ package com.idleitems.school.controller.admin;
 import com.idleitems.school.annotation.RequireRole;
 import com.idleitems.school.common.Result;
 import com.idleitems.school.entity.AdminLog;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import com.idleitems.school.entity.User;
 import com.idleitems.school.service.AdminLogService;
+import com.idleitems.school.config.ApiPaths;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,14 +25,16 @@ import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/admin/logs")
+@RequestMapping(ApiPaths.Admin.LOGS)
 @RequiredArgsConstructor
 @RequireRole(value = {User.Role.ADMIN}, message = "需要管理员权限")
+@Tag(name = "管理员-日志管理", description = "管理员操作日志相关接口")
 public class AdminLogController {
 
     private final AdminLogService adminLogService;
 
     @GetMapping
+    @Operation(summary = "获取操作日志列表", description = "分页查询管理员操作日志，支持多条件筛选")
     public Result<Page<AdminLog>> getAdminLogs(
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "size", defaultValue = "10") int size,
@@ -46,12 +51,14 @@ public class AdminLogController {
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "获取日志详情", description = "根据ID获取指定操作日志的详细信息")
     public Result<AdminLog> getAdminLog(@PathVariable Long id) {
         AdminLog log = adminLogService.getAdminLogById(id);
         return Result.success(log);
     }
 
     @GetMapping("/export")
+    @Operation(summary = "导出操作日志", description = "导出操作日志列表为CSV文件")
     public void exportLogs(
             @RequestParam(value = "keyword", required = false) String keyword,
             @RequestParam(value = "adminId", required = false) Long adminId,

@@ -3,6 +3,8 @@ package com.idleitems.school.controller.admin;
 import com.idleitems.school.annotation.RequireRole;
 import com.idleitems.school.common.Result;
 import com.idleitems.school.dto.statistics.DashboardResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import com.idleitems.school.entity.Category;
 import com.idleitems.school.entity.Item;
 import com.idleitems.school.entity.Order;
@@ -11,6 +13,7 @@ import com.idleitems.school.repository.CategoryRepository;
 import com.idleitems.school.repository.ItemRepository;
 import com.idleitems.school.repository.OrderRepository;
 import com.idleitems.school.repository.UserRepository;
+import com.idleitems.school.config.ApiPaths;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -26,9 +29,10 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/admin/statistics")
+@RequestMapping(ApiPaths.Admin.STATISTICS)
 @RequiredArgsConstructor
 @RequireRole(value = {User.Role.ADMIN}, message = "需要管理员权限")
+@Tag(name = "管理员-统计分析", description = "管理员数据统计分析相关接口")
 public class StatisticsController {
 
     private final OrderRepository orderRepository;
@@ -37,6 +41,7 @@ public class StatisticsController {
     private final CategoryRepository categoryRepository;
 
     @GetMapping("/dashboard")
+    @Operation(summary = "获取仪表盘数据", description = "获取管理后台仪表盘的整体数据概览")
     public Result<DashboardResponse> getDashboard(
             @RequestParam(defaultValue = "today") String timeRange,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
@@ -113,6 +118,7 @@ public class StatisticsController {
     }
 
     @GetMapping("/overview")
+    @Operation(summary = "获取数据总览", description = "获取用户、物品、订单等核心数据的汇总统计")
     public Result<Map<String, Object>> getOverview(
             @RequestParam(required = false) String startDate,
             @RequestParam(required = false) String endDate) {
@@ -138,6 +144,7 @@ public class StatisticsController {
     }
 
     @GetMapping("/monthly")
+    @Operation(summary = "获取月度统计", description = "获取近6个月的订单和金额月度统计数据")
     public Result<Map<String, Object>> getMonthlyStatistics() {
         Map<String, Object> stats = new HashMap<>();
 
@@ -162,6 +169,7 @@ public class StatisticsController {
     }
 
     @GetMapping("/categories")
+    @Operation(summary = "获取分类统计", description = "获取各分类下的物品数量统计")
     public Result<List<Map<String, Object>>> getCategoryStatistics() {
         List<Category> categories = categoryRepository.findAll();
         List<Map<String, Object>> categoryStats = new ArrayList<>();
@@ -179,6 +187,7 @@ public class StatisticsController {
     }
 
     @GetMapping("/hot-items")
+    @Operation(summary = "获取热门物品", description = "获取浏览量最高的前10个在售物品")
     public Result<List<Item>> getHotItems() {
         List<Item> hotItems = itemRepository.findTop10ByStatusOrderByViewCountDesc(Item.ItemStatus.ON_SALE);
         return Result.success(hotItems);

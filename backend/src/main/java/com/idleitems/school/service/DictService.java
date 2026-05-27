@@ -28,6 +28,8 @@ public class DictService {
     private static final String DICT_CACHE_PREFIX = "dict:";
     private static final String DICT_ALL_CACHE_KEY = "dict:all";
     private static final long DICT_CACHE_TTL_HOURS = 24;
+    private static final String NULL_SENTINEL = "NULL_SENTINEL";
+    private static final long NULL_CACHE_TTL_MINUTES = 5;
 
     /**
      * 获取所有字典数据
@@ -85,12 +87,17 @@ public class DictService {
         String cacheKey = DICT_CACHE_PREFIX + typeCode + ":" + itemValue;
         Object cached = redisTemplate.opsForValue().get(cacheKey);
         if (cached instanceof String) {
+            if (NULL_SENTINEL.equals(cached)) {
+                return null;
+            }
             return (String) cached;
         }
 
         String label = dictItemRepository.findItemLabelByTypeCodeAndValue(typeCode, itemValue);
         if (label != null) {
             redisTemplate.opsForValue().set(cacheKey, label, DICT_CACHE_TTL_HOURS, TimeUnit.HOURS);
+        } else {
+            redisTemplate.opsForValue().set(cacheKey, NULL_SENTINEL, NULL_CACHE_TTL_MINUTES, TimeUnit.MINUTES);
         }
         return label;
     }

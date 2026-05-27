@@ -8,9 +8,7 @@
     <div class="stats-row">
       <div class="stat-card">
         <div class="stat-icon stat-icon-total">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-          </svg>
+          <AlertTriangle :size="24" />
         </div>
         <div class="stat-content">
           <span class="stat-value">{{ stats.total }}</span>
@@ -19,10 +17,7 @@
       </div>
       <div class="stat-card">
         <div class="stat-icon stat-icon-pending">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <circle cx="12" cy="12" r="10" />
-            <path d="M12 6v6l4 2" />
-          </svg>
+          <Clock :size="24" />
         </div>
         <div class="stat-content">
           <span class="stat-value">{{ stats.pending }}</span>
@@ -31,9 +26,7 @@
       </div>
       <div class="stat-card">
         <div class="stat-icon stat-icon-processing">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83" />
-          </svg>
+          <Loader :size="24" />
         </div>
         <div class="stat-content">
           <span class="stat-value">{{ stats.processing }}</span>
@@ -42,10 +35,7 @@
       </div>
       <div class="stat-card">
         <div class="stat-icon stat-icon-resolved">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M9 12l2 2 4-4" />
-            <circle cx="12" cy="12" r="10" />
-          </svg>
+          <CheckCircle :size="24" />
         </div>
         <div class="stat-content">
           <span class="stat-value">{{ stats.resolved }}</span>
@@ -60,14 +50,17 @@
           <h3 class="card-title">纠纷列表</h3>
           <span class="data-range">共 {{ total }} 条记录</span>
         </div>
+        <div class="header-actions">
+          <button class="btn btn-ghost" @click="handleExport">
+            <Download :size="16" />
+            导出
+          </button>
+        </div>
       </div>
 
       <div class="filters-bar">
         <div class="filter-search">
-          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="11" cy="11" r="8" />
-            <path d="M21 21l-4.35-4.35" />
-          </svg>
+          <Search :size="16" class="search-icon" />
           <input
             v-model="searchKeyword"
             type="text"
@@ -77,106 +70,106 @@
           />
         </div>
         <div class="filter-selects">
-          <select v-model="filterStatus" class="filter-select" @change="handleSearch">
-            <option value="">全部状态</option>
-            <option value="PENDING">待处理</option>
-            <option value="PROCESSING">处理中</option>
-            <option value="RESOLVED">已解决</option>
-            <option value="CLOSED">已关闭</option>
-          </select>
+          <el-select v-model="filterStatus" placeholder="全部状态" clearable size="default" style="width:140px" @change="handleSearch">
+            <el-option v-for="opt in disputeStatusOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
+          </el-select>
           <button class="btn btn-ghost btn-sm" @click="handleReset">重置</button>
         </div>
       </div>
 
+      <div v-if="selectedDisputes.length > 0" class="batch-actions">
+        <span class="batch-info">已选择 {{ selectedDisputes.length }} 项</span>
+        <button class="btn btn-sm btn-primary" @click="handleBatchApprove">
+          <CheckCircle :size="14" />
+          批量通过
+        </button>
+        <button class="btn btn-sm btn-ghost" @click="handleBatchClose">
+          <XCircle :size="14" />
+          批量关闭
+        </button>
+      </div>
+
       <div class="table-wrapper">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th class="col-id">编号</th>
-              <th class="col-item">物品</th>
-              <th class="col-buyer">买家</th>
-              <th class="col-seller">卖家</th>
-              <th class="col-reason">纠纷原因</th>
-              <th class="col-status">状态</th>
-              <th class="col-time">创建时间</th>
-              <th class="col-actions">操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="dispute in disputes" :key="dispute.id" class="table-row">
-              <td class="col-id">
-                <span class="id-value">#{{ dispute.id }}</span>
-              </td>
-              <td class="col-item">
-                <span class="item-title">{{ dispute.itemTitle || '-' }}</span>
-              </td>
-              <td class="col-buyer">
-                <span class="user-name">{{ dispute.buyerName || '-' }}</span>
-              </td>
-              <td class="col-seller">
-                <span class="user-name">{{ dispute.sellerName || '-' }}</span>
-              </td>
-              <td class="col-reason">
-                <span class="reason-text">{{ truncateText(dispute.reason, 20) }}</span>
-              </td>
-              <td class="col-status">
-                <span class="badge" :class="getStatusClass(dispute.status)">
-                  {{ getStatusLabel(dispute.status) }}
-                </span>
-              </td>
-              <td class="col-time">
-                <span class="time-value">{{ formatDateTime(dispute.createdAt) }}</span>
-              </td>
-              <td class="col-actions">
-                <div class="action-group">
-                  <button class="action-btn" @click="handleView(dispute)" title="查看详情">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                      <circle cx="12" cy="12" r="3" />
-                    </svg>
-                  </button>
-                  <button
-                    v-if="dispute.status === 'PENDING'"
-                    class="action-btn action-success"
-                    @click="handleProcess(dispute)"
-                    title="处理纠纷"
-                  >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                      <path d="M9 12l2 2 4-4" />
-                      <circle cx="12" cy="12" r="10" />
-                    </svg>
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <el-table
+          :data="disputes"
+          row-key="id"
+          stripe
+          @selection-change="handleSelectionChange"
+        >
+          <el-table-column type="selection" width="50" />
+          <el-table-column label="编号" width="90">
+            <template #default="{ row }">
+              <span class="id-value">#{{ row.id }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="物品" min-width="140">
+            <template #default="{ row }">
+              <span class="item-title">{{ row.itemTitle || '-' }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="买家" width="120">
+            <template #default="{ row }">
+              <span class="user-name">{{ row.buyerName || '-' }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="卖家" width="120">
+            <template #default="{ row }">
+              <span class="user-name">{{ row.sellerName || '-' }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="纠纷原因" min-width="160">
+            <template #default="{ row }">
+              <span class="reason-text">{{ truncateText(row.reason, 20) }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="状态" width="100">
+            <template #default="{ row }">
+              <span class="badge" :class="getStatusClass(row.status)">
+                {{ dictStore.getDictLabel('DISPUTE_STATUS', row.status) || getStatusLabel(row.status) }}
+              </span>
+            </template>
+          </el-table-column>
+          <el-table-column label="创建时间" width="170">
+            <template #default="{ row }">
+              <span class="time-value">{{ formatDateTime(row.createdAt) }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="120" fixed="right">
+            <template #default="{ row }">
+              <div class="action-group">
+                <button class="action-btn" @click="handleView(row)" title="查看详情" aria-label="查看详情">
+                  <Eye :size="16" />
+                </button>
+                <button
+                  v-if="row.status === 'PENDING'"
+                  class="action-btn action-success"
+                  @click="handleProcess(row)"
+                  title="处理纠纷"
+                  aria-label="处理纠纷"
+                >
+                  <CheckCircle :size="16" />
+                </button>
+              </div>
+            </template>
+          </el-table-column>
+        </el-table>
       </div>
 
       <div class="pagination-wrapper">
         <div class="pagination-info">
           显示 {{ (page - 1) * pageSize + 1 }} - {{ Math.min(page * pageSize, total) }} 条，共 {{ total }} 条
         </div>
-        <div class="pagination-controls">
-          <select v-model="pageSize" class="page-size-select" @change="handleSizeChange">
-            <option :value="10">10 条/页</option>
-            <option :value="20">20 条/页</option>
-            <option :value="50">50 条/页</option>
-          </select>
-          <div class="pagination-buttons">
-            <button class="page-btn" :disabled="page === 1" @click="page--; fetchDisputes()">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M15 18l-6-6 6-6" />
-              </svg>
-            </button>
-            <span class="page-indicator">{{ page }} / {{ totalPages }}</span>
-            <button class="page-btn" :disabled="page >= totalPages" @click="page++; fetchDisputes()">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M9 18l6-6-6-6" />
-              </svg>
-            </button>
-          </div>
-        </div>
+        <el-pagination
+          v-model:current-page="page"
+          v-model:page-size="pageSize"
+          :total="total"
+          :page-sizes="[10, 20, 50]"
+          layout="sizes, prev, pager, next, jumper"
+          background
+          small
+          @current-change="fetchDisputes"
+          @size-change="handleSizeChange"
+        />
       </div>
     </div>
 
@@ -262,14 +255,21 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import { ElMessage, ElMessageBox } from 'element-plus';
+import { ElMessage } from 'element-plus';
 import api from '../../api';
+import { useDictStore } from '../../store/dict';
+import {
+  AlertTriangle, Clock, Loader, CheckCircle, Search, Eye, Download, XCircle,
+} from 'lucide-vue-next';
+
+const dictStore = useDictStore();
 
 const searchKeyword = ref('');
 const filterStatus = ref('');
-const disputes = ref([]);
+const disputes = ref<any[]>([]);
+const selectedDisputes = ref<any[]>([]);
 const page = ref(1);
 const pageSize = ref(20);
 const total = ref(0);
@@ -282,16 +282,16 @@ const stats = ref({
 });
 
 const detailDialogVisible = ref(false);
-const currentDispute = ref(null);
+const currentDispute = ref<any>(null);
 
 const processDialogVisible = ref(false);
 const processForm = ref({ result: '', remark: '' });
 const processLoading = ref(false);
 
-const totalPages = computed(() => Math.ceil(total.value / pageSize.value) || 1);
+const disputeStatusOptions = computed(() => dictStore.getDictOptions('DISPUTE_STATUS'));
 
-const getStatusClass = (status) => {
-  const map = {
+const getStatusClass = (status: string) => {
+  const map: Record<string, string> = {
     PENDING: 'badge-warning',
     PROCESSING: 'badge-primary',
     RESOLVED: 'badge-success',
@@ -300,8 +300,8 @@ const getStatusClass = (status) => {
   return map[status] || 'badge-default';
 };
 
-const getStatusLabel = (status) => {
-  const map = {
+const getStatusLabel = (status: string) => {
+  const map: Record<string, string> = {
     PENDING: '待处理',
     PROCESSING: '处理中',
     RESOLVED: '已解决',
@@ -310,7 +310,7 @@ const getStatusLabel = (status) => {
   return map[status] || status;
 };
 
-const formatDateTime = (dateString) => {
+const formatDateTime = (dateString: string) => {
   if (!dateString) return '-';
   const date = new Date(dateString);
   return date.toLocaleString('zh-CN', {
@@ -322,14 +322,18 @@ const formatDateTime = (dateString) => {
   });
 };
 
-const truncateText = (text, length) => {
+const truncateText = (text: string, length: number) => {
   if (!text) return '-';
   return text.length > length ? text.slice(0, length) + '...' : text;
 };
 
+const handleSelectionChange = (rows: any[]) => {
+  selectedDisputes.value = rows;
+};
+
 const fetchDisputes = async () => {
   try {
-    const params = { page: page.value, size: pageSize.value };
+    const params: Record<string, any> = { page: page.value, size: pageSize.value };
     if (searchKeyword.value) params.keyword = searchKeyword.value;
     if (filterStatus.value) params.status = filterStatus.value;
 
@@ -375,12 +379,12 @@ const handleSizeChange = () => {
   fetchDisputes();
 };
 
-const handleView = (dispute) => {
+const handleView = (dispute: any) => {
   currentDispute.value = dispute;
   detailDialogVisible.value = true;
 };
 
-const handleProcess = (dispute) => {
+const handleProcess = (dispute: any) => {
   currentDispute.value = dispute;
   processForm.value = { result: '', remark: '' };
   processDialogVisible.value = true;
@@ -393,7 +397,10 @@ const submitProcess = async () => {
   }
   processLoading.value = true;
   try {
-    const response = await api.admin.disputes.handle(currentDispute.value.id, processForm.value);
+    const response = await api.admin.disputes.handleDispute(currentDispute.value.id, {
+      resolution: processForm.value.result,
+      status: processForm.value.result === 'CLOSE' ? 'CLOSED' : 'RESOLVED',
+    });
     if (response.code === 200) {
       ElMessage.success('处理成功');
       processDialogVisible.value = false;
@@ -410,9 +417,64 @@ const submitProcess = async () => {
   }
 };
 
+const handleBatchApprove = async () => {
+  if (selectedDisputes.value.length === 0) return;
+  try {
+    const ids = selectedDisputes.value.map((d) => d.id);
+    const response = await api.admin.disputes.batchApprove(ids);
+    if (response.code === 200) {
+      ElMessage.success('批量处理成功');
+      selectedDisputes.value = [];
+      fetchDisputes();
+      fetchStats();
+    } else {
+      ElMessage.error(response.message || '批量处理失败');
+    }
+  } catch (error) {
+    ElMessage.error('批量处理失败');
+  }
+};
+
+const handleBatchClose = async () => {
+  if (selectedDisputes.value.length === 0) return;
+  try {
+    const ids = selectedDisputes.value.map((d) => d.id);
+    const response = await api.admin.disputes.batchClose(ids);
+    if (response.code === 200) {
+      ElMessage.success('批量关闭成功');
+      selectedDisputes.value = [];
+      fetchDisputes();
+      fetchStats();
+    } else {
+      ElMessage.error(response.message || '批量关闭失败');
+    }
+  } catch (error) {
+    ElMessage.error('批量关闭失败');
+  }
+};
+
+const handleExport = async () => {
+  try {
+    const params: Record<string, any> = {};
+    if (searchKeyword.value) params.keyword = searchKeyword.value;
+    if (filterStatus.value) params.status = filterStatus.value;
+    const blob = await api.admin.disputes.export(params);
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `纠纷列表_${new Date().toISOString().slice(0, 10)}.xlsx`;
+    link.click();
+    window.URL.revokeObjectURL(url);
+    ElMessage.success('导出成功');
+  } catch (error) {
+    ElMessage.error('导出失败');
+  }
+};
+
 onMounted(() => {
   fetchDisputes();
   fetchStats();
+  dictStore.fetchDictByType('DISPUTE_STATUS');
 });
 </script>
 

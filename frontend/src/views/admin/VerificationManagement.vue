@@ -8,16 +8,7 @@
     <div class="stats-row">
       <div class="stat-card">
         <div class="stat-icon stat-icon-total">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-          >
-            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
-            <circle cx="9" cy="7" r="4" />
-            <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
-          </svg>
+          <Users :size="24" />
         </div>
         <div class="stat-content">
           <span class="stat-value">{{ stats.total }}</span>
@@ -26,15 +17,7 @@
       </div>
       <div class="stat-card">
         <div class="stat-icon stat-icon-pending">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-          >
-            <circle cx="12" cy="12" r="10" />
-            <path d="M12 6v6l4 2" />
-          </svg>
+          <Clock :size="24" />
         </div>
         <div class="stat-content">
           <span class="stat-value">{{ stats.pending }}</span>
@@ -43,15 +26,7 @@
       </div>
       <div class="stat-card">
         <div class="stat-icon stat-icon-approved">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-          >
-            <path d="M9 12l2 2 4-4" />
-            <circle cx="12" cy="12" r="10" />
-          </svg>
+          <CheckCircle :size="24" />
         </div>
         <div class="stat-content">
           <span class="stat-value">{{ stats.approved }}</span>
@@ -60,15 +35,7 @@
       </div>
       <div class="stat-card">
         <div class="stat-icon stat-icon-rejected">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-          >
-            <circle cx="12" cy="12" r="10" />
-            <path d="M15 9l-6 6M9 9l6 6" />
-          </svg>
+          <XCircle :size="24" />
         </div>
         <div class="stat-content">
           <span class="stat-value">{{ stats.rejected }}</span>
@@ -85,15 +52,7 @@
         </div>
         <div class="header-actions">
           <button class="btn btn-primary" @click="handleRefresh" title="刷新">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-            >
-              <path d="M21.5 2v6h-6M2.5 22v-6h6" />
-              <path d="M2 12A10 10 0 1 0 22 12" />
-            </svg>
+            <RefreshCw :size="16" />
             刷新
           </button>
         </div>
@@ -101,16 +60,7 @@
 
       <div class="filters-bar">
         <div class="filter-search">
-          <svg
-            class="search-icon"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          >
-            <circle cx="11" cy="11" r="8" />
-            <path d="M21 21l-4.35-4.35" />
-          </svg>
+          <Search :size="16" class="search-icon" />
           <input
             v-model="searchKeyword"
             type="text"
@@ -120,196 +70,97 @@
           />
         </div>
         <div class="filter-selects">
-          <select
-            v-model="verificationStatus"
-            class="filter-select"
-            @change="handleSearch"
-          >
-            <option value="">全部状态</option>
-            <option value="PENDING">待审核</option>
-            <option value="APPROVED">已通过</option>
-            <option value="REJECTED">已拒绝</option>
-          </select>
-          <select
-            v-model="verificationType"
-            class="filter-select"
-            @change="handleSearch"
-          >
-            <option value="">全部类型</option>
-            <option value="1">身份证认证</option>
-            <option value="2">学生证认证</option>
-            <option value="3">教师证认证</option>
-          </select>
+          <el-select v-model="verificationStatus" placeholder="全部状态" clearable @change="handleSearch">
+            <el-option value="PENDING" label="待审核" />
+            <el-option value="APPROVED" label="已通过" />
+            <el-option value="REJECTED" label="已拒绝" />
+          </el-select>
+          <el-select v-model="verificationType" placeholder="全部类型" clearable @change="handleSearch">
+            <el-option value="1" label="身份证认证" />
+            <el-option value="2" label="学生证认证" />
+            <el-option value="3" label="教师证认证" />
+          </el-select>
           <button class="btn btn-ghost btn-sm" @click="handleReset">
             重置
           </button>
         </div>
       </div>
 
-      <div class="table-wrapper">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th class="col-checkbox">
-                <input
-                  type="checkbox"
-                  @change="handleSelectAll"
-                  :checked="isAllSelected"
-                />
-              </th>
-              <th class="col-user">用户</th>
-              <th class="col-name">真实姓名</th>
-              <th class="col-id">身份证号</th>
-              <th class="col-student-id">学号</th>
-              <th class="col-type">认证类型</th>
-              <th class="col-id-card">证件照片</th>
-              <th class="col-status">状态</th>
-              <th class="col-submit">提交时间</th>
-              <th class="col-actions">操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="verification in verifications"
-              :key="verification.id"
-              class="table-row"
-            >
-              <td class="col-checkbox">
-                <input
-                  type="checkbox"
-                  v-model="selectedItems"
-                  :value="verification.id"
-                />
-              </td>
-              <td class="col-user">
-                <div class="user-cell">
-                  <div class="user-avatar">
-                    {{ verification.username?.charAt(0) || '用户' }}
-                  </div>
-                  <div class="user-info">
-                    <span class="user-name">{{ verification.username }}</span>
-                    <span class="user-id">ID: {{ verification.userId }}</span>
-                  </div>
-                </div>
-              </td>
-              <td class="col-name">
-                <span class="name-value">{{ verification.realName }}</span>
-              </td>
-              <td class="col-id">
-                <span class="id-value">{{
-                  maskIdNumber(verification.idNumber)
-                }}</span>
-              </td>
-              <td class="col-student-id">
-                <span class="student-id-value">{{
-                  verification.studentId || '-'
-                }}</span>
-              </td>
-              <td class="col-type">
-                <span class="type-value">{{
-                  getTypeText(verification.verificationType)
-                }}</span>
-              </td>
-              <td class="col-id-card">
-                <div class="id-card-images">
-                  <el-image
-                    v-if="verification.idCardFront"
-                    :src="verification.idCardFront"
-                    class="id-card-thumb"
-                    :preview-src-list="[verification.idCardFront]"
-                    fit="cover"
-                  />
-                  <el-image
-                    v-if="verification.idCardBack"
-                    :src="verification.idCardBack"
-                    class="id-card-thumb"
-                    :preview-src-list="[verification.idCardBack]"
-                    fit="cover"
-                  />
-                  <el-image
-                    v-if="verification.studentCard"
-                    :src="verification.studentCard"
-                    class="id-card-thumb"
-                    :preview-src-list="[verification.studentCard]"
-                    fit="cover"
-                  />
-                  <el-image
-                    v-if="verification.teacherCard"
-                    :src="verification.teacherCard"
-                    class="id-card-thumb"
-                    :preview-src-list="[verification.teacherCard]"
-                    fit="cover"
-                  />
-                </div>
-              </td>
-              <td class="col-status">
-                <span
-                  class="badge"
-                  :class="getStatusClass(verification.status)"
-                >
-                  {{ getStatusText(verification.status) }}
-                </span>
-              </td>
-              <td class="col-submit">
-                <span class="date-value">{{
-                  formatDate(verification.createdAt)
-                }}</span>
-              </td>
-              <td class="col-actions">
-                <div class="action-group">
-                  <button
-                    class="action-btn"
-                    @click="handleView(verification)"
-                    title="查看详情"
-                  >
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.5"
-                    >
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                      <circle cx="12" cy="12" r="3" />
-                    </svg>
-                  </button>
-                  <button
-                    v-if="verification.status === 'PENDING'"
-                    class="action-btn action-success"
-                    @click="handleApprove(verification)"
-                    title="通过"
-                  >
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.5"
-                    >
-                      <path d="M9 12l2 2 4-4" />
-                      <circle cx="12" cy="12" r="10" />
-                    </svg>
-                  </button>
-                  <button
-                    v-if="verification.status === 'PENDING'"
-                    class="action-btn action-danger"
-                    @click="handleReject(verification)"
-                    title="拒绝"
-                  >
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.5"
-                    >
-                      <circle cx="12" cy="12" r="10" />
-                      <path d="M15 9l-6 6M9 9l6 6" />
-                    </svg>
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <el-table
+        :data="verifications"
+        row-key="id"
+        @selection-change="handleSelectionChange"
+        stripe
+        empty-text="暂无认证记录"
+      >
+        <el-table-column type="selection" width="50" />
+        <el-table-column label="用户" width="160">
+          <template #default="{ row }">
+            <div class="user-cell">
+              <div class="user-avatar">
+                {{ row.username?.charAt(0) || '用户' }}
+              </div>
+              <div class="user-info">
+                <span class="user-name">{{ row.username }}</span>
+                <span class="user-id">ID: {{ row.userId }}</span>
+              </div>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column label="真实姓名" width="110" prop="realName" />
+        <el-table-column label="身份证号" width="180">
+          <template #default="{ row }">
+            <span class="id-value">{{ maskIdNumber(row.idNumber) }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="学号" width="120" prop="studentId">
+          <template #default="{ row }">
+            {{ row.studentId || '-' }}
+          </template>
+        </el-table-column>
+        <el-table-column label="认证类型" width="110">
+          <template #default="{ row }">
+            <span class="type-value">{{ getTypeText(row.verificationType) }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="证件照片" width="180">
+          <template #default="{ row }">
+            <div class="id-card-images">
+              <el-image v-if="row.idCardFront" :src="row.idCardFront" class="id-card-thumb" :preview-src-list="[row.idCardFront]" fit="cover" />
+              <el-image v-if="row.idCardBack" :src="row.idCardBack" class="id-card-thumb" :preview-src-list="[row.idCardBack]" fit="cover" />
+              <el-image v-if="row.studentCard" :src="row.studentCard" class="id-card-thumb" :preview-src-list="[row.studentCard]" fit="cover" />
+              <el-image v-if="row.teacherCard" :src="row.teacherCard" class="id-card-thumb" :preview-src-list="[row.teacherCard]" fit="cover" />
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column label="状态" width="100">
+          <template #default="{ row }">
+            <span class="badge" :class="getStatusClass(row.status)">
+              {{ getStatusText(row.status) }}
+            </span>
+          </template>
+        </el-table-column>
+        <el-table-column label="提交时间" width="105">
+          <template #default="{ row }">
+            <span class="date-value">{{ formatDate(row.createdAt) }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="160" fixed="right">
+          <template #default="{ row }">
+            <div class="action-group">
+              <button class="action-btn" @click="handleView(row)" title="查看详情" aria-label="查看详情">
+                <Eye :size="16" />
+              </button>
+              <button v-if="row.status === 'PENDING'" class="action-btn action-success" @click="handleApprove(row)" title="通过" aria-label="通过">
+                <CheckCircle :size="16" />
+              </button>
+              <button v-if="row.status === 'PENDING'" class="action-btn action-danger" @click="handleReject(row)" title="拒绝" aria-label="拒绝">
+                <XCircle :size="16" />
+              </button>
+            </div>
+          </template>
+        </el-table-column>
+      </el-table>
 
       <div
         class="table-footer"
@@ -329,59 +180,15 @@
       </div>
 
       <div class="pagination-wrapper">
-        <div class="pagination-info">
-          显示 {{ (page - 1) * pageSize + 1 }} -
-          {{ Math.min(page * pageSize, total) }} 条，共 {{ total }} 条
-        </div>
-        <div class="pagination-controls">
-          <select
-            v-model="pageSize"
-            class="page-size-select"
-            @change="handleSizeChange"
-          >
-            <option :value="10">10 条/页</option>
-            <option :value="20">20 条/页</option>
-            <option :value="50">50 条/页</option>
-            <option :value="100">100 条/页</option>
-          </select>
-          <div class="pagination-buttons">
-            <button
-              class="page-btn"
-              :disabled="page === 1"
-              @click="
-                page--;
-                fetchVerifications();
-              "
-            >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path d="M15 18l-6-6 6-6" />
-              </svg>
-            </button>
-            <span class="page-indicator">{{ page }} / {{ totalPages }}</span>
-            <button
-              class="page-btn"
-              :disabled="page >= totalPages"
-              @click="
-                page++;
-                fetchVerifications();
-              "
-            >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path d="M9 18l6-6-6-6" />
-              </svg>
-            </button>
-          </div>
-        </div>
+        <el-pagination
+          v-model:current-page="page"
+          v-model:page-size="pageSize"
+          :page-sizes="[10, 20, 50, 100]"
+          :total="total"
+          layout="total, sizes, prev, pager, next, jumper"
+          @current-change="fetchVerifications"
+          @size-change="handleSizeChange"
+        />
       </div>
     </div>
 
@@ -586,7 +393,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import {
   ElMessage,
@@ -597,27 +404,23 @@ import {
 } from 'element-plus';
 import api from '../../api';
 import { useDictStore } from '../../store/dict.js';
+import { Users, Clock, CheckCircle, XCircle, RefreshCw, Search, Eye } from 'lucide-vue-next';
 
 const dictStore = useDictStore();
 const searchKeyword = ref('');
 const verificationStatus = ref('');
 const verificationType = ref('');
-const verifications = ref([]);
-const selectedItems = ref([]);
+const verifications = ref<any[]>([]);
+const selectedItems = ref<any[]>([]);
 const page = ref(1);
 const pageSize = ref(20);
 const total = ref(0);
 const dialogVisible = ref(false);
-const currentVerification = ref(null);
+const currentVerification = ref<any>(null);
 
 const stats = ref({ total: 0, pending: 0, approved: 0, rejected: 0 });
 
 const totalPages = computed(() => Math.ceil(total.value / pageSize.value) || 1);
-const isAllSelected = computed(
-  () =>
-    verifications.value.length > 0 &&
-    selectedItems.value.length === verifications.value.length
-);
 const hasPendingSelected = computed(() =>
   selectedItems.value.some((id) =>
     verifications.value.find((v) => v.id === id && v.status === 'PENDING')
@@ -643,32 +446,32 @@ const hasImages = computed(() => {
   return false;
 });
 
-const getStatusClass = (status) => {
+const getStatusClass = (status: string) => {
   const map = {
     PENDING: 'badge-warning',
     APPROVED: 'badge-success',
     REJECTED: 'badge-danger',
   };
-  return map[status] || 'badge-default';
+  return (map as Record<string, string>)[status] || 'badge-default';
 };
 
-const getStatusText = (status) => {
+const getStatusText = (status: string) => {
   return dictStore.getDictLabel('VERIFICATION_STATUS', status);
 };
 
-const getTypeText = (type) => {
+const getTypeText = (type: string) => {
   // 将数字类型转换为枚举值
-  const typeMap = { 1: 'ID_CARD', 2: 'STUDENT_CARD', 3: 'TEACHER_CARD' };
+  const typeMap: Record<string, string> = { '1': 'ID_CARD', '2': 'STUDENT_CARD', '3': 'TEACHER_CARD' };
   const typeEnum = typeMap[type] || type;
   return dictStore.getDictLabel('VERIFICATION_TYPE', typeEnum);
 };
 
-const maskIdNumber = (idNumber) => {
+const maskIdNumber = (idNumber: string) => {
   if (!idNumber) return '-';
   return idNumber.replace(/(\d{4})\d+(\d{4})/, '$1**********$2');
 };
 
-const formatDate = (dateString) => {
+const formatDate = (dateString: string) => {
   if (!dateString) return '-';
   return new Date(dateString).toLocaleDateString('zh-CN', {
     year: 'numeric',
@@ -677,7 +480,7 @@ const formatDate = (dateString) => {
   });
 };
 
-const formatDateTime = (dateString) => {
+const formatDateTime = (dateString: string) => {
   if (!dateString) return '-';
   return new Date(dateString).toLocaleString('zh-CN', {
     year: 'numeric',
@@ -691,7 +494,7 @@ const formatDateTime = (dateString) => {
 
 const fetchVerifications = async () => {
   try {
-    const params = { page: page.value, size: pageSize.value };
+    const params: Record<string, any> = { page: page.value, size: pageSize.value };
     if (searchKeyword.value) params.keyword = searchKeyword.value;
     if (verificationStatus.value) params.status = verificationStatus.value;
     if (verificationType.value) params.type = verificationType.value;
@@ -746,10 +549,8 @@ const handleSizeChange = () => {
   fetchVerifications();
 };
 
-const handleSelectAll = (e) => {
-  selectedItems.value = e.target.checked
-    ? verifications.value.map((v) => v.id)
-    : [];
+const handleSelectionChange = (selection: any[]) => {
+  selectedItems.value = selection.map((v: any) => v.id);
 };
 
 const handleRefresh = () => {
@@ -758,12 +559,12 @@ const handleRefresh = () => {
   ElMessage.success('已刷新数据');
 };
 
-const handleView = (verification) => {
+const handleView = (verification: any) => {
   currentVerification.value = verification;
   dialogVisible.value = true;
 };
 
-const handleApprove = async (verification) => {
+const handleApprove = async (verification: any) => {
   try {
     await ElMessageBox.confirm(
       `通过用户 ${verification.username} 的认证申请？`,
@@ -771,7 +572,7 @@ const handleApprove = async (verification) => {
       { type: 'success' }
     );
 
-    const res = await api.admin.verifications.approve(verification.id);
+    const res = await api.admin.verifications.approveVerification(verification.id);
     if (res.code === 200) {
       ElMessage.success('认证申请已通过');
       fetchVerifications();
@@ -787,7 +588,7 @@ const handleApprove = async (verification) => {
   }
 };
 
-const handleReject = async (verification) => {
+const handleReject = async (verification: any) => {
   try {
     const { value: reason } = await ElMessageBox.prompt(
       '请输入拒绝原因',
@@ -797,7 +598,7 @@ const handleReject = async (verification) => {
       }
     );
 
-    const res = await api.admin.verifications.reject(verification.id, reason);
+    const res = await api.admin.verifications.rejectVerification(verification.id, reason);
     if (res.code === 200) {
       ElMessage.success('认证申请已拒绝');
       fetchVerifications();

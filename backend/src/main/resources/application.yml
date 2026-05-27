@@ -13,6 +13,11 @@ app:
   encryption:
     secret-key: "${ENCRYPTION_SECRET_KEY}"
 
+# 文件上传配置
+file:
+  upload-path: "${FILE_UPLOAD_PATH:./uploads}"
+  base-url: "${FILE_BASE_URL:}"
+
 server:
   port: 7000
   servlet:

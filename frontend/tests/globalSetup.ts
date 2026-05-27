@@ -1,6 +1,6 @@
-import { chromium } from '@playwright/test'
+import { chromium, type FullConfig } from '@playwright/test'
 
-async function globalSetup(config) {
+async function globalSetup(config: FullConfig) {
   // 1. 安装 Playwright 浏览器（如需要）
   // await install({
   //   browser: ['chromium', 'firefox', 'webkit']

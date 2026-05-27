@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -26,7 +26,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -41,13 +41,13 @@ class AdminOrderControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @MockBean
+    @MockitoBean
     private OrderService orderService;
 
-    @MockBean
+    @MockitoBean
     private AdminLogService adminLogService;
 
-    @MockBean
+    @MockitoBean
     private DictService dictService;
 
     @Test
@@ -102,10 +102,9 @@ class AdminOrderControllerTest {
         savedOrder.setOrderStatus(Order.OrderStatus.CANCELLED);
 
         when(orderService.adminCancelOrder(1L, 99L, "管理员介入取消")).thenReturn(savedOrder);
-        when(orderService.toAdminOrderSummary(savedOrder)).thenReturn(buildResponse("CANCELLED"));
         when(dictService.getDictLabel("ORDER_STATUS", "CANCELLED")).thenReturn("已取消");
 
-        mockMvc.perform(put("/api/admin/orders/1/cancel")
+        mockMvc.perform(post("/api/admin/orders/1/cancel")
                         .requestAttr("userId", 99L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -123,10 +122,9 @@ class AdminOrderControllerTest {
         refundedOrder.setOrderStatus(Order.OrderStatus.REFUNDED);
 
         when(orderService.approveRefund(1L, 99L, "APPROVED")).thenReturn(refundedOrder);
-        when(orderService.toAdminOrderSummary(refundedOrder)).thenReturn(buildResponse("REFUNDED"));
         when(dictService.getDictLabel("ORDER_STATUS", "REFUNDED")).thenReturn("已退款");
 
-        mockMvc.perform(put("/api/admin/orders/1/refund/approve")
+        mockMvc.perform(post("/api/admin/orders/1/refund/approve")
                         .requestAttr("userId", 99L))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("退款已审批"))

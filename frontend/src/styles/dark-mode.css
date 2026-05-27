@@ -1,0 +1,234 @@
+html.dark {
+  color-scheme: dark;
+
+  /* ============================================
+     品牌色 — 沿用浅色模式色调，暗色模式提亮
+     Primary OKLCH 195（薄荷蓝绿）
+     Secondary OKLCH 158（森林绿）
+     Accent OKLCH 38（珊瑚橙）
+     ============================================ */
+
+  --primary-color: oklch(70% 0.14 195);
+  --primary-light: oklch(55% 0.10 195);
+  --primary-dark: oklch(80% 0.16 195);
+  --primary-muted: oklch(48% 0.06 195);
+
+  --secondary-color: oklch(68% 0.12 158);
+  --secondary-light: oklch(54% 0.08 158);
+  --secondary-dark: oklch(78% 0.14 158);
+  --secondary-muted: oklch(48% 0.05 158);
+
+  --accent-color: oklch(75% 0.16 38);
+  --accent-light: oklch(60% 0.12 38);
+  --accent-dark: oklch(85% 0.18 38);
+  --accent-muted: oklch(52% 0.08 38);
+
+  /* ---- 语义色 ---- */
+  --success-color: oklch(68% 0.12 158);
+  --warning-color: oklch(80% 0.14 85);
+  --error-color: oklch(66% 0.20 25);
+  --info-color: oklch(68% 0.14 250);
+
+  /* ============================================
+     中性色（背景 → 前景，L 值递增）
+     ============================================ */
+
+  --bg-base: oklch(18% 0.005 200);
+  --bg-surface: oklch(22% 0.006 200);
+  --bg-elevated: oklch(26% 0.006 200);
+  --bg-muted: oklch(20% 0.004 200);
+
+  /* ---- 文字（L 值从高到低，确保对比度 ≥ 4.5:1） ---- */
+  --text-primary: oklch(93% 0.004 195);
+  --text-secondary: oklch(78% 0.003 195);
+  --text-muted: oklch(58% 0.004 195);
+  --text-inverse: oklch(20% 0.004 195);
+
+  /* ---- 边框 ---- */
+  --border-subtle: oklch(30% 0.004 195);
+  --border-default: oklch(36% 0.006 195);
+  --border-strong: oklch(46% 0.008 195);
+
+  /* ---- 阴影（深色下用亮色投影，透明度略高） ---- */
+  --shadow-sm: 0 1px 2px oklch(0% 0 0 / 0.40), 0 1px 3px oklch(0% 0 0 / 0.30);
+  --shadow-md: 0 4px 6px oklch(0% 0 0 / 0.42), 0 2px 4px oklch(0% 0 0 / 0.30);
+  --shadow-lg: 0 10px 15px oklch(0% 0 0 / 0.44), 0 4px 6px oklch(0% 0 0 / 0.32);
+  --shadow-xl: 0 20px 25px oklch(0% 0 0 / 0.46), 0 10px 10px oklch(0% 0 0 / 0.32);
+  --shadow-glow: 0 0 20px oklch(70% 0.14 195 / 0.22);
+
+  /* ============================================
+     兼容旧变量名
+     ============================================ */
+
+  --bg-color: var(--bg-base);
+  --card-bg: var(--bg-surface);
+  --header-bg: var(--bg-surface);
+  --section-bg: var(--bg-muted);
+  --text-auxiliary: var(--text-muted);
+  --border-color: var(--border-default);
+  --border-light: var(--border-subtle);
+  --border-dark: var(--border-strong);
+
+  /* ============================================
+     管理后台统一语义变量
+     ============================================ */
+
+  --color-primary: var(--primary-color);
+  --color-primary-light: var(--primary-light);
+  --color-primary-lighter: var(--primary-muted);
+  --color-secondary: var(--secondary-color);
+  --color-success: var(--success-color);
+  --color-warning: var(--warning-color);
+  --color-danger: var(--error-color);
+  --color-info: var(--info-color);
+
+  --surface-ground: var(--bg-base);
+  --surface-section: var(--bg-muted);
+  --surface-card: var(--bg-surface);
+  --surface-overlay: var(--bg-elevated);
+
+  --content-primary: var(--text-primary);
+  --content-secondary: var(--text-secondary);
+  --content-tertiary: oklch(60% 0.008 195);
+
+  --color-primary-alpha-10: oklch(70% 0.14 195 / 0.10);
+  --color-primary-alpha-15: oklch(70% 0.14 195 / 0.15);
+  --color-success-alpha-10: oklch(68% 0.12 158 / 0.10);
+  --color-warning-alpha-10: oklch(80% 0.14 85 / 0.10);
+  --color-danger-alpha-10: oklch(66% 0.20 25 / 0.10);
+
+  /* ============================================
+     Element Plus 主题变量
+     ============================================ */
+
+  /* ---- 主色 ---- */
+  --el-color-primary: oklch(70% 0.14 195);
+  --el-color-primary-light-3: oklch(60% 0.12 195);
+  --el-color-primary-light-5: oklch(52% 0.10 195);
+  --el-color-primary-light-7: oklch(42% 0.08 195);
+  --el-color-primary-light-8: oklch(36% 0.06 195);
+  --el-color-primary-light-9: oklch(30% 0.04 195);
+  --el-color-primary-dark-2: oklch(80% 0.16 195);
+
+  /* ---- 成功色 ---- */
+  --el-color-success: oklch(68% 0.12 158);
+  --el-color-success-light-3: oklch(58% 0.10 158);
+  --el-color-success-light-5: oklch(50% 0.08 158);
+  --el-color-success-light-7: oklch(40% 0.06 158);
+  --el-color-success-light-8: oklch(34% 0.04 158);
+  --el-color-success-light-9: oklch(28% 0.03 158);
+  --el-color-success-dark-2: oklch(78% 0.14 158);
+
+  /* ---- 警告色 ---- */
+  --el-color-warning: oklch(80% 0.14 85);
+  --el-color-warning-light-3: oklch(68% 0.12 85);
+  --el-color-warning-light-5: oklch(56% 0.10 85);
+  --el-color-warning-light-7: oklch(44% 0.08 85);
+  --el-color-warning-light-8: oklch(36% 0.06 85);
+  --el-color-warning-light-9: oklch(30% 0.04 85);
+  --el-color-warning-dark-2: oklch(86% 0.16 85);
+
+  /* ---- 危险色 ---- */
+  --el-color-danger: oklch(66% 0.20 25);
+  --el-color-danger-light-3: oklch(56% 0.16 25);
+  --el-color-danger-light-5: oklch(48% 0.12 25);
+  --el-color-danger-light-7: oklch(38% 0.10 25);
+  --el-color-danger-light-8: oklch(32% 0.08 25);
+  --el-color-danger-light-9: oklch(26% 0.06 25);
+  --el-color-danger-dark-2: oklch(76% 0.22 25);
+
+  /* ---- 信息色 ---- */
+  --el-color-info: oklch(68% 0.12 250);
+  --el-color-info-light-3: oklch(58% 0.10 250);
+  --el-color-info-light-5: oklch(50% 0.08 250);
+  --el-color-info-light-7: oklch(40% 0.06 250);
+  --el-color-info-light-8: oklch(34% 0.04 250);
+  --el-color-info-light-9: oklch(28% 0.03 250);
+  --el-color-info-dark-2: oklch(76% 0.14 250);
+
+  /* ---- 背景 ---- */
+  --el-bg-color: oklch(18% 0.005 200);
+  --el-bg-color-page: oklch(16% 0.005 200);
+  --el-bg-color-overlay: oklch(24% 0.006 200);
+
+  /* ---- 文字 ---- */
+  --el-text-color-primary: oklch(93% 0.004 195);
+  --el-text-color-regular: oklch(85% 0.003 195);
+  --el-text-color-secondary: oklch(72% 0.003 195);
+  --el-text-color-placeholder: oklch(52% 0.004 195);
+  --el-text-color-disabled: oklch(40% 0.004 195);
+
+  /* ---- 边框 ---- */
+  --el-border-color: oklch(36% 0.006 195);
+  --el-border-color-light: oklch(32% 0.005 195);
+  --el-border-color-lighter: oklch(28% 0.004 195);
+  --el-border-color-extra-light: oklch(24% 0.004 195);
+  --el-border-color-dark: oklch(46% 0.008 195);
+
+  /* ---- 填充 ---- */
+  --el-fill-color: oklch(22% 0.006 200);
+  --el-fill-color-light: oklch(24% 0.005 200);
+  --el-fill-color-lighter: oklch(26% 0.004 200);
+  --el-fill-color-extra-light: oklch(28% 0.004 200);
+  --el-fill-color-dark: oklch(20% 0.008 200);
+  --el-fill-color-blank: oklch(20% 0.006 200);
+
+  /* ---- 遮罩 ---- */
+  --el-mask-color: oklch(0% 0 0 / 0.55);
+  --el-mask-color-extra-light: oklch(0% 0 0 / 0.15);
+
+  /* ---- 输入框 ---- */
+  --el-input-bg-color: oklch(20% 0.006 200);
+  --el-input-text-color: var(--el-text-color-regular);
+  --el-input-border-color: var(--el-border-color);
+  --el-input-hover-border-color: var(--el-color-primary);
+  --el-input-focus-border-color: var(--el-color-primary);
+  --el-input-placeholder-color: var(--el-text-color-placeholder);
+  --el-input-icon-color: var(--el-text-color-placeholder);
+  --el-input-clear-icon-color: var(--el-text-color-secondary);
+  --el-input-focus-box-shadow: 0 0 0 3px oklch(70% 0.14 195 / 0.14);
+
+  /* ---- 阴影 (Element Plus) ---- */
+  --el-box-shadow: 0 1px 3px oklch(0% 0 0 / 0.3), 0 1px 2px oklch(0% 0 0 / 0.2);
+  --el-box-shadow-light: 0 1px 3px oklch(0% 0 0 / 0.2), 0 1px 2px oklch(0% 0 0 / 0.1);
+  --el-box-shadow-lighter: 0 1px 2px oklch(0% 0 0 / 0.15);
+  --el-box-shadow-dark: 0 4px 8px oklch(0% 0 0 / 0.4), 0 2px 4px oklch(0% 0 0 / 0.3);
+
+  /* ---- 语义色透明度阶梯 (暗色模式) ---- */
+  --color-info-alpha-10: oklch(68% 0.14 250 / 0.10);
+  --color-info-alpha-15: oklch(68% 0.14 250 / 0.15);
+  --color-info-alpha-20: oklch(68% 0.14 250 / 0.20);
+  --color-primary-alpha-20: oklch(70% 0.14 195 / 0.2);
+  --color-primary-alpha-30: oklch(70% 0.14 195 / 0.3);
+  --color-success-alpha-15: oklch(68% 0.12 158 / 0.15);
+  --color-success-alpha-20: oklch(68% 0.12 158 / 0.2);
+  --color-warning-alpha-15: oklch(80% 0.14 85 / 0.15);
+  --color-warning-alpha-20: oklch(80% 0.14 85 / 0.2);
+  --color-danger-alpha-15: oklch(66% 0.20 25 / 0.15);
+  --color-danger-alpha-20: oklch(66% 0.20 25 / 0.2);
+
+  /* ---- error 别名 (与 danger 相同) ---- */
+  --el-color-error: var(--el-color-danger);
+  --el-color-error-light-3: var(--el-color-danger-light-3);
+  --el-color-error-light-5: var(--el-color-danger-light-5);
+  --el-color-error-light-7: var(--el-color-danger-light-7);
+  --el-color-error-light-8: var(--el-color-danger-light-8);
+  --el-color-error-light-9: var(--el-color-danger-light-9);
+  --el-color-error-dark-2: var(--el-color-danger-dark-2);
+
+  /* ---- 组件暗色变量 ---- */
+  --el-button-disabled-text-color: oklch(40% 0.008 195);
+  --el-card-bg-color: var(--el-bg-color-overlay);
+
+  /* ---- el-empty 空状态 SVG 填充色 ---- */
+  --el-empty-fill-color-0: oklch(30% 0.006 200);
+  --el-empty-fill-color-1: oklch(28% 0.005 200);
+  --el-empty-fill-color-2: oklch(26% 0.005 200);
+  --el-empty-fill-color-3: oklch(24% 0.004 200);
+  --el-empty-fill-color-4: oklch(34% 0.006 200);
+  --el-empty-fill-color-5: oklch(32% 0.005 200);
+  --el-empty-fill-color-6: oklch(30% 0.004 200);
+  --el-empty-fill-color-7: oklch(28% 0.004 200);
+  --el-empty-fill-color-8: oklch(36% 0.006 200);
+  --el-empty-fill-color-9: oklch(38% 0.006 200);
+}

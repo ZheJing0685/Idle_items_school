@@ -2,6 +2,8 @@ package com.idleitems.school.controller.admin;
 
 import com.idleitems.school.annotation.RequireRole;
 import com.idleitems.school.common.Result;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import com.idleitems.school.dto.order.AdminOrderResponse;
 import com.idleitems.school.dto.order.CancelOrderRequest;
 import com.idleitems.school.entity.Order;
@@ -9,6 +11,7 @@ import com.idleitems.school.entity.User;
 import com.idleitems.school.service.AdminLogService;
 import com.idleitems.school.service.DictService;
 import com.idleitems.school.service.OrderService;
+import com.idleitems.school.config.ApiPaths;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -24,9 +27,10 @@ import java.util.Map;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/admin/orders")
+@RequestMapping(ApiPaths.Admin.ORDERS)
 @RequiredArgsConstructor
 @RequireRole(value = {User.Role.ADMIN}, message = "需要管理员权限")
+@Tag(name = "管理员-订单管理", description = "管理员订单管理相关接口")
 public class AdminOrderController {
 
     private final OrderService orderService;
@@ -34,11 +38,13 @@ public class AdminOrderController {
     private final DictService dictService;
 
     @GetMapping("/stats")
+    @Operation(summary = "获取订单统计", description = "获取订单总数、金额及各状态统计信息")
     public Result<Map<String, Object>> getOrderStats() {
         return Result.success(orderService.getAdminOrderStats());
     }
 
     @GetMapping
+    @Operation(summary = "获取订单列表", description = "分页查询所有订单，支持按状态和关键字筛选")
     public Result<Page<AdminOrderResponse>> getOrders(
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "size", defaultValue = "10") int size,
@@ -50,11 +56,13 @@ public class AdminOrderController {
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "获取订单详情", description = "根据ID获取指定订单的详细信息")
     public Result<AdminOrderResponse> getOrder(@PathVariable Long id) {
         return Result.success(orderService.getAdminOrderSummary(id));
     }
 
-    @PutMapping("/{id}/cancel")
+    @PostMapping("/{id}/cancel")
+    @Operation(summary = "取消订单", description = "管理员取消指定订单")
     public Result<AdminOrderResponse> cancelOrder(
             @RequestAttribute("userId") Long adminId,
             @PathVariable Long id,
@@ -69,24 +77,25 @@ public class AdminOrderController {
         details.put("statusLabel", dictService.getDictLabel("ORDER_STATUS", "CANCELLED"));
         details.put("reason", request.getReason());
         adminLogService.logOperation(adminId, "管理员取消订单", "ORDER", id, details, httpRequest);
-        
-        return Result.success("订单已取消", orderService.toAdminOrderSummary(order));
+
+        return Result.success("订单已取消", AdminOrderResponse.from(order));
     }
 
-    @PutMapping("/{id}/refund/approve")
+    @PostMapping("/{id}/refund/approve")
+    @Operation(summary = "审批退款", description = "审批通过指定订单的退款申请")
     public Result<AdminOrderResponse> approveRefund(
             @RequestAttribute("userId") Long adminId,
             @PathVariable Long id,
             HttpServletRequest request) {
         Order savedOrder = orderService.approveRefund(id, adminId, "APPROVED");
-        
+
         Map<String, Object> details = new HashMap<>();
         details.put("orderId", savedOrder.getId());
         details.put("orderNo", savedOrder.getOrderNo());
         details.put("status", "REFUNDED");
         details.put("statusLabel", dictService.getDictLabel("ORDER_STATUS", "REFUNDED"));
         adminLogService.logOperation(adminId, "审批退款", "ORDER", id, details, request);
-        
-        return Result.success("退款已审批", orderService.toAdminOrderSummary(savedOrder));
+
+        return Result.success("退款已审批", AdminOrderResponse.from(savedOrder));
     }
 }

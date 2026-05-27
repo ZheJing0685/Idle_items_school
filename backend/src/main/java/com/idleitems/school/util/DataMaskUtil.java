@@ -105,4 +105,19 @@ public class DataMaskUtil {
         }
         return address.substring(0, 6) + "****";
     }
+
+    /**
+     * 联系信息脱敏（微信号/QQ号）
+     * 例如：wechat12345 -> wec****45
+     *
+     * @param info 联系信息
+     * @return 脱敏后的联系信息
+     */
+    public static String maskContactInfo(String info) {
+        if (info == null || info.length() < 5) {
+            return info;
+        }
+        int keepPrefix = Math.min(3, info.length() - 4);
+        return info.substring(0, keepPrefix) + "****" + info.substring(info.length() - 2);
+    }
 }

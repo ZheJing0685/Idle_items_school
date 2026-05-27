@@ -5,6 +5,9 @@ import com.idleitems.school.common.Result;
 import com.idleitems.school.dto.analytics.SystemMetricsResponse;
 import com.idleitems.school.entity.User;
 import com.zaxxer.hikari.HikariDataSource;
+import com.idleitems.school.config.ApiPaths;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,15 +21,17 @@ import java.lang.management.RuntimeMXBean;
 import java.lang.management.ThreadMXBean;
 
 @RestController
-@RequestMapping("/api/admin/monitor")
+@RequestMapping(ApiPaths.Admin.MONITOR)
 @RequiredArgsConstructor
 @RequireRole(value = {User.Role.ADMIN})
+@Tag(name = "管理员-系统监控", description = "管理员系统监控相关接口")
 public class MonitorController {
 
     private final MeterRegistry meterRegistry;
     private final HikariDataSource dataSource;
 
     @GetMapping("/metrics")
+    @Operation(summary = "获取系统指标", description = "获取系统内存、线程、类加载、运行时和数据库连接池等指标")
     public Result<SystemMetricsResponse> getSystemMetrics() {
         // 获取内存信息
         MemoryMXBean memoryMXBean = ManagementFactory.getMemoryMXBean();

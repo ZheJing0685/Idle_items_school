@@ -81,17 +81,7 @@
             class="search-input"
           >
             <template #prefix>
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <circle cx="11" cy="11" r="8" />
-                <path d="M21 21L16.65 16.65" />
-              </svg>
+              <Search :size="18" />
             </template>
             <template #append>
               <el-button @click="handleSearch" class="search-btn"
@@ -121,17 +111,7 @@
             />
             <div class="item-overlay">
               <button class="view-btn">
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <path d="M1 12S5 4 12 4s11 8 11 8-4 8-11 8S1 12 1 12z" />
-                  <circle cx="12" cy="12" r="3" />
-                </svg>
+                <Eye :size="20" />
                 查看详情
               </button>
             </div>
@@ -176,32 +156,11 @@
               </div>
               <div class="item-stats">
                 <span class="stat">
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
-                    <path d="M1 12S5 4 12 4s11 8 11 8-4 8-11 8S1 12 1 12z" />
-                    <circle cx="12" cy="12" r="3" />
-                  </svg>
+                  <Eye :size="14" />
                   {{ item.viewCount || 0 }}
                 </span>
                 <span class="stat">
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
-                    <path
-                      d="M20.84 4.61C20.3292 4.09924 19.7228 3.69397 19.0554 3.41708C18.3879 3.14019 17.6725 2.99756 16.95 2.99756C16.2275 2.99756 15.5121 3.14019 14.8446 3.41708C14.1772 3.69397 13.5708 4.09924 13.06 4.61L12 5.67L10.94 4.61C9.9083 3.57831 8.50903 2.99787 7.05 2.99787C5.59096 2.99787 4.19169 3.57831 3.16 4.61C2.1283 5.64169 1.54785 7.04097 1.54785 8.5C1.54785 9.95903 2.1283 11.3583 3.16 12.39L4.22 13.45L12 21.23L19.78 13.45L20.84 12.39C21.3508 11.8792 21.756 11.2728 22.0329 10.6054C22.3098 9.93789 22.4524 9.22248 22.4524 8.5C22.4524 7.77751 22.3098 7.0621 22.0329 6.39464C21.756 5.72718 21.3508 5.12075 20.84 4.61Z"
-                    />
-                  </svg>
+                  <Heart :size="14" />
                   {{ item.favoriteCount || 0 }}
                 </span>
               </div>
@@ -212,19 +171,7 @@
 
       <div class="empty-state" v-else>
         <div class="empty-icon">
-          <svg
-            width="64"
-            height="64"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="var(--text-muted)"
-            stroke-width="1.5"
-          >
-            <rect x="3" y="3" width="7" height="7" />
-            <rect x="14" y="3" width="7" height="7" />
-            <rect x="14" y="14" width="7" height="7" />
-            <rect x="3" y="14" width="7" height="7" />
-          </svg>
+          <Grid :size="64" color="var(--text-muted)" stroke-width="1.5" />
         </div>
         <h3 class="empty-title">暂无物品</h3>
         <p class="empty-desc">暂时没有找到符合条件的物品</p>
@@ -249,28 +196,37 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, nextTick, watch, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { useItemStore } from '../store';
 import api from '../api';
 import { useDictStore } from '../store/dict.js';
+import { Search, Eye, Heart, Grid } from 'lucide-vue-next';
 
 const route = useRoute();
 const store = useItemStore();
 const dictStore = useDictStore();
 
 // 获取字典选项
-const conditionOptions = computed(() =>
-  dictStore.getDictOptions('ITEM_CONDITION')
-);
+const conditionOptions = computed(() => {
+  const options = dictStore.getDictOptions('ITEM_CONDITION');
+  if (options.length > 0) return options;
+  return [
+    { value: 'NEW', label: '全新' },
+    { value: 'LIKE_NEW', label: '九成新' },
+    { value: 'GOOD', label: '八成新' },
+    { value: 'FAIR', label: '七成新' },
+    { value: 'POOR', label: '六成新及以下' },
+  ];
+});
 const deliveryMethodOptions = computed(() =>
   dictStore.getDictOptions('DELIVERY_METHOD')
 );
 
 const categoryId = ref('');
-const categoryPath = ref([]);
-const categoryTreeOptions = ref([]);
+const categoryPath = ref<any[]>([]);
+const categoryTreeOptions = ref<any[]>([]);
 const condition = ref('');
 const deliveryMethod = ref('');
 const sortBy = ref('createdAt');
@@ -278,14 +234,14 @@ const keyword = ref('');
 const currentPage = ref(1);
 const pageSize = ref(24);
 const total = ref(0);
-const items = ref([]);
+const items = ref<any[]>([]);
 
 // 监听路由参数变化
 watch(
   () => route.query,
   (newQuery) => {
     if (newQuery.category !== categoryId.value) {
-      categoryId.value = newQuery.category || '';
+      categoryId.value = (newQuery.category as string) || '';
       categoryPath.value = categoryId.value
         ? findCategoryPath(categoryTreeOptions.value, Number(categoryId.value))
         : [];
@@ -293,7 +249,7 @@ watch(
       loadItems();
     }
     if (newQuery.keyword !== keyword.value) {
-      keyword.value = newQuery.keyword || '';
+      keyword.value = (newQuery.keyword as string) || '';
       currentPage.value = 1;
       loadItems();
     }
@@ -301,36 +257,42 @@ watch(
   { deep: true }
 );
 
-const isNew = (date) => {
+const isNew = (date: string) => {
   if (!date) return false;
   const created = new Date(date);
   const now = new Date();
-  const diffDays = (now - created) / (1000 * 60 * 60 * 24);
+  const diffDays = (now.getTime() - created.getTime()) / (1000 * 60 * 60 * 24);
   return diffDays < 7;
 };
 
-const getDiscount = (price, originalPrice) => {
+const getDiscount = (price: number, originalPrice: number) => {
   if (!price || !originalPrice || originalPrice <= price) return null;
   return Math.round((1 - price / originalPrice) * 100);
 };
 
-const getConditionText = (condition) => {
-  const map = {
-    1: '全新',
-    2: '九成新',
-    3: '八成新',
-    4: '七成新',
-    5: '六成新及以下',
+const getConditionText = (condition: string) => {
+  const label = dictStore.getDictLabel('ITEM_CONDITION', condition);
+  if (label && label !== condition) return label;
+  const fallbackMap: Record<string, string> = {
+    NEW: '全新',
+    LIKE_NEW: '九成新',
+    GOOD: '八成新',
+    FAIR: '七成新',
+    POOR: '六成新及以下',
   };
-  return map[condition] || condition;
+  return fallbackMap[condition] || condition;
 };
 
-const getDeliveryText = (method) => {
-  const map = {
-    1: '自提',
-    2: '上门',
+const getDeliveryText = (method: string) => {
+  const label = dictStore.getDictLabel('DELIVERY_METHOD', method);
+  if (label && label !== method) return label;
+  const fallbackMap: Record<string, string> = {
+    LOCAL_DELIVERY: '自提',
+    HOME_DELIVERY: '上门',
+    EXPRESS: '快递',
+    MAIL: '邮寄',
   };
-  return map[method] || method;
+  return fallbackMap[method] || method;
 };
 
 const loadCategories = async () => {
@@ -344,7 +306,7 @@ const loadCategories = async () => {
   }
 };
 
-const findCategoryPath = (nodes, targetId, path = []) => {
+const findCategoryPath = (nodes: any[], targetId: number, path: any[] = []): any[] => {
   for (const node of nodes) {
     if (node.id === targetId) return [...path, node.id];
     if (node.children && node.children.length > 0) {
@@ -358,7 +320,7 @@ const findCategoryPath = (nodes, targetId, path = []) => {
   return [];
 };
 
-const handleCategoryChange = (val) => {
+const handleCategoryChange = (val: any) => {
   if (val && val.length > 0) {
     categoryId.value = val[val.length - 1].toString();
   } else {
@@ -368,31 +330,39 @@ const handleCategoryChange = (val) => {
   handleFilter();
 };
 
-// 解析标签（从JSON字符串到数组）
-const parseTags = (tagsStr) => {
+// 解析标签（支持JSON字符串和逗号分隔两种格式）
+const parseTags = (tagsStr: string) => {
   if (!tagsStr) return [];
-  try {
-    const tags = JSON.parse(tagsStr);
-    return Array.isArray(tags) ? tags : [];
-  } catch (e) {
-    return [];
+  if (tagsStr.includes('[') || tagsStr.includes('{')) {
+    try {
+      const tags = JSON.parse(tagsStr);
+      return Array.isArray(tags) ? tags : [];
+    } catch {
+      return [];
+    }
   }
+  return tagsStr.split(',').map(t => t.trim()).filter(Boolean);
 };
 
 const loadItems = async () => {
   try {
-    const params = {
-      page: currentPage.value,
-      size: pageSize.value,
-      categoryId: categoryId.value,
-      condition: condition.value,
-      deliveryMethod: deliveryMethod.value,
-      sortBy: sortBy.value,
-      keyword: keyword.value,
-    };
-    await store.fetchItems(params);
-    items.value = store.items;
-    total.value = store.total;
+    if (keyword.value) {
+      await store.searchItems(keyword.value, currentPage.value, pageSize.value, sortBy.value);
+      items.value = store.searchResults;
+      total.value = store.searchTotal;
+    } else {
+      const params = {
+        page: currentPage.value,
+        size: pageSize.value,
+        categoryId: categoryId.value || undefined,
+        condition: condition.value || undefined,
+        deliveryMethod: deliveryMethod.value || undefined,
+        sortBy: sortBy.value,
+      };
+      await store.fetchItems(params);
+      items.value = store.items;
+      total.value = store.total;
+    }
 
     await nextTick();
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -411,13 +381,13 @@ const handleSearch = () => {
   loadItems();
 };
 
-const handleSizeChange = (size) => {
+const handleSizeChange = (size: number) => {
   pageSize.value = size;
   currentPage.value = 1;
   loadItems();
 };
 
-const handleCurrentChange = (page) => {
+const handleCurrentChange = (page: number) => {
   currentPage.value = page;
   loadItems();
 };
@@ -427,14 +397,14 @@ onMounted(async () => {
   await dictStore.preloadCommonDicts();
   await loadCategories();
   if (route.query.category) {
-    categoryId.value = route.query.category;
+    categoryId.value = route.query.category as string;
     categoryPath.value = findCategoryPath(
       categoryTreeOptions.value,
       Number(categoryId.value)
     );
   }
   if (route.query.keyword) {
-    keyword.value = route.query.keyword;
+    keyword.value = route.query.keyword as string;
   }
   loadItems();
 });

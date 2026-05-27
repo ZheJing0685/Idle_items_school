@@ -2,6 +2,7 @@ package com.idleitems.school.controller;
 
 import com.idleitems.school.common.ErrorCode;
 import com.idleitems.school.common.Result;
+import com.idleitems.school.config.ApiPaths;
 import com.idleitems.school.service.ChunkUploadService;
 import com.idleitems.school.service.FileService;
 import com.idleitems.school.util.FileValidationService;
@@ -18,7 +19,7 @@ import java.util.*;
 @Slf4j
 @Tag(name = "分片上传", description = "大文件分片上传接口")
 @RestController
-@RequestMapping("/api/items/upload")
+@RequestMapping(ApiPaths.Item.UPLOAD)
 public class ChunkUploadController {
 
     private final ChunkUploadService chunkUploadService;
@@ -85,36 +86,39 @@ public class ChunkUploadController {
             @RequestParam("totalChunks") int totalChunks,
             @RequestParam("originalFileName") String originalFileName) {
 
+        File mergedFile = null;
         try {
             if (!chunkUploadService.isUploadComplete(fileHash, totalChunks)) {
                 return Result.error(ErrorCode.BAD_REQUEST, "分片不完整，请先上传所有分片");
             }
 
-            File mergedFile = chunkUploadService.mergeChunks(fileHash, totalChunks, originalFileName);
+            mergedFile = chunkUploadService.mergeChunks(fileHash, totalChunks, originalFileName);
 
             MultipartFile multipartFile = fileToMultipartFile(mergedFile, originalFileName);
 
             try {
                 fileValidationService.validateImage(multipartFile);
             } catch (IllegalArgumentException e) {
-                if (!mergedFile.delete()) {
-                    log.warn("Failed to delete merged file: {}", mergedFile.getAbsolutePath());
-                }
+                deleteMergedFile(mergedFile);
                 return Result.error(ErrorCode.BAD_REQUEST, "合并后的文件验证失败: " + e.getMessage());
             }
 
             Map<String, Object> result = fileService.uploadImage(multipartFile);
 
-            if (!mergedFile.delete()) {
-                log.warn("Failed to delete merged file: {}", mergedFile.getAbsolutePath());
-            }
-
+            deleteMergedFile(mergedFile);
             chunkUploadService.deleteChunks(fileHash);
 
             return Result.success(result);
         } catch (Exception e) {
             log.error("合并分片失败", e);
+            deleteMergedFile(mergedFile);
             return Result.error("合并失败: " + e.getMessage());
+        }
+    }
+
+    private void deleteMergedFile(File file) {
+        if (file != null && file.exists() && !file.delete()) {
+            log.warn("Failed to delete merged file: {}", file.getAbsolutePath());
         }
     }
 

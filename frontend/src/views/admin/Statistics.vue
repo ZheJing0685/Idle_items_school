@@ -23,15 +23,7 @@
           @change="handleCustomDateChange"
         />
         <button class="btn btn-ghost" @click="handleRefresh" title="刷新">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-          >
-            <path d="M21.5 2v6h-6M2.5 22v-6h6" />
-            <path d="M2 12A10 10 0 1 0 22 12" />
-          </svg>
+          <RefreshCw :size="18" stroke-width="1.5" />
           刷新
         </button>
       </div>
@@ -40,93 +32,41 @@
     <template v-if="loading">
       <div class="stats-grid">
         <div v-for="n in 4" :key="n" class="stat-card">
-          <div class="skeleton skeleton-line" style="width: 40%"></div>
-          <div
-            class="skeleton"
-            style="
-              height: 32px;
-              width: 60%;
-              margin-top: 8px;
-              border-radius: 6px;
-            "
-          ></div>
+          <div class="skeleton skeleton-line skeleton-w40"></div>
+          <div class="skeleton skeleton-stat-value"></div>
         </div>
       </div>
       <div class="charts-grid">
         <div class="chart-card chart-card-wide">
           <div class="chart-header">
-            <div class="skeleton skeleton-line" style="width: 30%"></div>
+            <div class="skeleton skeleton-line skeleton-w30"></div>
           </div>
           <div class="chart-body">
-            <div
-              class="skeleton"
-              style="height: 250px; border-radius: var(--radius-md)"
-            ></div>
+            <div class="skeleton skeleton-chart-area"></div>
           </div>
         </div>
         <div class="chart-card">
           <div class="chart-header">
-            <div class="skeleton skeleton-line" style="width: 50%"></div>
+            <div class="skeleton skeleton-line skeleton-w50"></div>
           </div>
-          <div
-            class="chart-body"
-            style="
-              display: flex;
-              justify-content: center;
-              align-items: center;
-              min-height: 280px;
-            "
-          >
-            <div
-              class="skeleton"
-              style="width: 180px; height: 180px; border-radius: 50%"
-            ></div>
+          <div class="chart-body chart-body-center">
+            <div class="skeleton skeleton-circle"></div>
           </div>
         </div>
       </div>
       <div class="chart-card chart-card-full">
         <div class="chart-header">
-          <div class="skeleton skeleton-line" style="width: 25%"></div>
+          <div class="skeleton skeleton-line skeleton-w25"></div>
         </div>
         <div class="chart-body">
-          <div
-            v-for="i in 5"
-            :key="i"
-            style="
-              display: flex;
-              gap: 16px;
-              margin-bottom: 12px;
-              align-items: center;
-            "
-          >
-            <div
-              class="skeleton"
-              style="width: 60px; height: 20px; border-radius: 4px"
-            ></div>
-            <div
-              class="skeleton"
-              style="width: 120px; height: 20px; border-radius: 4px"
-            ></div>
-            <div
-              class="skeleton"
-              style="width: 80px; height: 20px; border-radius: 4px"
-            ></div>
-            <div
-              class="skeleton"
-              style="width: 80px; height: 20px; border-radius: 4px"
-            ></div>
-            <div
-              class="skeleton"
-              style="width: 60px; height: 20px; border-radius: 4px"
-            ></div>
-            <div
-              class="skeleton"
-              style="width: 60px; height: 20px; border-radius: 4px"
-            ></div>
-            <div
-              class="skeleton"
-              style="width: 140px; height: 20px; border-radius: 4px"
-            ></div>
+          <div v-for="i in 5" :key="i" class="skeleton-table-row">
+            <div class="skeleton skeleton-bar skeleton-w60"></div>
+            <div class="skeleton skeleton-bar skeleton-w120"></div>
+            <div class="skeleton skeleton-bar skeleton-w80"></div>
+            <div class="skeleton skeleton-bar skeleton-w80"></div>
+            <div class="skeleton skeleton-bar skeleton-w60"></div>
+            <div class="skeleton skeleton-bar skeleton-w60"></div>
+            <div class="skeleton skeleton-bar skeleton-w140"></div>
           </div>
         </div>
       </div>
@@ -220,18 +160,19 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { ElMessage } from 'element-plus';
 import OrderTrendChart from './components/OrderTrendChart.vue';
 import OrderStatusPie from './components/OrderStatusPie.vue';
+import { RefreshCw } from 'lucide-vue-next';
 import api from '../../api';
 import { useDictStore } from '../../store/dict.js';
 
 const dictStore = useDictStore();
 const loading = ref(false);
 const timeRange = ref('today');
-const customDateRange = ref(null);
+const customDateRange = ref<any>(null);
 
 const dashboardData = ref({
   totalOrders: 0,
@@ -243,18 +184,18 @@ const dashboardData = ref({
   recentOrders: [],
 });
 
-const formatNumber = (num) => {
+const formatNumber = (num: number) => {
   if (num === null || num === undefined) return '0';
   return Number(num).toLocaleString();
 };
 
-const formatDateTime = (dateTime) => {
+const formatDateTime = (dateTime: string) => {
   if (!dateTime) return '-';
   return new Date(dateTime).toLocaleString('zh-CN');
 };
 
-const getStatusType = (status) => {
-  const map = {
+const getStatusType = (status: string) => {
+  const map: Record<string, string> = {
     PENDING_PAYMENT: 'warning',
     PAID: 'primary',
     PENDING_SHIPMENT: 'primary',
@@ -268,14 +209,14 @@ const getStatusType = (status) => {
   return map[status] || 'info';
 };
 
-const getStatusText = (status) => {
+const getStatusText = (status: string) => {
   return dictStore.getDictLabel('ORDER_STATUS', status);
 };
 
 const fetchDashboard = async () => {
   loading.value = true;
   try {
-    const params = { timeRange: timeRange.value };
+    const params: Record<string, any> = { timeRange: timeRange.value };
     if (timeRange.value === 'custom' && customDateRange.value) {
       params.startDate = customDateRange.value[0].toISOString().split('T')[0];
       params.endDate = customDateRange.value[1].toISOString().split('T')[0];

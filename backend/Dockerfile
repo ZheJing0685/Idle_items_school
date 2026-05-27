@@ -26,6 +26,16 @@ RUN apk add --no-cache fontconfig ttf-dejavu tzdata
 COPY --from=jre-builder /opt/custom-jre /opt/java/openjdk
 COPY --from=builder /build/target/school-1.0.0.jar /app/app.jar
 WORKDIR /app
+
+# Create non-root user
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
+# Create upload directory with correct permissions
+RUN mkdir -p /var/data/uploads && chown -R appuser:appgroup /var/data/uploads
+
+# Switch to non-root user
+USER appuser
+
 EXPOSE 7000
 ENV JAVA_HOME=/opt/java/openjdk
 ENV PATH="$JAVA_HOME/bin:$PATH"

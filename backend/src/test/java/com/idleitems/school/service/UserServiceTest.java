@@ -1,6 +1,10 @@
 package com.idleitems.school.service;
 
+import com.idleitems.school.common.BusinessException;
 import com.idleitems.school.entity.User;
+import com.idleitems.school.repository.ReviewRepository;
+import com.idleitems.school.repository.ItemRepository;
+import com.idleitems.school.repository.OrderRepository;
 import com.idleitems.school.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,6 +26,15 @@ class UserServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private ReviewRepository reviewRepository;
+
+    @Mock
+    private ItemRepository itemRepository;
+
+    @Mock
+    private OrderRepository orderRepository;
 
     @Mock
     private BCryptPasswordEncoder passwordEncoder;
@@ -151,7 +164,7 @@ class UserServiceTest {
         when(userRepository.save(any(User.class))).thenReturn(testUser);
 
         testUser.setNickname("新昵称");
-        User result = userService.update(testUser);
+        User result = userService.save(testUser);
 
         assertNotNull(result);
         assertEquals("新昵称", result.getNickname());
@@ -163,7 +176,7 @@ class UserServiceTest {
     void testFindByIdNotFound() {
         when(userRepository.findById(999L)).thenReturn(Optional.empty());
 
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(BusinessException.class, () -> {
             userService.findById(999L);
         });
 

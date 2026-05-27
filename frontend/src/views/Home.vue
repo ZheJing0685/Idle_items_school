@@ -5,22 +5,7 @@
         <div class="hero-content">
           <div class="hero-text">
             <div class="hero-badge">
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="var(--secondary-color)"
-              >
-                <path
-                  d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                />
-                <path
-                  d="M7 13C7 13 8 15 12 15C16 15 17 13 17 13"
-                  stroke="white"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                />
-              </svg>
+              <Smile :size="16" fill="var(--secondary-color)" color="var(--secondary-color)" />
               <span>校园绿色交易平台</span>
             </div>
             <h1 class="hero-title">
@@ -33,32 +18,11 @@
             </p>
             <div class="hero-actions">
               <router-link to="/items" class="hero-btn hero-btn-primary">
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <circle cx="11" cy="11" r="8" />
-                  <path d="M21 21L16.65 16.65" />
-                </svg>
+                <Search :size="20" />
                 探索好物
               </router-link>
               <router-link to="/publish" class="hero-btn hero-btn-secondary">
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <circle cx="12" cy="12" r="10" />
-                  <path d="M12 8V16" />
-                  <path d="M8 12H16" />
-                </svg>
+                <CirclePlus :size="20" />
                 发布闲置
               </router-link>
             </div>
@@ -66,66 +30,43 @@
           <div class="hero-visual">
             <div class="hero-card-stack">
               <div class="hero-card hero-card-1">
-                <img
-                  src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=second%20hand%20laptop%20for%20student&image_size=square"
-                  alt="二手笔记本"
-                />
+                <div class="hero-card-content">
+                  <Laptop :size="28" class="hero-card-icon" stroke-width="1.5" />
+                  <span class="hero-card-label">二手笔记本</span>
+                  <span class="hero-card-price">省 ¥2,000+</span>
+                </div>
               </div>
               <div class="hero-card hero-card-2">
-                <img
-                  src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=college%20textbooks%20second%20hand&image_size=square"
-                  alt="二手教材"
-                />
+                <div class="hero-card-content">
+                  <BookOpen :size="28" class="hero-card-icon" stroke-width="1.5" />
+                  <span class="hero-card-label">二手教材</span>
+                  <span class="hero-card-price">低至 3 折</span>
+                </div>
               </div>
               <div class="hero-card hero-card-3">
-                <img
-                  src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=fitness%20tracker%20electronics&image_size=square"
-                  alt="运动手环"
-                />
+                <div class="hero-card-content">
+                  <Watch :size="28" class="hero-card-icon" stroke-width="1.5" />
+                  <span class="hero-card-label">运动手环</span>
+                  <span class="hero-card-price">几乎全新</span>
+                </div>
               </div>
             </div>
-            <div class="hero-eco-badge">
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="var(--secondary-color)"
-              >
-                <path
-                  d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                />
-                <path
-                  d="M7 13C7 13 8 15 12 15C16 15 17 13 17 13"
-                  stroke="white"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                />
-              </svg>
-              <span>已节省 128.5 吨碳排放</span>
+            <div class="hero-stats-row">
+              <div class="hero-stat-item">
+                <span class="hero-stat-number">12,847</span>
+                <span class="hero-stat-label">成功交易</span>
+              </div>
+              <div class="hero-stat-divider"></div>
+              <div class="hero-stat-item">
+                <span class="hero-stat-number">98.6%</span>
+                <span class="hero-stat-label">好评率</span>
+              </div>
+              <div class="hero-stat-divider"></div>
+              <div class="hero-stat-item">
+                <span class="hero-stat-number">24h</span>
+                <span class="hero-stat-label">快速响应</span>
+              </div>
             </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="stats">
-      <div class="container">
-        <div class="stats-grid">
-          <div class="stat-card">
-            <span class="stat-value">12,847</span>
-            <span class="stat-label">成功交易</span>
-          </div>
-          <div class="stat-card">
-            <span class="stat-value">8,234</span>
-            <span class="stat-label">注册用户</span>
-          </div>
-          <div class="stat-card">
-            <span class="stat-value">45,231</span>
-            <span class="stat-label">发布物品</span>
-          </div>
-          <div class="stat-card stat-card-highlight">
-            <span class="stat-value">128.5</span>
-            <span class="stat-label">吨碳减排</span>
           </div>
         </div>
       </div>
@@ -154,24 +95,13 @@
                 class="category-icon"
                 :style="{ background: category.bgColor }"
               >
-                {{ getCategoryIcon(category.id) }}
+                <component :is="getCategoryIcon(category.id)" :size="24" stroke-width="1.5" />
               </div>
               <div class="category-info">
                 <h3 class="category-name">{{ category.name }}</h3>
                 <span class="category-count">{{ category.count }} 件物品</span>
               </div>
-              <svg
-                class="category-arrow"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path d="M5 12H19" />
-                <path d="M12 5L19 12L12 19" />
-              </svg>
+              <ArrowRight class="category-arrow" :size="20" />
             </router-link>
             <div
               class="category-submenu"
@@ -200,18 +130,8 @@
             <p class="section-subtitle">精选优质闲置，抢手好货</p>
           </div>
           <router-link to="/items" class="section-link">
-            查看更多
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path d="M5 12H19" />
-              <path d="M12 5L19 12L12 19" />
-            </svg>
+             查看更多
+             <ArrowRight :size="16" />
           </router-link>
         </div>
         <div class="items-grid">
@@ -224,26 +144,17 @@
           >
             <div class="item-image">
               <img
-                :src="
-                  item.coverImage ||
-                  'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=placeholder%20item&image_size=square'
-                "
+                :src="item.coverImage"
                 :alt="item.title"
                 loading="lazy"
               />
+              <div v-if="!item.coverImage" class="item-image-placeholder">
+                <Image :size="32" />
+                <span>暂无图片</span>
+              </div>
               <div class="item-overlay">
                 <button class="item-action">
-                  <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
-                    <path d="M1 12S5 4 12 4s11 8 11 8-4 8-11 8S1 12 1 12z" />
-                    <circle cx="12" cy="12" r="3" />
-                  </svg>
+                  <Eye :size="20" />
                   查看详情
                 </button>
               </div>
@@ -266,17 +177,7 @@
                 </div>
                 <div class="item-stats">
                   <span class="item-views">
-                    <svg
-                      width="12"
-                      height="12"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                    >
-                      <path d="M1 12S5 4 12 4s11 8 11 8-4 8-11 8S1 12 1 12z" />
-                      <circle cx="12" cy="12" r="3" />
-                    </svg>
+                    <Eye :size="12" />
                     {{ item.viewCount }}
                   </span>
                 </div>
@@ -295,25 +196,15 @@
             <h2 class="promo-title">注册即送100积分</h2>
             <p class="promo-description">首单立减10元，让交易更划算</p>
             <router-link to="/register" class="promo-btn">
-              立即注册
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path d="M5 12H19" />
-                <path d="M12 5L19 12L12 19" />
-              </svg>
+               立即注册
+               <ArrowRight :size="18" />
             </router-link>
           </div>
           <div class="promo-visual">
-            <img
-              src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=student%20discount%20illustration%20eco%20friendly&image_size=landscape_4_3"
-              alt="新用户优惠"
-            />
+              <div class="promo-visual-placeholder">
+                <Verified :size="48" />
+                <span>学生认证即享优惠</span>
+              </div>
           </div>
         </div>
       </div>
@@ -324,67 +215,21 @@
         <div class="trust-grid">
           <div class="trust-item">
             <div class="trust-icon">
-              <svg
-                width="32"
-                height="32"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="var(--primary-color)"
-                stroke-width="2"
-              >
-                <path
-                  d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                />
-                <path d="M9 12L11 14L15 10" />
-              </svg>
+              <ShieldCheck :size="32" color="var(--primary-color)" />
             </div>
             <h3 class="trust-title">实名认证</h3>
             <p class="trust-desc">所有用户经过学生身份认证，交易更放心</p>
           </div>
           <div class="trust-item">
             <div class="trust-icon">
-              <svg
-                width="32"
-                height="32"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="var(--primary-color)"
-                stroke-width="2"
-              >
-                <path
-                  d="M21 15C21 15.5304 20.7893 16.0391 20.4142 16.4142C20.0391 16.7893 19.5304 17 19 17H7L3 21V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H16C16.5304 3 17.0391 3.21071 17.4142 3.58579C17.7893 3.96086 18 4.46957 18 5"
-                />
-              </svg>
+              <MessageSquare :size="32" color="var(--primary-color)" />
             </div>
             <h3 class="trust-title">快捷发布</h3>
             <p class="trust-desc">拍照上传，简单几步即可发布你的闲置</p>
           </div>
           <div class="trust-item">
             <div class="trust-icon">
-              <svg
-                width="32"
-                height="32"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="var(--primary-color)"
-                stroke-width="2"
-              >
-                <path
-                  d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                />
-                <path
-                  d="M7 13C7 13 8 15 12 15C16 15 17 13 17 13"
-                  stroke="var(--primary-color)"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                />
-                <path
-                  d="M12 9C12 9 9 10 9 12"
-                  stroke="var(--primary-color)"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                />
-              </svg>
+              <Leaf :size="32" color="var(--primary-color)" />
             </div>
             <h3 class="trust-title">环保交易</h3>
             <p class="trust-desc">减少资源浪费，为绿色校园贡献力量</p>
@@ -395,15 +240,16 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useItemStore } from '../store';
 import api from '../api';
+import { Search, CirclePlus, ArrowRight, Smile, Eye, Image, Verified, ShieldCheck, MessageSquare, Leaf, Laptop, BookOpen, Watch, Smartphone, Home, Trophy, Shirt, Package } from 'lucide-vue-next';
 
 const store = useItemStore();
 
-const categories = ref([]);
-const featuredItems = ref([]);
+const categories = ref<any[]>([]);
+const featuredItems = ref<any[]>([]);
 const loading = ref({
   categories: false,
   items: false,
@@ -413,12 +259,12 @@ const fetchCategories = async () => {
   loading.value.categories = true;
   try {
     const response = await api.category.getCategoryTree();
-    categories.value = response.data.map((category) => ({
+    categories.value = response.data.map((category: any) => ({
       id: category.id,
       name: category.name,
       count: category.itemCount || 0,
       bgColor: getCategoryColor(category.id),
-      children: (category.children || []).map((child) => ({
+      children: (category.children || []).map((child: any) => ({
         id: child.id,
         name: child.name,
         count: child.itemCount || 0,
@@ -431,7 +277,7 @@ const fetchCategories = async () => {
   }
 };
 
-const getCategoryColor = (id) => {
+const getCategoryColor = (id: number) => {
   const colors = [
     'oklch(70% 0.16 38 / 0.15)',
     'oklch(62% 0.14 195 / 0.12)',
@@ -443,8 +289,8 @@ const getCategoryColor = (id) => {
   return colors[(id - 1) % colors.length];
 };
 
-const getCategoryIcon = (id) => {
-  const icons = ['📱', '📚', '🏠', '⚽', '👔', '📦'];
+const getCategoryIcon = (id: number) => {
+  const icons = [Smartphone, BookOpen, Home, Trophy, Shirt, Package];
   return icons[(id - 1) % icons.length];
 };
 
@@ -457,14 +303,14 @@ onMounted(async () => {
   try {
     await store.fetchHotItems();
     if (store.hotItems?.length > 0) {
-      featuredItems.value = store.hotItems.slice(0, 8).map((item) => ({
+      featuredItems.value = store.hotItems.slice(0, 8).map((item: any) => ({
         id: item.id,
         title: item.title,
         price: item.price,
         originalPrice: item.originalPrice,
         coverImage: item.coverImage,
         viewCount: item.viewCount,
-        sellerName: item.seller?.username || '未知卖家',
+        sellerName: item.sellerNickname || '未知卖家',
         isNew: item.isNew,
       }));
     }

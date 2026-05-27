@@ -67,9 +67,7 @@
         </template>
         <template v-else>
           <div class="no-chat-selected">
-            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
-            </svg>
+            <MessageSquare :size="64" stroke-width="1.5" />
             <p>选择一个会话开始聊天</p>
           </div>
         </template>
@@ -78,10 +76,11 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, onUnmounted, nextTick } from 'vue';
 import { useRoute } from 'vue-router';
 import { ElMessage } from 'element-plus';
+import { MessageSquare } from 'lucide-vue-next';
 import { useUserStore } from '@/store';
 import { wsService } from '@/utils/websocket';
 import { getToken } from '@/api/config/axios';
@@ -91,21 +90,21 @@ const route = useRoute();
 const userStore = useUserStore();
 const currentUserId = ref(userStore.user?.id);
 
-const chatList = ref([]);
-const currentChat = ref(null);
-const messages = ref([]);
+const chatList = ref<any[]>([]);
+const currentChat = ref<any>(null);
+const messages = ref<any[]>([]);
 const newMessage = ref('');
-const messageList = ref(null);
+const messageList = ref<HTMLDivElement | null>(null);
 
 const loadChatList = async () => {
   try {
     console.log('Loading chat list...');
     const res = await chatApi.getChats();
     console.log('Chat list response:', res);
-    
+
     // 后端返回格式: {code: 200, data: [...]} 或 {code: 200, data: {content: [...]}}
     let chatData = [];
-    
+
     if (res && res.data) {
       if (Array.isArray(res.data)) {
         // 新格式: data直接是数组
@@ -115,15 +114,15 @@ const loadChatList = async () => {
         chatData = res.data.content;
       }
     }
-    
+
     chatList.value = chatData;
     console.log('Chat list:', chatList.value);
     console.log('Chat list length:', chatList.value.length);
-    
+
     // 检查URL参数中是否有chatId，如果有则自动选中
     const targetChatId = route.query.chatId;
     console.log('Target chat ID from URL:', targetChatId);
-    
+
     if (targetChatId && chatList.value.length > 0) {
       const targetChat = chatList.value.find(chat => String(chat.id) === String(targetChatId));
       console.log('Found target chat:', targetChat);
@@ -138,12 +137,12 @@ const loadChatList = async () => {
   }
 };
 
-const selectChat = async (chat) => {
+const selectChat = async (chat: any) => {
   currentChat.value = chat;
   await loadMessages(chat.id);
 };
 
-const loadMessages = async (chatId) => {
+const loadMessages = async (chatId: string) => {
   try {
     const res = await chatApi.getMessages(chatId, { page: 0, size: 50 });
     messages.value = res.data.content || [];
@@ -158,7 +157,7 @@ const sendMessage = async () => {
   const otherUser = getOtherUser(currentChat.value);
   const content = newMessage.value.trim();
   try {
-    await chatApi.sendMessage(currentChat.value.id, otherUser.id, content);
+    await chatApi.sendMessage(currentChat.value.id, String(otherUser.id), content);
     newMessage.value = '';
     await loadMessages(currentChat.value.id);
   } catch (error) {
@@ -166,14 +165,14 @@ const sendMessage = async () => {
   }
 };
 
-const getOtherUser = (chat) => {
+const getOtherUser = (chat: any) => {
   if (!chat) return {};
   return chat.buyerId === currentUserId.value
     ? { id: chat.sellerId, nickname: chat.sellerNickname, username: chat.sellerUsername, avatar: chat.sellerAvatar }
     : { id: chat.buyerId, nickname: chat.buyerNickname, username: chat.buyerUsername, avatar: chat.buyerAvatar };
 };
 
-const getMessageAvatar = (msg) => {
+const getMessageAvatar = (msg: any) => {
   if (msg.senderId === currentUserId.value) {
     return userStore.user?.avatar || null;
   }
@@ -182,12 +181,12 @@ const getMessageAvatar = (msg) => {
   return other.avatar || null;
 };
 
-const formatTime = (time) => {
+const formatTime = (time: any) => {
   if (!time) return '';
   // 支持epoch毫秒(Long)和ISO字符串
   const date = typeof time === 'number' ? new Date(time) : new Date(time);
   const now = new Date();
-  const diff = now - date;
+  const diff = now.getTime() - date.getTime();
   if (diff < 0) return '刚刚';
   if (diff < 60000) return '刚刚';
   if (diff < 3600000) return Math.floor(diff / 60000) + '分钟前';
@@ -195,7 +194,7 @@ const formatTime = (time) => {
   return date.toLocaleDateString('zh-CN');
 };
 
-const formatMessageTime = (time) => {
+const formatMessageTime = (time: string) => {
   if (!time) return '';
   const date = new Date(time);
   return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
@@ -209,7 +208,7 @@ const scrollToBottom = () => {
   });
 };
 
-const handleNewMessage = (msg) => {
+const handleNewMessage = (msg: any) => {
   if (currentChat.value && msg.chatId === currentChat.value.id) {
     // 避免重复添加消息
     const exists = messages.value.some(m => m.id === msg.id);
@@ -223,12 +222,12 @@ const handleNewMessage = (msg) => {
 onMounted(() => {
   // 先注册消息处理器
   wsService.onMessage('chat', handleNewMessage);
-  
+
   loadChatList();
   if (currentUserId.value) {
     const token = getToken();
     if (token) {
-      wsService.connect(token, currentUserId.value).catch((err) => {
+      wsService.connect(token, String(currentUserId.value)).catch((err) => {
         console.error('WebSocket连接失败:', err);
       });
     }

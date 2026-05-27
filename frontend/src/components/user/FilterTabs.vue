@@ -13,12 +13,20 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+
+export interface TabItem {
+  value: string | number
+  label: string
+  count?: number
+}
+
 defineProps({
   tabs: {
-    type: Array,
+    type: Array as PropType<TabItem[]>,
     required: true,
-    validator: (v) => v.every(t => 'value' in t && 'label' in t)
+    validator: (v: TabItem[]) => v.every(t => 'value' in t && 'label' in t)
   },
   modelValue: {
     type: [String, Number],
@@ -62,7 +70,7 @@ defineEmits(['update:modelValue']);
 .filter-tab.active {
   background: var(--primary-color);
   border-color: var(--primary-color);
-  color: white;
+  color: var(--text-inverse);
 }
 
 .tab-count {
@@ -73,6 +81,6 @@ defineEmits(['update:modelValue']);
 }
 
 .filter-tab.active .tab-count {
-  background: oklch(100% 0 0 / 0.2);
+  background: var(--color-primary-alpha-15);
 }
 </style>

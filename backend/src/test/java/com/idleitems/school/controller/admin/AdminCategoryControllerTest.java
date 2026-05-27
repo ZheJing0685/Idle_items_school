@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageImpl;
@@ -38,30 +38,24 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @EnableAspectJAutoProxy
 @Import(PermissionAspect.class)
 @DisplayName("AdminCategoryController 分类管理接口测试")
-@SuppressWarnings("deprecation")
 class AdminCategoryControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
-    @SuppressWarnings("deprecation")
-    @MockBean
+    @MockitoBean
     private CategoryRepository categoryRepository;
 
-    @SuppressWarnings("deprecation")
-    @MockBean
+    @MockitoBean
     private ItemRepository itemRepository;
 
-    @SuppressWarnings("deprecation")
-    @MockBean
+    @MockitoBean
     private UserRepository userRepository;
 
-    @SuppressWarnings("deprecation")
-    @MockBean
+    @MockitoBean
     private CategoryService categoryService;
 
-    @SuppressWarnings("deprecation")
-    @MockBean
+    @MockitoBean
     private AdminLogService adminLogService;
 
     @BeforeEach
@@ -160,7 +154,7 @@ class AdminCategoryControllerTest {
         Category category = buildCategory();
         when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
 
-        mockMvc.perform(put("/api/admin/categories/batch/enable")
+        mockMvc.perform(post("/api/admin/categories/batch/enable")
                         .requestAttr("userId", 99L)
                         .contentType("application/json")
                         .content("[1]"))

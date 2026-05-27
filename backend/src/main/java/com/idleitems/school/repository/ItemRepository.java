@@ -20,6 +20,7 @@ import java.util.Optional;
 @Repository
 public interface ItemRepository extends JpaRepository<Item, Long> {
     Page<Item> findByStatus(Item.ItemStatus status, Pageable pageable);
+    long countByStatus(Item.ItemStatus status);
     Page<Item> findByUserIdAndStatus(Long userId, Item.ItemStatus status, Pageable pageable);
     Page<Item> findByUserId(Long userId, Pageable pageable);
     Page<Item> findByCategoryIdAndStatus(Long categoryId, Item.ItemStatus status, Pageable pageable);
@@ -33,7 +34,7 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
     Page<Item> findByFilters(@Param("status") Item.ItemStatus status,
                               @Param("categoryId") Long categoryId,
                               @Param("condition") Item.ItemCondition condition,
-                              @Param("deliveryMethod") Integer deliveryMethod,
+                              @Param("deliveryMethod") String deliveryMethod,
                               Pageable pageable);
     
     @Query("SELECT i FROM Item i WHERE i.status = :status " +
@@ -41,10 +42,10 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
            "AND (:condition IS NULL OR i.condition = :condition) " +
            "AND (:deliveryMethod IS NULL OR i.deliveryMethod = :deliveryMethod)")
     Page<Item> findByCategoryIdsAndFilters(@Param("status") Item.ItemStatus status,
-                                            @Param("categoryIds") List<Long> categoryIds,
-                                            @Param("condition") Item.ItemCondition condition,
-                                            @Param("deliveryMethod") Integer deliveryMethod,
-                                            Pageable pageable);
+                                             @Param("categoryIds") List<Long> categoryIds,
+                                             @Param("condition") Item.ItemCondition condition,
+                                             @Param("deliveryMethod") String deliveryMethod,
+                                             Pageable pageable);
 
     @Query("SELECT i FROM Item i WHERE i.status = :status AND (i.title LIKE %:keyword% OR i.description LIKE %:keyword%)")
     Page<Item> searchByKeyword(@Param("keyword") String keyword, @Param("status") Item.ItemStatus status, Pageable pageable);
@@ -56,6 +57,9 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
 
     @Query("SELECT COUNT(i) FROM Item i WHERE i.status = 'ON_SALE' AND i.categoryId IN :categoryIds")
     Long countByCategoryIds(@Param("categoryIds") List<Long> categoryIds);
+
+    @Query("SELECT i.categoryId, COUNT(i) FROM Item i WHERE i.status = 'ON_SALE' AND i.categoryId IN :categoryIds GROUP BY i.categoryId")
+    List<Object[]> countByCategoryIdsGrouped(@Param("categoryIds") List<Long> categoryIds);
 
     List<Item> findByStatusAndCreatedAtBetween(Item.ItemStatus status, LocalDateTime startDate, LocalDateTime endDate);
 
@@ -70,10 +74,12 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
     List<Object[]> countByUserIds(@Param("userIds") List<Long> userIds);
     
     /**
-     * 原子性增加收藏计数
-     *
-     * @param itemId 物品ID
+     * 原子性将物品标记为已售出
      */
+    @Modifying
+    @Query("UPDATE Item i SET i.status = 'SOLD' WHERE i.id = :itemId AND i.status = 'ON_SALE'")
+    int markItemAsSold(@Param("itemId") Long itemId);
+
     @Modifying
     @Query("UPDATE Item i SET i.favoriteCount = i.favoriteCount + 1 WHERE i.id = :itemId")
     void incrementFavoriteCount(@Param("itemId") Long itemId);

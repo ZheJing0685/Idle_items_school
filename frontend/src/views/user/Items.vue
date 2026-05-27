@@ -49,12 +49,12 @@
         @click="goToItemDetail(item.id)"
       >
         <template #actions>
-          <el-button type="primary" size="small" @click.stop="goToItemDetail(item.id)">查看详情</el-button>
-          <el-button type="info" size="small" @click.stop="editItem(item.id)" :disabled="!canEdit(item)">编辑</el-button>
-          <el-button v-if="canToggleShelf(item)" type="warning" size="small" @click.stop="toggleShelf(item)">
+          <el-button size="small" @click.stop="goToItemDetail(item.id)">详细</el-button>
+          <el-button size="small" :disabled="!canEdit(item)" @click.stop="editItem(item.id)">编辑</el-button>
+          <el-button v-if="canToggleShelf(item)" size="small" @click.stop="toggleShelf(item)">
             {{ item.status === 'ON_SALE' ? '下架' : '上架' }}
           </el-button>
-          <el-button v-if="canDelete(item)" type="danger" size="small" @click.stop="deleteItem(item.id)">删除</el-button>
+          <el-button v-if="canDelete(item)" size="small" type="danger" @click.stop="deleteItem(item.id)">删除</el-button>
         </template>
       </ItemCard>
     </div>
@@ -74,13 +74,14 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { Plus } from '@element-plus/icons-vue';
+import { ArrowUp, ArrowDown } from 'lucide-vue-next';
 import api from '../../api';
-import { useDictStore } from '../../store/dict.js';
+import { useDictStore } from '../../store/dict';
 import PageHeader from '../../components/user/PageHeader.vue';
 import FilterTabs from '../../components/user/FilterTabs.vue';
 import ItemCard from '../../components/user/ItemCard.vue';
@@ -89,7 +90,7 @@ import EmptyState from '../../components/user/EmptyState.vue';
 const router = useRouter();
 const dictStore = useDictStore();
 
-const items = ref([]);
+const items = ref<any[]>([]);
 const loading = ref(false);
 const error = ref('');
 const currentPage = ref(1);
@@ -127,28 +128,35 @@ const loadItems = async () => {
   }
 };
 
-const editItem = (id) => {
-  window.location.href = `/publish?edit=${id}`;
+const editItem = (id: string) => {
+  router.push(`/publish?edit=${id}`);
 };
 
-const deleteItem = async (id) => {
+const deleteItem = async (id: string) => {
   try {
     await ElMessageBox.confirm('确定要删除这个物品吗？删除后无法恢复。', '删除确认', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning',
     });
-    items.value = items.value.filter((item) => item.id !== id);
-    total.value--;
-    ElMessage.success('删除成功');
-  } catch (err) {
-    if (err !== 'cancel') {
+    const res = await api.item.deleteItem(id);
+    if (res.code === 200) {
+      items.value = items.value.filter((item) => item.id !== id);
+      total.value--;
+      ElMessage.success('删除成功');
+    } else {
+      ElMessage.error(res.message || '删除失败');
+    }
+  } catch (err: any) {
+    if (err?.response?.status === 404) {
+      ElMessage.error('删除失败，物品不存在');
+    } else if (err !== 'cancel') {
       ElMessage.error('删除失败');
     }
   }
 };
 
-const toggleShelf = async (item) => {
+const toggleShelf = async (item: any) => {
   try {
     const newStatus = item.status === 'ON_SALE' ? 'OFF_SHELF' : 'ON_SALE';
     const action = newStatus === 'ON_SALE' ? '上架' : '下架';
@@ -176,11 +184,11 @@ const toggleShelf = async (item) => {
   }
 };
 
-const goToItemDetail = (id) => {
-  window.location.href = `/item/${id}`;
+const goToItemDetail = (id: string) => {
+  router.push(`/item/${id}`);
 };
 
-const formatDate = (dateString) => {
+const formatDate = (dateString: string) => {
   if (!dateString) return '';
   const date = new Date(dateString);
   return date.toLocaleString('zh-CN', {
@@ -190,20 +198,20 @@ const formatDate = (dateString) => {
   });
 };
 
-const getStatusText = (status) => {
+const getStatusText = (status: string) => {
   return dictStore.getDictLabel('ITEM_STATUS', status);
 };
 
-const canEdit = (item) => {
+const canEdit = (item: any) => {
   return !(item.status === 'SOLD');
 };
 
-const canToggleShelf = (item) => {
-  return item.status !== 'PENDING';
+const canToggleShelf = (item: any) => {
+  return item.status !== 'PENDING' && item.status !== 'SOLD';
 };
 
-const canDelete = (item) => {
-  return !(item.status === 'SOLD');
+const canDelete = (item: any) => {
+  return item.status === 'PENDING' || item.status === 'OFF_SHELF';
 };
 
 const handleStatusChange = () => {
@@ -211,13 +219,13 @@ const handleStatusChange = () => {
   loadItems();
 };
 
-const handleSizeChange = (size) => {
+const handleSizeChange = (size: number) => {
   pageSize.value = size;
   currentPage.value = 1;
   loadItems();
 };
 
-const handleCurrentChange = (page) => {
+const handleCurrentChange = (page: number) => {
   currentPage.value = page;
   loadItems();
 };

@@ -2,6 +2,7 @@ package com.idleitems.school.controller;
 
 import com.idleitems.school.annotation.RequireRole;
 import com.idleitems.school.common.Result;
+import com.idleitems.school.config.ApiPaths;
 import com.idleitems.school.entity.SystemConfig;
 import com.idleitems.school.entity.User;
 import com.idleitems.school.service.ConfigService;
@@ -14,7 +15,7 @@ import java.util.Map;
 
 @Tag(name = "配置管理", description = "系统配置相关接口")
 @RestController
-@RequestMapping("/api/configs")
+@RequestMapping(ApiPaths.Config.BASE)
 @RequiredArgsConstructor
 @RequireRole({User.Role.ADMIN})
 public class ConfigController {

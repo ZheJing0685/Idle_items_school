@@ -67,39 +67,39 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import api from '../../api';
 
 const router = useRouter();
 const loading = ref(false);
-const feedbacks = ref([]);
+const feedbacks = ref<any[]>([]);
 const currentPage = ref(1);
 const pageSize = ref(10);
 const total = ref(0);
 
-const feedbackTypeText = (type) => {
-  const map = { INVALID: '分类无效', MISSING: '缺少分类', OTHER: '其他' };
+const feedbackTypeText = (type: string) => {
+  const map: Record<string, string> = { INVALID: '分类无效', MISSING: '缺少分类', OTHER: '其他' };
   return map[type] || type;
 };
 
-const feedbackTypeTag = (type) => {
-  const map = { INVALID: 'danger', MISSING: 'warning', OTHER: 'info' };
+const feedbackTypeTag = (type: string) => {
+  const map: Record<string, string> = { INVALID: 'danger', MISSING: 'warning', OTHER: 'info' };
   return map[type] || 'info';
 };
 
-const statusText = (status) => {
-  const map = { PENDING: '待处理', ACCEPTED: '已采纳', REJECTED: '已拒绝' };
+const statusText = (status: string) => {
+  const map: Record<string, string> = { PENDING: '待处理', ACCEPTED: '已采纳', REJECTED: '已拒绝' };
   return map[status] || status;
 };
 
-const statusTag = (status) => {
-  const map = { PENDING: 'warning', ACCEPTED: 'success', REJECTED: 'danger' };
+const statusTag = (status: string) => {
+  const map: Record<string, string> = { PENDING: 'warning', ACCEPTED: 'success', REJECTED: 'danger' };
   return map[status] || 'info';
 };
 
-const formatTime = (time) => {
+const formatTime = (time: string) => {
   if (!time) return '-';
   return new Date(time).toLocaleString('zh-CN');
 };

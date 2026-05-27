@@ -1,7 +1,7 @@
 <template>
   <div class="favorites-page">
     <PageHeader title="我的收藏" subtitle="收藏的物品会显示在这里，方便您随时查看" />
-    
+
     <!-- 加载状态 -->
     <div v-if="loading" class="loading-grid">
       <div v-for="i in 6" :key="i" class="skeleton-card">
@@ -12,17 +12,17 @@
         </div>
       </div>
     </div>
-    
+
     <!-- 错误提示 -->
     <el-alert v-else-if="error" :title="error" type="error" show-icon class="error-alert" />
-    
+
     <!-- 空状态 -->
     <EmptyState v-else-if="favorites.length === 0" title="您还没有收藏任何物品" description="浏览物品时点击收藏，感兴趣的物品会显示在这里">
       <template #action>
         <el-button type="primary" @click="$router.push('/')">去浏览物品</el-button>
       </template>
     </EmptyState>
-    
+
     <!-- 收藏列表 -->
     <div v-else class="favorites-grid">
       <ItemCard
@@ -43,7 +43,7 @@
         </template>
       </ItemCard>
     </div>
-    
+
     <!-- 分页 -->
     <div v-if="!loading && !error && favorites.length > 0" class="pagination">
       <el-pagination
@@ -59,8 +59,9 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import api from '../../api';
 import { useDictStore } from '../../store/dict.js';
@@ -68,9 +69,10 @@ import PageHeader from '../../components/user/PageHeader.vue';
 import ItemCard from '../../components/user/ItemCard.vue';
 import EmptyState from '../../components/user/EmptyState.vue';
 
+const router = useRouter();
 const dictStore = useDictStore();
 
-const favorites = ref([]);
+const favorites = ref<any[]>([]);
 const loading = ref(false);
 const error = ref('');
 const currentPage = ref(1);
@@ -98,11 +100,11 @@ const loadFavorites = async () => {
   }
 };
 
-const removeFavorite = async (itemId) => {
+const removeFavorite = async (itemId: string) => {
   try {
     const response = await api.favorite.removeFavorite(itemId);
     if (response.code === 200) {
-      favorites.value = favorites.value.filter((fav) => fav.itemId !== itemId);
+      favorites.value = favorites.value.filter((fav) => String(fav.itemId) !== itemId);
       total.value--;
       ElMessage.success('取消收藏成功');
     } else {
@@ -113,11 +115,11 @@ const removeFavorite = async (itemId) => {
   }
 };
 
-const goToItemDetail = (itemId) => {
-  window.location.href = `/item/${itemId}`;
+const goToItemDetail = (itemId: string) => {
+  router.push(`/item/${itemId}`);
 };
 
-const formatDate = (dateString) => {
+const formatDate = (dateString: string) => {
   if (!dateString) return '';
   const date = new Date(dateString);
   return date.toLocaleString('zh-CN', {
@@ -127,17 +129,17 @@ const formatDate = (dateString) => {
   });
 };
 
-const getStatusText = (status) => {
-  return dictStore.getDictLabel('ITEM_STATUS', status);
+const getStatusText = (status: string) => {
+  return dictStore.getDictLabel('ITEM_STATUS', status) || status;
 };
 
-const handleSizeChange = (size) => {
+const handleSizeChange = (size: number) => {
   pageSize.value = size;
   currentPage.value = 1;
   loadFavorites();
 };
 
-const handleCurrentChange = (page) => {
+const handleCurrentChange = (page: number) => {
   currentPage.value = page;
   loadFavorites();
 };

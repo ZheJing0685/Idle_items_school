@@ -2,13 +2,19 @@
   <div ref="chartRef" class="echarts-container"></div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch, computed } from 'vue';
 import * as echarts from 'echarts/core';
 import { PieChart } from 'echarts/charts';
 import { TooltipComponent, LegendComponent } from 'echarts/components';
 import { CanvasRenderer } from 'echarts/renderers';
 import { useDictStore } from '../../../store/dict.js';
+import { useThemeColor } from '../../../composables/useThemeColor';
+
+function getCSSVar(name: string): string {
+  if (typeof document === 'undefined') return '#fff';
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || '#fff';
+}
 
 echarts.use([PieChart, TooltipComponent, LegendComponent, CanvasRenderer]);
 
@@ -20,22 +26,15 @@ const props = defineProps({
 });
 
 const dictStore = useDictStore();
-const chartRef = ref(null);
-let chartInstance = null;
+const { chartColors } = useThemeColor();
+const chartRef = ref<HTMLDivElement | null>(null);
+let chartInstance: echarts.ECharts | null = null;
 
 // 从字典获取状态映射
 const statusMap = computed(() => {
-  const map = {};
+  const map: Record<string, any> = {};
   const orderStatuses = dictStore.getDictOptions('ORDER_STATUS');
-  const colors = [
-    '#f59e0b',
-    '#3b82f6',
-    '#8b5cf6',
-    '#22c55e',
-    '#94a3b8',
-    '#ef4444',
-    '#ec4899',
-  ];
+  const colors = chartColors();
 
   orderStatuses.forEach((status, index) => {
     map[status.value] = {
@@ -59,12 +58,12 @@ const initChart = () => {
 const updateChart = () => {
   if (!chartInstance) return;
 
-  const pieData = Object.entries(props.data)
+  const pieData = Object.entries(props.data as Record<string, number>)
     .filter(([key, value]) => value > 0)
     .map(([key, value]) => ({
       name: statusMap.value[key]?.name || key,
       value: value,
-      itemStyle: { color: statusMap.value[key]?.color || '#94a3b8' },
+      itemStyle: { color: statusMap.value[key]?.color || getCSSVar('--chart-color-5') },
     }));
 
   const option = {
@@ -86,7 +85,7 @@ const updateChart = () => {
         avoidLabelOverlap: false,
         itemStyle: {
           borderRadius: 10,
-          borderColor: '#fff',
+          borderColor: getCSSVar('--bg-surface'),
           borderWidth: 2,
         },
         label: {

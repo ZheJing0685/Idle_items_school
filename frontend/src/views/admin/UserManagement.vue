@@ -8,15 +8,7 @@
     <div class="stats-row">
       <div class="stat-card">
         <div class="stat-icon stat-icon-users">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-          >
-            <circle cx="12" cy="8" r="4" />
-            <path d="M4 21v-2a4 4 0 014-4h8a4 4 0 014 4v2" />
-          </svg>
+          <User :size="24" />
         </div>
         <div class="stat-content">
           <span class="stat-value">{{ stats.total }}</span>
@@ -25,15 +17,7 @@
       </div>
       <div class="stat-card">
         <div class="stat-icon stat-icon-active">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-          >
-            <circle cx="12" cy="12" r="9" />
-            <path d="M12 7v5l3 3" />
-          </svg>
+          <Clock :size="24" />
         </div>
         <div class="stat-content">
           <span class="stat-value">{{ stats.active }}</span>
@@ -42,15 +26,7 @@
       </div>
       <div class="stat-card">
         <div class="stat-icon stat-icon-verified">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-          >
-            <path d="M9 12l2 2 4-4" />
-            <circle cx="12" cy="12" r="9" />
-          </svg>
+          <CheckCircle :size="24" />
         </div>
         <div class="stat-content">
           <span class="stat-value">{{ stats.verified }}</span>
@@ -59,14 +35,7 @@
       </div>
       <div class="stat-card">
         <div class="stat-icon stat-icon-new">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-          >
-            <path d="M12 5v14M5 12h14" />
-          </svg>
+          <Plus :size="24" />
         </div>
         <div class="stat-content">
           <span class="stat-value">{{ stats.newThisWeek }}</span>
@@ -83,27 +52,11 @@
         </div>
         <div class="header-actions">
           <button class="btn btn-ghost" @click="handleExport">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-            >
-              <path
-                d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"
-              />
-            </svg>
+            <Download :size="16" />
             导出
           </button>
           <button class="btn btn-primary" @click="handleAdd">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-            >
-              <path d="M12 5v14M5 12h14" />
-            </svg>
+            <Plus :size="16" />
             添加用户
           </button>
         </div>
@@ -111,16 +64,7 @@
 
       <div class="filters-bar">
         <div class="filter-search">
-          <svg
-            class="search-icon"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          >
-            <circle cx="11" cy="11" r="8" />
-            <path d="M21 21l-4.35-4.35" />
-          </svg>
+          <Search :size="16" class="search-icon" />
           <input
             v-model="searchKeyword"
             type="text"
@@ -130,240 +74,131 @@
           />
         </div>
         <div class="filter-selects">
-          <select
-            v-model="userRole"
-            class="filter-select"
-            @change="handleSearch"
-          >
-            <option value="">全部角色</option>
-            <option value="STUDENT">学生</option>
-            <option value="ADMIN">管理员</option>
-          </select>
-          <select
-            v-model="userStatus"
-            class="filter-select"
-            @change="handleSearch"
-          >
-            <option value="">全部状态</option>
-            <option value="ACTIVE">活跃</option>
-            <option value="DISABLED">禁用</option>
-          </select>
-          <select
-            v-model="userVerified"
-            class="filter-select"
-            @change="handleSearch"
-          >
-            <option value="">认证状态</option>
-            <option value="true">已认证</option>
-            <option value="false">未认证</option>
-          </select>
+          <el-select v-model="userRole" placeholder="全部角色" @change="handleSearch" class="filter-select">
+            <el-option label="全部角色" value="" />
+            <el-option label="学生" value="STUDENT" />
+            <el-option label="管理员" value="ADMIN" />
+          </el-select>
+          <el-select v-model="userStatus" placeholder="全部状态" @change="handleSearch" class="filter-select">
+            <el-option label="全部状态" value="" />
+            <el-option label="活跃" value="ACTIVE" />
+            <el-option label="禁用" value="DISABLED" />
+          </el-select>
+          <el-select v-model="userVerified" placeholder="认证状态" @change="handleSearch" class="filter-select">
+            <el-option label="认证状态" value="" />
+            <el-option label="已认证" value="true" />
+            <el-option label="未认证" value="false" />
+          </el-select>
           <button class="btn btn-ghost btn-sm" @click="handleReset">
             重置
           </button>
         </div>
       </div>
 
-      <div class="table-wrapper">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th class="col-checkbox">
-                <input
-                  type="checkbox"
-                  @change="handleSelectAll"
-                  :checked="isAllSelected"
-                />
-              </th>
-              <th class="col-user">用户</th>
-              <th class="col-school">学校/学号</th>
-              <th class="col-role">角色</th>
-              <th class="col-status">状态</th>
-              <th class="col-verified">认证</th>
-              <th class="col-credit">信用</th>
-              <th class="col-stats">交易统计</th>
-              <th class="col-login">最后登录</th>
-              <th class="col-actions">操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="user in users" :key="user.id" class="table-row">
-              <td class="col-checkbox">
-                <input
-                  type="checkbox"
-                  v-model="selectedUsers"
-                  :value="user.id"
-                />
-              </td>
-              <td class="col-user">
-                <div class="user-cell">
-                  <el-avatar :size="36" :src="user.avatar">
-                    {{ getAvatarText(user) }}
-                  </el-avatar>
-                  <div class="user-info">
-                    <span class="user-name">{{
-                      user.nickname || user.username
-                    }}</span>
-                    <span class="user-email">{{
-                      user.email || '未设置邮箱'
-                    }}</span>
-                  </div>
-                </div>
-              </td>
-              <td class="col-school">
-                <div class="school-cell">
-                  <span class="school-name">{{ user.schoolName || '-' }}</span>
-                  <span class="student-id" v-if="user.studentId"
-                    >学号: {{ user.studentId }}</span
-                  >
-                </div>
-              </td>
-              <td class="col-role">
-                <span
-                  class="badge"
-                  :class="
-                    user.role === 'ADMIN' ? 'badge-admin' : 'badge-student'
-                  "
-                >
-                  {{ user.role === 'ADMIN' ? '管理员' : '学生' }}
-                </span>
-              </td>
-              <td class="col-status">
-                <span
-                  class="badge"
-                  :class="
-                    user.status === 'ACTIVE' ? 'badge-success' : 'badge-danger'
-                  "
-                >
-                  {{ user.status === 'ACTIVE' ? '活跃' : '禁用' }}
-                </span>
-              </td>
-              <td class="col-verified">
-                <span
-                  class="badge"
-                  :class="user.verified ? 'badge-success' : 'badge-warning'"
-                >
-                  {{ user.verified ? '已认证' : '未认证' }}
-                </span>
-              </td>
-              <td class="col-credit">
-                <el-progress
-                  :percentage="user.creditScore || 100"
-                  :color="getScoreColor(user.creditScore)"
-                  :show-text="false"
-                  class="credit-progress"
-                />
-                <span class="credit-value">{{ user.creditScore || 100 }}</span>
-              </td>
-              <td class="col-stats">
-                <div class="stats-mini">
-                  <span class="mini-stat" title="售出">{{
-                    user.totalSales || 0
-                  }}</span>
-                  <span class="mini-sep">/</span>
-                  <span class="mini-stat" title="购买">{{
-                    user.totalPurchases || 0
-                  }}</span>
-                </div>
-              </td>
-              <td class="col-login">
-                <div class="login-info">
-                  <span class="login-time">{{
-                    formatDate(user.lastLoginTime)
-                  }}</span>
-                  <span class="login-ip" v-if="user.lastLoginIp">{{
-                    user.lastLoginIp
-                  }}</span>
-                </div>
-              </td>
-              <td class="col-actions">
-                <div class="action-group">
-                  <button
-                    class="action-btn"
-                    @click="handleView(user)"
-                    title="查看详情"
-                  >
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.5"
-                    >
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                      <circle cx="12" cy="12" r="3" />
-                    </svg>
-                  </button>
-                  <button
-                    class="action-btn"
-                    @click="handleEdit(user)"
-                    title="编辑"
-                  >
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.5"
-                    >
-                      <path
-                        d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"
-                      />
-                      <path
-                        d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"
-                      />
-                    </svg>
-                  </button>
-                  <button
-                    class="action-btn"
-                    :class="
-                      user.status === 'ACTIVE'
-                        ? 'action-danger'
-                        : 'action-success'
-                    "
-                    @click="handleToggleStatus(user)"
-                    :title="user.status === 'ACTIVE' ? '禁用' : '启用'"
-                  >
-                    <svg
-                      v-if="user.status === 'ACTIVE'"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.5"
-                    >
-                      <circle cx="12" cy="12" r="10" />
-                      <path d="M4.93 4.93l14.14 14.14" />
-                    </svg>
-                    <svg
-                      v-else
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.5"
-                    >
-                      <path d="M9 12l2 2 4-4" />
-                      <circle cx="12" cy="12" r="10" />
-                    </svg>
-                  </button>
-                  <button
-                    class="action-btn action-danger"
-                    @click="handleDelete(user)"
-                    title="删除"
-                  >
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.5"
-                    >
-                      <path
-                        d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"
-                      />
-                    </svg>
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <el-table
+        :data="users"
+        row-key="id"
+        stripe
+        @selection-change="handleSelectionChange"
+        @sort-change="handleSortChange"
+      >
+        <el-table-column type="selection" width="50" />
+        <el-table-column label="用户" min-width="200">
+          <template #default="{ row }">
+            <div class="user-cell">
+              <el-avatar :size="36" :src="row.avatar">
+                {{ getAvatarText(row) }}
+              </el-avatar>
+              <div class="user-info">
+                <span class="user-name">{{ row.nickname || row.username }}</span>
+                <span class="user-email">{{ row.email || '未设置邮箱' }}</span>
+              </div>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column label="学校/学号" min-width="160">
+          <template #default="{ row }">
+            <div class="school-cell">
+              <span class="school-name">{{ row.schoolName || '-' }}</span>
+              <span class="student-id" v-if="row.studentId">学号: {{ row.studentId }}</span>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column label="角色" width="90">
+          <template #default="{ row }">
+            <span class="badge" :class="row.role === 'ADMIN' ? 'badge-admin' : 'badge-student'">
+              {{ row.role === 'ADMIN' ? '管理员' : '学生' }}
+            </span>
+          </template>
+        </el-table-column>
+        <el-table-column label="状态" width="80">
+          <template #default="{ row }">
+            <span class="badge" :class="row.status === 'ACTIVE' ? 'badge-success' : 'badge-danger'">
+              {{ row.status === 'ACTIVE' ? '活跃' : '禁用' }}
+            </span>
+          </template>
+        </el-table-column>
+        <el-table-column label="认证" width="80">
+          <template #default="{ row }">
+            <span class="badge" :class="row.verified ? 'badge-success' : 'badge-warning'">
+              {{ row.verified ? '已认证' : '未认证' }}
+            </span>
+          </template>
+        </el-table-column>
+        <el-table-column label="信用" width="120">
+          <template #default="{ row }">
+            <el-progress
+              :percentage="row.creditScore || 100"
+              :color="getScoreColor(row.creditScore)"
+              :show-text="false"
+              class="credit-progress"
+            />
+            <span class="credit-value">{{ row.creditScore || 100 }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="交易统计" width="100">
+          <template #default="{ row }">
+            <div class="stats-mini">
+              <span class="mini-stat" title="售出">{{ row.totalSales || 0 }}</span>
+              <span class="mini-sep">/</span>
+              <span class="mini-stat" title="购买">{{ row.totalPurchases || 0 }}</span>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column label="最后登录" width="130">
+          <template #default="{ row }">
+            <div class="login-info">
+              <span class="login-time">{{ formatDate(row.lastLoginTime) }}</span>
+              <span class="login-ip" v-if="row.lastLoginIp">{{ row.lastLoginIp }}</span>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="180" fixed="right">
+          <template #default="{ row }">
+            <div class="action-group">
+              <button class="action-btn" @click="handleView(row)" title="查看详情" aria-label="查看详情">
+                <Eye :size="16" />
+              </button>
+              <button class="action-btn" @click="handleEdit(row)" title="编辑" aria-label="编辑">
+                <Edit3 :size="16" />
+              </button>
+              <button
+                class="action-btn"
+                :class="row.status === 'ACTIVE' ? 'action-danger' : 'action-success'"
+                @click="handleToggleStatus(row)"
+                :title="row.status === 'ACTIVE' ? '禁用' : '启用'"
+                :aria-label="row.status === 'ACTIVE' ? '禁用' : '启用'"
+              >
+                <Ban v-if="row.status === 'ACTIVE'" :size="16" />
+                <CheckCircle v-else :size="16" />
+              </button>
+              <button class="action-btn action-danger" @click="handleDelete(row)" title="删除" aria-label="删除">
+                <Trash2 :size="16" />
+              </button>
+            </div>
+          </template>
+        </el-table-column>
+      </el-table>
 
       <div class="table-footer" v-if="selectedUsers.length > 0">
         <div class="selection-info">
@@ -383,58 +218,15 @@
       </div>
 
       <div class="pagination-wrapper">
-        <div class="pagination-info">
-          显示 {{ (page - 1) * pageSize + 1 }} -
-          {{ Math.min(page * pageSize, total) }} 条，共 {{ total }} 条
-        </div>
-        <div class="pagination-controls">
-          <select
-            v-model="pageSize"
-            class="page-size-select"
-            @change="handleSizeChange"
-          >
-            <option :value="10">10 条/页</option>
-            <option :value="20">20 条/页</option>
-            <option :value="50">50 条/页</option>
-          </select>
-          <div class="pagination-buttons">
-            <button
-              class="page-btn"
-              :disabled="page === 1"
-              @click="
-                page--;
-                fetchUsers();
-              "
-            >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path d="M15 18l-6-6 6-6" />
-              </svg>
-            </button>
-            <span class="page-indicator">{{ page }} / {{ totalPages }}</span>
-            <button
-              class="page-btn"
-              :disabled="page >= totalPages"
-              @click="
-                page++;
-                fetchUsers();
-              "
-            >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path d="M9 18l6-6-6-6" />
-              </svg>
-            </button>
-          </div>
-        </div>
+        <el-pagination
+          v-model:current-page="page"
+          v-model:page-size="pageSize"
+          :page-sizes="[10, 20, 50]"
+          :total="total"
+          layout="total, sizes, prev, pager, next, jumper"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+        />
       </div>
     </div>
 
@@ -673,31 +465,32 @@
   </div>
 </template>
 
-<script setup>
-import { ref, computed, onMounted } from 'vue';
+<script setup lang="ts">
+import { ref, onMounted } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import api from '../../api';
+import { User, Clock, CheckCircle, Plus, Download, Search, Eye, Edit3, Ban, Trash2 } from 'lucide-vue-next';
 
 const searchKeyword = ref('');
 const userRole = ref('');
 const userStatus = ref('');
 const userVerified = ref('');
-const users = ref([]);
-const selectedUsers = ref([]);
+const users = ref<any[]>([]);
+const selectedUsers = ref<any[]>([]);
 const page = ref(1);
 const pageSize = ref(20);
 const total = ref(0);
 const dialogVisible = ref(false);
-const currentUser = ref(null);
+const currentUser = ref<any>(null);
 
 // 编辑用户相关
 const editDialogVisible = ref(false);
-const editForm = ref({});
+const editForm = ref<{ id?: number; username?: string; email?: string; password?: string; phone?: string; nickname?: string; role?: string; status?: string; studentId?: string; gender?: number; schoolName?: string; bio?: string }>({});
 const editLoading = ref(false);
 
 // 添加用户相关
 const addDialogVisible = ref(false);
-const addForm = ref({});
+const addForm = ref<{ username?: string; email?: string; password?: string; phone?: string; nickname?: string; role?: string; status?: string; studentId?: string }>({});
 const addLoading = ref(false);
 
 const stats = ref({
@@ -707,25 +500,20 @@ const stats = ref({
   newThisWeek: 0,
 });
 
-const totalPages = computed(() => Math.ceil(total.value / pageSize.value) || 1);
-const isAllSelected = computed(
-  () =>
-    users.value.length > 0 && selectedUsers.value.length === users.value.length
-);
 
-const getAvatarText = (user) => {
+const getAvatarText = (user: any) => {
   if (user.nickname && user.nickname.length > 0) return user.nickname.charAt(0);
   if (user.username && user.username.length > 0) return user.username.charAt(0);
   return '用';
 };
 
-const getScoreColor = (score) => {
-  if (score >= 80) return '#67C23A';
-  if (score >= 60) return '#E6A23C';
-  return '#F56C6C';
+const getScoreColor = (score: number) => {
+  if (score >= 80) return 'var(--color-success)';
+  if (score >= 60) return 'var(--color-warning)';
+  return 'var(--color-danger)';
 };
 
-const formatDate = (dateString) => {
+const formatDate = (dateString: string) => {
   if (!dateString) return '-';
   const date = new Date(dateString);
   return date.toLocaleDateString('zh-CN', {
@@ -735,7 +523,7 @@ const formatDate = (dateString) => {
   });
 };
 
-const formatDateTime = (dateString) => {
+const formatDateTime = (dateString: string) => {
   if (!dateString) return '-';
   const date = new Date(dateString);
   return date.toLocaleString('zh-CN', {
@@ -749,7 +537,7 @@ const formatDateTime = (dateString) => {
 
 const fetchUsers = async () => {
   try {
-    const params = {};
+    const params: Record<string, any> = {};
     params.page = page.value;
     params.size = pageSize.value;
     if (searchKeyword.value) params.keyword = searchKeyword.value;
@@ -759,12 +547,12 @@ const fetchUsers = async () => {
 
     const response = await api.admin.users.getUsers(params);
     if (response.code === 200) {
-      let userList = response.data.content || [];
+      let userList: any[] = response.data.content || [];
 
       if (searchKeyword.value) {
         const keyword = searchKeyword.value.toLowerCase();
         userList = userList.filter(
-          (user) =>
+          (user: any) =>
             (user.username && user.username.toLowerCase().includes(keyword)) ||
             (user.nickname && user.nickname.toLowerCase().includes(keyword)) ||
             (user.email && user.email.toLowerCase().includes(keyword))
@@ -813,12 +601,17 @@ const handleReset = () => {
   fetchUsers();
 };
 
-const handleSelectAll = (e) => {
-  if (e.target.checked) {
-    selectedUsers.value = users.value.map((u) => u.id);
-  } else {
-    selectedUsers.value = [];
-  }
+const handleSelectionChange = (selection: any[]) => {
+  selectedUsers.value = selection.map((u) => u.id);
+};
+
+const handleSortChange = () => {
+  // 排序逻辑可在此扩展
+};
+
+const handleCurrentChange = (val: number) => {
+  page.value = val;
+  fetchUsers();
 };
 
 const handleSizeChange = () => {
@@ -826,12 +619,12 @@ const handleSizeChange = () => {
   fetchUsers();
 };
 
-const handleView = (user) => {
+const handleView = (user: any) => {
   currentUser.value = user;
   dialogVisible.value = true;
 };
 
-const handleEdit = (user) => {
+const handleEdit = (user: any) => {
   editForm.value = {
     id: user.id,
     username: user.username,
@@ -848,7 +641,7 @@ const handleEdit = (user) => {
   editDialogVisible.value = true;
 };
 
-const handleToggleStatus = async (user) => {
+const handleToggleStatus = async (user: any) => {
   const action = user.status === 'ACTIVE' ? '禁用' : '启用';
   try {
     await ElMessageBox.confirm(
@@ -873,7 +666,7 @@ const handleToggleStatus = async (user) => {
   }
 };
 
-const handleDelete = async (user) => {
+const handleDelete = async (user: any) => {
   try {
     await ElMessageBox.confirm(
       `确定要删除用户 ${user.username} 吗？此操作不可恢复。`,
@@ -882,7 +675,7 @@ const handleDelete = async (user) => {
         type: 'error',
       }
     );
-    const response = await api.admin.users.deleteUser(user.id);
+    const response = await api.admin.users.deleteUsers([user.id]);
     if (response.code === 200) {
       users.value = users.value.filter((u) => u.id !== user.id);
       total.value--;
@@ -977,13 +770,13 @@ const handleBulkDelete = async () => {
 
 const handleExport = async () => {
   try {
-    const params = {};
+    const params: Record<string, any> = {};
     if (searchKeyword.value) params.keyword = searchKeyword.value;
     if (userRole.value) params.role = userRole.value;
     if (userStatus.value) params.status = userStatus.value;
 
-    const response = await api.admin.users.exportUsers(params);
-    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const blob = await api.admin.users.exportUsers(params);
+    const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
     link.setAttribute('download', `users_${new Date().getTime()}.csv`);
@@ -1017,7 +810,7 @@ const submitEdit = async () => {
   }
   editLoading.value = true;
   try {
-    const response = await api.admin.users.updateUser(editForm.value.id, {
+    const response = await api.admin.users.updateUser(editForm.value.id!, {
       email: editForm.value.email,
       phone: editForm.value.phone,
       nickname: editForm.value.nickname,
@@ -1027,7 +820,7 @@ const submitEdit = async () => {
       gender: editForm.value.gender,
       bio: editForm.value.bio,
       schoolName: editForm.value.schoolName,
-    });
+    } as any);
     if (response.code === 200) {
       ElMessage.success('更新成功');
       editDialogVisible.value = false;
@@ -1061,7 +854,7 @@ const submitAdd = async () => {
   }
   addLoading.value = true;
   try {
-    const response = await api.admin.users.createUser(addForm.value);
+    const response = await api.admin.users.createUser(addForm.value as any);
     if (response.code === 200) {
       ElMessage.success('创建成功');
       addDialogVisible.value = false;

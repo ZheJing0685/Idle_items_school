@@ -8,16 +8,7 @@
     <div class="stats-row">
       <div class="stat-card">
         <div class="stat-icon stat-icon-total">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-          >
-            <path
-              d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-            />
-          </svg>
+          <Package :size="24" />
         </div>
         <div class="stat-content">
           <span class="stat-value">{{ stats.total }}</span>
@@ -26,15 +17,7 @@
       </div>
       <div class="stat-card">
         <div class="stat-icon stat-icon-pending">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-          >
-            <circle cx="12" cy="12" r="10" />
-            <path d="M12 6v6l4 2" />
-          </svg>
+          <Clock :size="24" />
         </div>
         <div class="stat-content">
           <span class="stat-value">{{ stats.pending }}</span>
@@ -43,14 +26,7 @@
       </div>
       <div class="stat-card">
         <div class="stat-icon stat-icon-onsale">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-          >
-            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
-          </svg>
+          <DollarSign :size="24" />
         </div>
         <div class="stat-content">
           <span class="stat-value">{{ stats.onSale }}</span>
@@ -59,15 +35,7 @@
       </div>
       <div class="stat-card">
         <div class="stat-icon stat-icon-sold">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-          >
-            <path d="M9 12l2 2 4-4" />
-            <circle cx="12" cy="12" r="10" />
-          </svg>
+          <CheckCircle :size="24" />
         </div>
         <div class="stat-content">
           <span class="stat-value">{{ stats.sold }}</span>
@@ -84,16 +52,7 @@
         </div>
         <div class="header-actions">
           <button class="btn btn-ghost" @click="handleExport">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-            >
-              <path
-                d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"
-              />
-            </svg>
+            <Download :size="16" />
             导出
           </button>
         </div>
@@ -101,16 +60,7 @@
 
       <div class="filters-bar">
         <div class="filter-search">
-          <svg
-            class="search-icon"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          >
-            <circle cx="11" cy="11" r="8" />
-            <path d="M21 21l-4.35-4.35" />
-          </svg>
+          <Search :size="16" class="search-icon" />
           <input
             v-model="searchKeyword"
             type="text"
@@ -120,298 +70,155 @@
           />
         </div>
         <div class="filter-selects">
-          <select v-model="itemStatus" class="filter-select">
-            <option value="">全部状态</option>
-            <option value="DRAFT">草稿</option>
-            <option value="PENDING">待审核</option>
-            <option value="ON_SALE">在售</option>
-            <option value="SOLD">已售</option>
-            <option value="OFF_SHELF">已下架</option>
-            <option value="REJECTED">已驳回</option>
-          </select>
-          <select v-model="categoryId" class="filter-select">
-            <option value="">全部分类</option>
-            <option v-for="cat in categories" :key="cat.id" :value="cat.id">
-              {{ cat.name }}
-            </option>
-          </select>
-          <select v-model="itemCondition" class="filter-select">
-            <option value="">全部成色</option>
-            <option value="NEW">全新</option>
-            <option value="LIKE_NEW">几乎全新</option>
-            <option value="GOOD">良好</option>
-            <option value="FAIR">一般</option>
-            <option value="POOR">较差</option>
-          </select>
-          <select v-model="bargainAllowed" class="filter-select">
-            <option value="">议价状态</option>
-            <option value="true">可议价</option>
-            <option value="false">一口价</option>
-          </select>
+          <el-select v-model="itemStatus" placeholder="全部状态" clearable>
+            <el-option value="DRAFT" label="草稿" />
+            <el-option value="PENDING" label="待审核" />
+            <el-option value="ON_SALE" label="在售" />
+            <el-option value="SOLD" label="已售" />
+            <el-option value="OFF_SHELF" label="已下架" />
+            <el-option value="REJECTED" label="已驳回" />
+          </el-select>
+          <el-select v-model="categoryId" placeholder="全部分类" clearable>
+            <el-option v-for="cat in categories" :key="cat.id" :value="cat.id" :label="cat.name" />
+          </el-select>
+          <el-select v-model="itemCondition" placeholder="全部成色" clearable>
+            <el-option value="NEW" label="全新" />
+            <el-option value="LIKE_NEW" label="几乎全新" />
+            <el-option value="GOOD" label="良好" />
+            <el-option value="FAIR" label="一般" />
+            <el-option value="POOR" label="较差" />
+          </el-select>
+          <el-select v-model="bargainAllowed" placeholder="议价状态" clearable>
+            <el-option value="true" label="可议价" />
+            <el-option value="false" label="一口价" />
+          </el-select>
           <button class="btn btn-ghost btn-sm" @click="handleReset">
             重置
           </button>
         </div>
       </div>
 
-      <div class="table-wrapper">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th class="col-checkbox">
-                <input
-                  type="checkbox"
-                  @change="handleSelectAll"
-                  :checked="isAllSelected"
-                />
-              </th>
-              <th class="col-image">物品</th>
-              <th class="col-price">价格</th>
-              <th class="col-condition">成色</th>
-              <th class="col-delivery">配送</th>
-              <th class="col-bargain">议价</th>
-              <th class="col-category">分类</th>
-              <th class="col-status">状态</th>
-              <th class="col-stats">浏览/收藏</th>
-              <th class="col-seller">发布者</th>
-              <th class="col-date">发布时间</th>
-              <th class="col-actions">操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="item in items" :key="item.id" class="table-row">
-              <td class="col-checkbox">
-                <input
-                  type="checkbox"
-                  v-model="selectedItems"
-                  :value="item.id"
-                />
-              </td>
-              <td class="col-image">
-                <div class="item-cell">
-                  <div class="item-image">
-                    <img :src="getFirstImage(item)" :alt="item.title" />
-                    <span v-if="item.isRecommended" class="recommend-badge"
-                      >推荐</span
-                    >
-                  </div>
-                  <div class="item-info">
-                    <span class="item-title">{{ item.title }}</span>
-                    <span class="item-desc">{{
-                      truncateText(item.description, 30)
-                    }}</span>
-                    <div class="item-tags" v-if="item.tags">
-                      <span
-                        class="tag"
-                        v-for="tag in item.tags.split(',').slice(0, 2)"
-                        :key="tag"
-                        >{{ tag }}</span
-                      >
-                    </div>
-                  </div>
+      <el-table
+        :data="items"
+        row-key="id"
+        @selection-change="handleSelectionChange"
+        stripe
+        empty-text="暂无物品数据"
+      >
+        <el-table-column type="selection" width="50" />
+        <el-table-column label="物品" min-width="200">
+          <template #default="{ row }">
+            <div class="item-cell">
+              <div class="item-image">
+                <img :src="getFirstImage(row)" :alt="row.title" />
+                <span v-if="row.isRecommended" class="recommend-badge">推荐</span>
+              </div>
+              <div class="item-info">
+                <span class="item-title">{{ row.title }}</span>
+                <span class="item-desc">{{ truncateText(row.description, 30) }}</span>
+                <div class="item-tags" v-if="row.tags">
+                  <span class="tag" v-for="tag in row.tags.split(',').slice(0, 2)" :key="tag">{{ tag }}</span>
                 </div>
-              </td>
-              <td class="col-price">
-                <span class="price-value">¥{{ item.price }}</span>
-                <span
-                  class="price-original"
-                  v-if="item.originalPrice && item.originalPrice > item.price"
-                  >¥{{ item.originalPrice }}</span
-                >
-                <span
-                  class="bargain-hint"
-                  v-if="item.isBargainAllowed && item.minPrice"
-                  >可至¥{{ item.minPrice }}</span
-                >
-              </td>
-              <td class="col-condition">
-                <span
-                  class="badge"
-                  :class="getConditionClass(item.itemCondition)"
-                >
-                  {{ getConditionText(item.itemCondition) }}
-                </span>
-              </td>
-              <td class="col-delivery">
-                <span class="delivery-text">{{
-                  getDeliveryText(item.deliveryMethod)
-                }}</span>
-              </td>
-              <td class="col-bargain">
-                <span
-                  class="badge"
-                  :class="
-                    item.isBargainAllowed ? 'badge-success' : 'badge-default'
-                  "
-                >
-                  {{ item.isBargainAllowed ? '可议价' : '一口价' }}
-                </span>
-              </td>
-              <td class="col-category">
-                <span class="badge badge-category">{{
-                  item.categoryName || '未分类'
-                }}</span>
-              </td>
-              <td class="col-status">
-                <span class="badge" :class="getStatusClass(item.status)">
-                  {{ getStatusText(item.status) }}
-                </span>
-                <span
-                  class="reject-reason"
-                  v-if="item.status === 'REJECTED' && item.rejectReason"
-                  :title="item.rejectReason"
-                >
-                  {{ truncateText(item.rejectReason, 15) }}
-                </span>
-              </td>
-              <td class="col-stats">
-                <div class="stats-mini">
-                  <span class="stat-item" title="浏览">
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.5"
-                    >
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                      <circle cx="12" cy="12" r="3" />
-                    </svg>
-                    {{ item.viewCount || 0 }}
-                  </span>
-                  <span class="stat-item" title="收藏">
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.5"
-                    >
-                      <path
-                        d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"
-                      />
-                    </svg>
-                    {{ item.favoriteCount || 0 }}
-                  </span>
-                </div>
-              </td>
-              <td class="col-seller">
-                <div class="seller-cell">
-                  <span class="seller-name">{{
-                    item.sellerNickname || '-'
-                  }}</span>
-                  <span class="seller-id" v-if="item.sellerVerified"
-                    >已认证</span
-                  >
-                </div>
-              </td>
-              <td class="col-date">
-                <div class="date-cell">
-                  <span class="date-main">{{
-                    formatDate(item.publishTime || item.createdAt)
-                  }}</span>
-                  <span class="date-sub" v-if="item.publishTime">发布</span>
-                </div>
-              </td>
-              <td class="col-actions">
-                <div class="action-group">
-                  <button
-                    class="action-btn"
-                    @click="handleView(item)"
-                    title="查看详情"
-                  >
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.5"
-                    >
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                      <circle cx="12" cy="12" r="3" />
-                    </svg>
-                  </button>
-                  <button
-                    v-if="item.status === 'PENDING'"
-                    class="action-btn action-success"
-                    @click="handleApprove(item)"
-                    title="通过"
-                  >
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.5"
-                    >
-                      <path d="M9 12l2 2 4-4" />
-                      <circle cx="12" cy="12" r="10" />
-                    </svg>
-                  </button>
-                  <button
-                    v-if="item.status === 'PENDING'"
-                    class="action-btn action-danger"
-                    @click="handleReject(item)"
-                    title="驳回"
-                  >
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.5"
-                    >
-                      <circle cx="12" cy="12" r="10" />
-                      <path d="M15 9l-6 6M9 9l6 6" />
-                    </svg>
-                  </button>
-                  <button
-                    v-if="item.status === 'ON_SALE'"
-                    class="action-btn action-warning"
-                    @click="handleTakeDown(item)"
-                    title="下架"
-                  >
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.5"
-                    >
-                      <path d="M19 12H5M12 19l-7-7 7-7" />
-                    </svg>
-                  </button>
-                  <button
-                    v-if="item.status === 'OFF_SHELF'"
-                    class="action-btn action-success"
-                    @click="handleReList(item)"
-                    title="重新上架"
-                  >
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.5"
-                    >
-                      <path d="M5 12h14M12 5l7 7-7 7" />
-                    </svg>
-                  </button>
-                  <button
-                    class="action-btn action-danger"
-                    @click="handleDelete(item)"
-                    title="删除"
-                  >
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.5"
-                    >
-                      <path
-                        d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"
-                      />
-                    </svg>
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+              </div>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column label="价格" width="120">
+          <template #default="{ row }">
+            <span class="price-value">¥{{ row.price }}</span>
+            <span class="price-original" v-if="row.originalPrice && row.originalPrice > row.price">¥{{ row.originalPrice }}</span>
+            <span class="bargain-hint" v-if="row.isBargainAllowed && row.minPrice">可至¥{{ row.minPrice }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="成色" width="90">
+          <template #default="{ row }">
+            <span class="badge" :class="getConditionClass(row.itemCondition)">
+              {{ getConditionText(row.itemCondition) }}
+            </span>
+          </template>
+        </el-table-column>
+        <el-table-column label="配送" width="80">
+          <template #default="{ row }">
+            <span class="delivery-text">{{ getDeliveryText(row.deliveryMethod) }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="议价" width="75">
+          <template #default="{ row }">
+            <span class="badge" :class="row.isBargainAllowed ? 'badge-success' : 'badge-default'">
+              {{ row.isBargainAllowed ? '可议价' : '一口价' }}
+            </span>
+          </template>
+        </el-table-column>
+        <el-table-column label="分类" width="100">
+          <template #default="{ row }">
+            <span class="badge badge-category">{{ row.categoryName || '未分类' }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="状态" width="120">
+          <template #default="{ row }">
+            <span class="badge" :class="getStatusClass(row.status)">
+              {{ getStatusText(row.status) }}
+            </span>
+            <span class="reject-reason" v-if="row.status === 'REJECTED' && row.rejectReason" :title="row.rejectReason">
+              {{ truncateText(row.rejectReason, 15) }}
+            </span>
+          </template>
+        </el-table-column>
+        <el-table-column label="浏览/收藏" width="110">
+          <template #default="{ row }">
+            <div class="stats-mini">
+              <span class="stat-item" title="浏览">
+                <Eye :size="14" />
+                {{ row.viewCount || 0 }}
+              </span>
+              <span class="stat-item" title="收藏">
+                <Heart :size="14" />
+                {{ row.favoriteCount || 0 }}
+              </span>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column label="发布者" width="120">
+          <template #default="{ row }">
+            <div class="seller-cell">
+              <span class="seller-name">{{ row.sellerNickname || '-' }}</span>
+              <span class="seller-id" v-if="row.sellerVerified">已认证</span>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column label="发布时间" width="105">
+          <template #default="{ row }">
+            <div class="date-cell">
+              <span class="date-main">{{ formatDate(row.publishTime || row.createdAt) }}</span>
+              <span class="date-sub" v-if="row.publishTime">发布</span>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="210" fixed="right">
+          <template #default="{ row }">
+            <div class="action-group">
+              <button class="action-btn" @click="handleView(row)" title="查看详情" aria-label="查看详情">
+                <Eye :size="16" />
+              </button>
+              <button v-if="row.status === 'PENDING'" class="action-btn action-success" @click="handleApprove(row)" title="通过" aria-label="通过">
+                <CheckCircle :size="16" />
+              </button>
+              <button v-if="row.status === 'PENDING'" class="action-btn action-danger" @click="handleReject(row)" title="驳回" aria-label="驳回">
+                <XCircle :size="16" />
+              </button>
+              <button v-if="row.status === 'ON_SALE'" class="action-btn action-warning" @click="handleTakeDown(row)" title="下架" aria-label="下架">
+                <ArrowLeft :size="16" />
+              </button>
+              <button v-if="row.status === 'OFF_SHELF'" class="action-btn action-success" @click="handleReList(row)" title="重新上架" aria-label="重新上架">
+                <ArrowUp :size="16" />
+              </button>
+              <button class="action-btn action-danger" @click="handleDelete(row)" title="删除" aria-label="删除">
+                <Trash2 :size="16" />
+              </button>
+            </div>
+          </template>
+        </el-table-column>
+      </el-table>
 
       <div class="table-footer" v-if="selectedItems.length > 0">
         <div class="selection-info">
@@ -428,58 +235,15 @@
       </div>
 
       <div class="pagination-wrapper">
-        <div class="pagination-info">
-          显示 {{ (page - 1) * pageSize + 1 }} -
-          {{ Math.min(page * pageSize, total) }} 条，共 {{ total }} 条
-        </div>
-        <div class="pagination-controls">
-          <select
-            v-model="pageSize"
-            class="page-size-select"
-            @change="handleSizeChange"
-          >
-            <option :value="10">10 条/页</option>
-            <option :value="20">20 条/页</option>
-            <option :value="50">50 条/页</option>
-          </select>
-          <div class="pagination-buttons">
-            <button
-              class="page-btn"
-              :disabled="page === 1"
-              @click="
-                page--;
-                fetchItems();
-              "
-            >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path d="M15 18l-6-6 6-6" />
-              </svg>
-            </button>
-            <span class="page-indicator">{{ page }} / {{ totalPages }}</span>
-            <button
-              class="page-btn"
-              :disabled="page >= totalPages"
-              @click="
-                page++;
-                fetchItems();
-              "
-            >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path d="M9 18l6-6-6-6" />
-              </svg>
-            </button>
-          </div>
-        </div>
+        <el-pagination
+          v-model:current-page="page"
+          v-model:page-size="pageSize"
+          :page-sizes="[10, 20, 50]"
+          :total="total"
+          layout="total, sizes, prev, pager, next, jumper"
+          @current-change="fetchItems"
+          @size-change="handleSizeChange"
+        />
       </div>
     </div>
 
@@ -558,28 +322,11 @@
           </div>
           <div class="detail-stats">
             <div class="stat-item">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.5"
-              >
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                <circle cx="12" cy="12" r="3" />
-              </svg>
+              <Eye :size="16" />
               <span>{{ currentItem.viewCount || 0 }} 浏览</span>
             </div>
             <div class="stat-item">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.5"
-              >
-                <path
-                  d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"
-                />
-              </svg>
+              <Heart :size="16" />
               <span>{{ currentItem.favoriteCount || 0 }} 收藏</span>
             </div>
           </div>
@@ -640,11 +387,12 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import api from '../../api';
 import { useDictStore } from '../../store/dict.js';
+import { Package, Clock, DollarSign, CheckCircle, Download, Search, Eye, Heart, XCircle, ArrowLeft, ArrowUp, Trash2 } from 'lucide-vue-next';
 
 const dictStore = useDictStore();
 
@@ -653,24 +401,20 @@ const itemStatus = ref('');
 const categoryId = ref('');
 const itemCondition = ref('');
 const bargainAllowed = ref('');
-const items = ref([]);
-const selectedItems = ref([]);
-const categories = ref([]);
+const items = ref<any[]>([]);
+const selectedItems = ref<any[]>([]);
+const categories = ref<any[]>([]);
 const page = ref(1);
 const pageSize = ref(20);
 const total = ref(0);
 const detailDialogVisible = ref(false);
-const currentItem = ref(null);
+const currentItem = ref<any>(null);
 
 const stats = ref({ total: 0, pending: 0, onSale: 0, sold: 0 });
 const totalPages = computed(() => Math.ceil(total.value / pageSize.value) || 1);
-const isAllSelected = computed(
-  () =>
-    items.value.length > 0 && selectedItems.value.length === items.value.length
-);
 
-const getConditionClass = (condition) => {
-  const map = {
+const getConditionClass = (condition: string) => {
+  const map: Record<string, string> = {
     NEW: 'badge-success',
     LIKE_NEW: 'badge-info',
     GOOD: 'badge-primary',
@@ -680,16 +424,16 @@ const getConditionClass = (condition) => {
   return map[condition] || 'badge-default';
 };
 
-const getConditionText = (condition) => {
+const getConditionText = (condition: string) => {
   return dictStore.getDictLabel('ITEM_CONDITION', condition);
 };
 
-const getDeliveryText = (method) => {
+const getDeliveryText = (method: string) => {
   return dictStore.getDictLabel('DELIVERY_METHOD', method);
 };
 
-const getStatusClass = (status) => {
-  const map = {
+const getStatusClass = (status: string) => {
+  const map: Record<string, string> = {
     DRAFT: 'badge-default',
     PENDING: 'badge-warning',
     ON_SALE: 'badge-success',
@@ -700,16 +444,16 @@ const getStatusClass = (status) => {
   return map[status] || 'badge-default';
 };
 
-const getStatusText = (status) => {
+const getStatusText = (status: string) => {
   return dictStore.getDictLabel('ITEM_STATUS', status);
 };
 
-const truncateText = (text, length) => {
+const truncateText = (text: string, length: number) => {
   if (!text) return '';
   return text.length > length ? text.slice(0, length) + '...' : text;
 };
 
-const formatDate = (dateString) => {
+const formatDate = (dateString: string) => {
   if (!dateString) return '-';
   return new Date(dateString).toLocaleDateString('zh-CN', {
     year: 'numeric',
@@ -720,7 +464,7 @@ const formatDate = (dateString) => {
 
 const fetchItems = async () => {
   try {
-    const params = {};
+    const params: Record<string, any> = {};
     params.page = page.value;
     params.size = pageSize.value;
     if (searchKeyword.value) params.keyword = searchKeyword.value;
@@ -778,16 +522,16 @@ const handleSizeChange = () => {
   page.value = 1;
   fetchItems();
 };
-const handleSelectAll = (e) => {
-  selectedItems.value = e.target.checked ? items.value.map((i) => i.id) : [];
+const handleSelectionChange = (selection: any[]) => {
+  selectedItems.value = selection.map((item: any) => item.id);
 };
 
-const handleView = (item) => {
+const handleView = (item: any) => {
   currentItem.value = { ...item, images: item.images || [] };
   detailDialogVisible.value = true;
 };
 
-const parseImages = (images) => {
+const parseImages = (images: any) => {
   if (!images) return [];
   if (Array.isArray(images)) return images;
   try {
@@ -798,17 +542,17 @@ const parseImages = (images) => {
   }
 };
 
-const getFirstImage = (item) => {
+const getFirstImage = (item: any) => {
   if (item.coverImage) return item.coverImage;
   const images = parseImages(item.images);
   return images.length > 0 ? images[0] : '/placeholder.png';
 };
 
-const handleApprove = (item) => {
+const handleApprove = (item: any) => {
   ElMessageBox.confirm(`通过物品 "${item.title}"？`, '确认')
     .then(async () => {
       try {
-        const res = await api.admin.items.approve(item.id);
+        const res = await api.admin.items.approveItem(item.id);
         if (res.code === 200) {
           item.status = 'ON_SALE';
           ElMessage.success('已通过');
@@ -822,13 +566,13 @@ const handleApprove = (item) => {
     .catch(() => {});
 };
 
-const handleReject = (item) => {
+const handleReject = (item: any) => {
   ElMessageBox.prompt('请输入驳回原因', '驳回物品', {
     inputValidator: (v) => !!v || '原因不能为空',
   })
     .then(async ({ value }) => {
       try {
-        const res = await api.admin.items.reject(item.id, value);
+        const res = await api.admin.items.rejectItem(item.id, value);
         if (res.code === 200) {
           item.status = 'REJECTED';
           item.rejectReason = value;
@@ -843,11 +587,11 @@ const handleReject = (item) => {
     .catch(() => {});
 };
 
-const handleTakeDown = (item) => {
+const handleTakeDown = (item: any) => {
   ElMessageBox.confirm(`下架物品 "${item.title}"？`, '确认')
     .then(async () => {
       try {
-        const res = await api.admin.items.offShelf(item.id);
+        const res = await api.admin.items.offShelfItem(item.id, '');
         if (res.code === 200) {
           item.status = 'OFF_SHELF';
           ElMessage.success('已下架');
@@ -861,11 +605,11 @@ const handleTakeDown = (item) => {
     .catch(() => {});
 };
 
-const handleReList = (item) => {
+const handleReList = (item: any) => {
   ElMessageBox.confirm(`重新上架物品 "${item.title}"？`, '确认')
     .then(async () => {
       try {
-        const res = await api.admin.items.approve(item.id);
+        const res = await api.admin.items.approveItem(item.id);
         if (res.code === 200) {
           item.status = 'ON_SALE';
           ElMessage.success('已重新上架');
@@ -879,7 +623,7 @@ const handleReList = (item) => {
     .catch(() => {});
 };
 
-const handleDelete = (item) => {
+const handleDelete = (item: any) => {
   ElMessageBox.confirm(
     `删除物品 "${item.title}"？此操作不可恢复。`,
     '危险操作',
@@ -914,7 +658,7 @@ const handleBulkTakeDown = () => {
   )
     .then(async () => {
       try {
-        const res = await api.admin.items.batchOffShelf(selectedItems.value);
+        const res = await api.admin.items.batchOffShelf(selectedItems.value, '');
         if (res.code === 200) {
           ElMessage.success(`已下架 ${selectedItems.value.length} 个物品`);
           selectedItems.value = [];
@@ -955,13 +699,13 @@ const handleBulkDelete = () => {
 
 const handleExport = async () => {
   try {
-    const params = {};
+    const params: Record<string, any> = {};
     if (searchKeyword.value) params.keyword = searchKeyword.value;
-    if (filterStatus.value) params.status = filterStatus.value;
-    if (filterCategory.value) params.categoryId = filterCategory.value;
+    if (itemStatus.value) params.status = itemStatus.value;
+    if (categoryId.value) params.categoryId = categoryId.value;
 
-    const response = await api.admin.items.exportItems(params);
-    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const blob = await api.admin.items.exportItems(params);
+    const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
     link.setAttribute('download', `items_${new Date().getTime()}.csv`);

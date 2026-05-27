@@ -2,6 +2,8 @@ package com.idleitems.school.controller.admin;
 
 import com.idleitems.school.annotation.RequireRole;
 import com.idleitems.school.common.Result;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import com.idleitems.school.dto.UserDTO;
 import com.idleitems.school.dto.admin.CreateUserRequest;
 import com.idleitems.school.dto.admin.UpdateUserRequest;
@@ -9,6 +11,7 @@ import com.idleitems.school.entity.User;
 import com.idleitems.school.repository.UserRepository;
 import com.idleitems.school.service.AdminLogService;
 import com.idleitems.school.service.UserService;
+import com.idleitems.school.config.ApiPaths;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -33,9 +36,10 @@ import java.util.Map;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/admin/users")
+@RequestMapping(ApiPaths.Admin.USERS)
 @RequiredArgsConstructor
 @RequireRole(value = {User.Role.ADMIN}, message = "需要管理员权限")
+@Tag(name = "管理员-用户管理", description = "管理员用户管理相关接口")
 public class AdminUserController {
 
     private final UserRepository userRepository;
@@ -43,6 +47,7 @@ public class AdminUserController {
     private final UserService userService;
 
     @GetMapping
+    @Operation(summary = "获取用户列表", description = "分页查询所有用户，支持按角色和状态筛选")
     public Result<Page<User>> getUsers(
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "size", defaultValue = "10") int size,
@@ -50,6 +55,9 @@ public class AdminUserController {
             @RequestParam(value = "status", required = false) User.UserStatus userStatus,
             @RequestParam(value = "sortBy", defaultValue = "createdAt") String sortBy,
             @RequestParam(value = "sortOrder", defaultValue = "desc") String sortOrder) {
+        if (size > 100) {
+            size = 100;
+        }
         try {
             log.info("getUsers called - page: {}, size: {}, sortBy: {}, sortOrder: {}", page, size, sortBy, sortOrder);
             
@@ -94,6 +102,7 @@ public class AdminUserController {
     }
 
     @GetMapping("/stats")
+    @Operation(summary = "获取用户统计", description = "获取用户总数、活跃用户数、认证用户数等统计信息")
     public Result<Map<String, Object>> getUserStats() {
         try {
             long total = userRepository.count();
@@ -116,13 +125,15 @@ public class AdminUserController {
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "获取用户详情", description = "根据ID获取指定用户的详细信息")
     public Result<UserDTO> getUser(@PathVariable Long id) {
         User user = userRepository.findById(id.longValue())
                 .orElseThrow(() -> new IllegalArgumentException("用户不存在"));
         return Result.success(UserDTO.fromEntity(user));
     }
 
-    @PutMapping("/{id}/status")
+    @PostMapping("/{id}/status")
+    @Operation(summary = "更新用户状态", description = "启用或禁用指定用户")
     public Result<UserDTO> updateUserStatus(
             @RequestAttribute("userId") Long adminId,
             @PathVariable Long id,
@@ -144,6 +155,7 @@ public class AdminUserController {
     }
 
     @DeleteMapping("/{id}")
+    @Operation(summary = "删除用户", description = "根据ID删除指定用户")
     public Result<Void> deleteUser(
             @RequestAttribute("userId") Long adminId,
             @PathVariable Long id,
@@ -158,6 +170,7 @@ public class AdminUserController {
     }
 
     @PostMapping
+    @Operation(summary = "创建用户", description = "管理员创建新用户，可指定角色和状态")
     public Result<UserDTO> createUser(
             @RequestAttribute("userId") Long adminId,
             @RequestBody @Valid CreateUserRequest request,
@@ -191,6 +204,7 @@ public class AdminUserController {
     }
 
     @PutMapping("/{id}")
+    @Operation(summary = "更新用户信息", description = "管理员更新指定用户的信息")
     public Result<UserDTO> updateUser(
             @RequestAttribute("userId") Long adminId,
             @PathVariable Long id,
@@ -228,6 +242,7 @@ public class AdminUserController {
     }
 
     @GetMapping("/export")
+    @Operation(summary = "导出用户", description = "导出用户列表为CSV文件")
     public void exportUsers(
             @RequestParam(value = "keyword", required = false) String keyword,
             @RequestParam(value = "role", required = false) String role,
@@ -262,6 +277,7 @@ public class AdminUserController {
     }
 
     @PostMapping("/batch/delete")
+    @Operation(summary = "批量删除用户", description = "批量删除指定ID列表的用户")
     public Result<Void> batchDeleteUsers(
             @RequestAttribute("userId") Long adminId,
             @RequestBody List<Long> userIds,

@@ -1,22 +1,15 @@
 <template>
   <div class="loading-overlay" v-if="visible">
     <div class="loading-spinner">
-      <svg class="spinner" viewBox="0 0 50 50">
-        <circle
-          class="path"
-          cx="25"
-          cy="25"
-          r="20"
-          fill="none"
-          stroke-width="5"
-        ></circle>
-      </svg>
+      <Loader2 class="spinner path" :size="40" />
       <p class="loading-text" v-if="text">{{ text }}</p>
     </div>
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { Loader2 } from 'lucide-vue-next';
+
 const props = defineProps({
   visible: {
     type: Boolean,

@@ -33,4 +33,8 @@ public class BusinessException extends RuntimeException {
         this.errorCode = null;
         this.code = code;
     }
+
+    public int getHttpStatus() {
+        return errorCode != null ? errorCode.getHttpStatus().value() : 500;
+    }
 }

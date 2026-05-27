@@ -31,162 +31,88 @@
       </div>
 
       <div class="table-wrapper">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th class="col-user">用户</th>
-              <th class="col-type">反馈类型</th>
-              <th class="col-category">关联分类</th>
-              <th class="col-desc">描述内容</th>
-              <th class="col-status">状态</th>
-              <th class="col-reply">管理员回复</th>
-              <th class="col-date">提交时间</th>
-              <th class="col-actions">操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="feedback in feedbacks"
-              :key="feedback.id"
-              class="table-row"
-            >
-              <td class="col-user">
-                <span class="user-name">{{
-                  feedback.username || feedback.userId
-                }}</span>
-              </td>
-              <td class="col-type">
-                <span class="type-tag" :class="getTypeClass(feedback.type)">
-                  {{ getTypeLabel(feedback.type) }}
-                </span>
-              </td>
-              <td class="col-category">
-                <span class="category-name">{{
-                  feedback.categoryName || '无'
-                }}</span>
-              </td>
-              <td class="col-desc">
-                <span class="desc-text" :title="feedback.description">
-                  {{ truncateText(feedback.description, 40) }}
-                </span>
-              </td>
-              <td class="col-status">
-                <span
-                  class="status-badge"
-                  :class="getStatusClass(feedback.status)"
-                >
-                  {{ getStatusLabel(feedback.status) }}
-                </span>
-              </td>
-              <td class="col-reply">
-                <span class="reply-text" :title="feedback.adminReply">
-                  {{ feedback.adminReply || '-' }}
-                </span>
-              </td>
-              <td class="col-date">
-                <span class="create-time">{{
-                  formatDate(feedback.createdAt)
-                }}</span>
-              </td>
-              <td class="col-actions">
-                <div class="action-group">
-                  <button
-                    v-if="feedback.status === 'PENDING'"
-                    class="action-btn action-primary"
-                    @click="handleReview(feedback)"
-                    title="审核"
-                  >
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.5"
-                    >
-                      <path d="M9 11l3 3L22 4" />
-                      <path
-                        d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"
-                      />
-                    </svg>
-                  </button>
-                </div>
-              </td>
-            </tr>
-            <tr v-if="feedbacks.length === 0">
-              <td colspan="8" class="empty-cell">
-                <div class="empty-state">
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.5"
-                  >
-                    <path
-                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"
-                    />
-                    <rect x="9" y="3" width="6" height="4" rx="1" />
-                    <path d="M9 14l2 2 4-4" />
-                  </svg>
-                  <span>暂无反馈数据</span>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <el-table
+          :data="feedbacks"
+          style="width: 100%"
+          @selection-change="handleSelectionChange"
+          row-key="id"
+        >
+          <el-table-column type="selection" width="50" />
+          <el-table-column label="用户" min-width="120">
+            <template #default="{ row }">
+              <span class="user-name">{{ row.username || row.userId }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="反馈类型" width="120">
+            <template #default="{ row }">
+              <span class="type-tag" :class="getTypeClass(row.type)">
+                {{ getTypeLabel(row.type) }}
+              </span>
+            </template>
+          </el-table-column>
+          <el-table-column label="关联分类" min-width="120">
+            <template #default="{ row }">
+              <span class="category-name">{{ row.categoryName || '无' }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="描述内容" min-width="200">
+            <template #default="{ row }">
+              <span class="desc-text" :title="row.description">
+                {{ truncateText(row.description, 40) }}
+              </span>
+            </template>
+          </el-table-column>
+          <el-table-column label="状态" width="100">
+            <template #default="{ row }">
+              <span class="status-badge" :class="getStatusClass(row.status)">
+                {{ getStatusLabel(row.status) }}
+              </span>
+            </template>
+          </el-table-column>
+          <el-table-column label="管理员回复" min-width="150">
+            <template #default="{ row }">
+              <span class="reply-text" :title="row.adminReply">
+                {{ row.adminReply || '-' }}
+              </span>
+            </template>
+          </el-table-column>
+          <el-table-column label="提交时间" width="160">
+            <template #default="{ row }">
+              <span class="create-time">{{ formatDate(row.createdAt) }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="80" fixed="right">
+            <template #default="{ row }">
+              <button
+                v-if="row.status === 'PENDING'"
+                class="action-btn action-primary"
+                @click="handleReview(row)"
+                title="审核"
+                aria-label="审核"
+              >
+                <ClipboardCheck :size="16" />
+              </button>
+            </template>
+          </el-table-column>
+          <template #empty>
+            <div class="empty-state">
+              <ClipboardCheck :size="48" />
+              <span>暂无反馈数据</span>
+            </div>
+          </template>
+        </el-table>
       </div>
 
       <div class="pagination-wrapper">
-        <div class="pagination-info">
-          显示 {{ total === 0 ? 0 : (page - 1) * pageSize + 1 }} -
-          {{ Math.min(page * pageSize, total) }} 条，共 {{ total }} 条
-        </div>
-        <div class="pagination-controls">
-          <select
-            v-model="pageSize"
-            class="page-size-select"
-            @change="handleSizeChange"
-          >
-            <option :value="10">10 条/页</option>
-            <option :value="20">20 条/页</option>
-            <option :value="50">50 条/页</option>
-          </select>
-          <div class="pagination-buttons">
-            <button
-              class="page-btn"
-              :disabled="page === 1"
-              @click="
-                page--;
-                fetchFeedbacks();
-              "
-            >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path d="M15 18l-6-6 6-6" />
-              </svg>
-            </button>
-            <span class="page-indicator">{{ page }} / {{ totalPages }}</span>
-            <button
-              class="page-btn"
-              :disabled="page >= totalPages"
-              @click="
-                page++;
-                fetchFeedbacks();
-              "
-            >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path d="M9 18l6-6-6-6" />
-              </svg>
-            </button>
-          </div>
-        </div>
+        <el-pagination
+          v-model:current-page="page"
+          v-model:page-size="pageSize"
+          :total="total"
+          :page-sizes="[10, 20, 50]"
+          layout="total, sizes, prev, pager, next, jumper"
+          @size-change="handleSizeChange"
+          @current-change="fetchFeedbacks"
+        />
       </div>
     </div>
 
@@ -266,21 +192,27 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { ElMessage } from 'element-plus';
 import api from '../../api';
 import { useDictStore } from '../../store/dict.js';
+import { ClipboardCheck } from 'lucide-vue-next';
 
 const dictStore = useDictStore();
 const currentStatus = ref('');
-const feedbacks = ref([]);
+const feedbacks = ref<any[]>([]);
 const page = ref(1);
 const pageSize = ref(20);
 const total = ref(0);
 const reviewDialogVisible = ref(false);
-const currentFeedback = ref(null);
+const currentFeedback = ref<{ id: number; status: string; type: string; categoryName?: string; description?: string; adminReply?: string; username?: string; userId?: number; createdAt?: string } | null>(null);
 const submitting = ref(false);
+const selectedFeedbacks = ref<any[]>([]);
+
+const handleSelectionChange = (selection: any[]) => {
+  selectedFeedbacks.value = selection;
+};
 
 const reviewForm = ref({
   status: 'ACCEPTED',
@@ -308,27 +240,27 @@ const statusMap = {
   REJECTED: { label: '已拒绝', class: 'status-rejected' },
 };
 
-const getTypeLabel = (type) => {
+const getTypeLabel = (type: string) => {
   // 将前端枚举值转换为后端枚举值
   const typeMap = {
     INVALID_CATEGORY: 'INVALID',
     MISSING_CATEGORY: 'MISSING',
   };
-  const backendType = typeMap[type] || type;
+  const backendType = (typeMap as Record<string, string>)[type] || type;
   return dictStore.getDictLabel('CATEGORY_FEEDBACK_TYPE', backendType);
 };
-const getTypeClass = (type) => feedbackTypeMap[type]?.class || 'type-default';
-const getStatusLabel = (status) => {
+const getTypeClass = (type: string) => (feedbackTypeMap as Record<string, {class: string}>)[type]?.class || 'type-default';
+const getStatusLabel = (status: string) => {
   return dictStore.getDictLabel('VERIFICATION_STATUS', status);
 };
-const getStatusClass = (status) => statusMap[status]?.class || '';
+const getStatusClass = (status: string) => (statusMap as Record<string, {class: string}>)[status]?.class || '';
 
-const truncateText = (text, length) => {
+const truncateText = (text: string, length: number) => {
   if (!text) return '';
   return text.length > length ? text.slice(0, length) + '...' : text;
 };
 
-const formatDate = (dateString) => {
+const formatDate = (dateString: string) => {
   if (!dateString) return '-';
   return new Date(dateString).toLocaleString('zh-CN', {
     year: 'numeric',
@@ -341,7 +273,7 @@ const formatDate = (dateString) => {
 
 const fetchFeedbacks = async () => {
   try {
-    const params = { page: page.value, size: pageSize.value };
+    const params: Record<string, any> = { page: page.value, size: pageSize.value };
     if (currentStatus.value) params.status = currentStatus.value;
 
     const res = await api.admin.categories.getFeedbacks(params);
@@ -354,7 +286,7 @@ const fetchFeedbacks = async () => {
   }
 };
 
-const handleStatusChange = (status) => {
+const handleStatusChange = (status: string) => {
   currentStatus.value = status;
   page.value = 1;
   fetchFeedbacks();
@@ -365,7 +297,7 @@ const handleSizeChange = () => {
   fetchFeedbacks();
 };
 
-const handleReview = (feedback) => {
+const handleReview = (feedback: any) => {
   currentFeedback.value = { ...feedback };
   reviewForm.value = {
     status: 'ACCEPTED',
@@ -378,10 +310,10 @@ const handleSubmitReview = async () => {
   submitting.value = true;
   try {
     const res = await api.admin.categories.reviewFeedback(
-      currentFeedback.value.id,
+      currentFeedback.value!.id,
       {
         status: reviewForm.value.status,
-        adminReply: reviewForm.value.adminReply,
+        reply: reviewForm.value.adminReply,
       }
     );
     if (res.code === 200) {

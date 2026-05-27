@@ -12,6 +12,11 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * @deprecated 请使用 {@link com.idleitems.school.cache.CacheService} 代替。
+ * 此类将在未来版本中删除，所有功能已迁移至 CacheService。
+ */
+@Deprecated
 @Slf4j
 @Component
 @RequiredArgsConstructor

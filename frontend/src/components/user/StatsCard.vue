@@ -7,12 +7,20 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+
+interface StatItem {
+  value: string | number
+  label: string
+  accent?: boolean
+}
+
 defineProps({
   stats: {
-    type: Array,
+    type: Array as PropType<StatItem[]>,
     required: true,
-    validator: (v) => v.every(s => 'value' in s && 'label' in s)
+    validator: (v: StatItem[]) => v.every(s => 'value' in s && 'label' in s)
   }
 });
 </script>

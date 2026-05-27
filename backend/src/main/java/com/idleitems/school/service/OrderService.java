@@ -1,8 +1,10 @@
 package com.idleitems.school.service;
 
+import com.idleitems.school.common.BusinessException;
+import com.idleitems.school.common.ErrorCode;
+import com.idleitems.school.dto.order.AdminOrderResponse;
 import com.idleitems.school.dto.order.CancelOrderRequest;
 import com.idleitems.school.dto.order.CreateOrderRequest;
-import com.idleitems.school.dto.order.AdminOrderResponse;
 import com.idleitems.school.dto.order.OrderSummaryResponse;
 import com.idleitems.school.dto.order.RefundRequest;
 import com.idleitems.school.entity.Item;
@@ -18,14 +20,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Slf4j
 @Service
@@ -37,7 +36,7 @@ public class OrderService {
     private final ReviewRepository reviewRepository;
     private final NotificationService notificationService;
 
-    private static final List<Order.OrderStatus> ACTIVE_STATUSES = List.of(
+    static final List<Order.OrderStatus> ACTIVE_STATUSES = List.of(
             Order.OrderStatus.PENDING_PAYMENT,
             Order.OrderStatus.PENDING_SHIPMENT,
             Order.OrderStatus.SHIPPED,
@@ -49,18 +48,18 @@ public class OrderService {
         log.info("创建订单，用户ID: {}, 物品ID: {}", buyerId, request.getItemId());
 
         Item item = itemRepository.findItemByIdWithLock(request.getItemId())
-                .orElseThrow(() -> new IllegalArgumentException("物品不存在"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.ITEM_NOT_FOUND));
 
         if (item.getStatus() != Item.ItemStatus.ON_SALE) {
-            throw new IllegalArgumentException("物品已下架或已售出");
+            throw new BusinessException(ErrorCode.OPERATION_NOT_ALLOWED, "物品已下架或已售出");
         }
 
         if (item.getUserId().equals(buyerId)) {
-            throw new IllegalArgumentException("不能购买自己的物品");
+            throw new BusinessException(ErrorCode.OPERATION_NOT_ALLOWED, "不能购买自己的物品");
         }
 
         if (orderRepository.existsByBuyerIdAndItemIdAndOrderStatusIn(buyerId, request.getItemId(), ACTIVE_STATUSES)) {
-            throw new IllegalArgumentException("您已购买过该物品的订单");
+            throw new BusinessException(ErrorCode.OPERATION_NOT_ALLOWED, "您已购买过该物品的订单");
         }
 
         Order order = new Order();
@@ -92,11 +91,11 @@ public class OrderService {
     }
 
     public Order getOrderById(Long orderId, Long userId) {
-        Order order = orderRepository.findById(orderId.longValue())
-                .orElseThrow(() -> new IllegalArgumentException("订单不存在"));
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND));
 
         if (!order.getBuyerId().equals(userId) && !order.getSellerId().equals(userId)) {
-            throw new IllegalArgumentException("无权查看此订单");
+            throw new BusinessException(ErrorCode.OPERATION_NOT_ALLOWED, "无权查看此订单");
         }
 
         return order;
@@ -142,22 +141,14 @@ public class OrderService {
     }
 
     public Page<AdminOrderResponse> getAdminOrderSummaries(
-            String keyword,
-            Order.OrderStatus status,
-            String paymentMethod,
-            Pageable pageable
-    ) {
+            String keyword, Order.OrderStatus status, String paymentMethod, Pageable pageable) {
         return orderRepository.searchAdminOrders(keyword, status, paymentMethod, pageable)
                 .map(AdminOrderResponse::from);
     }
 
     public AdminOrderResponse getAdminOrderSummary(Long orderId) {
-        Order order = orderRepository.findById(orderId.longValue())
-                .orElseThrow(() -> new IllegalArgumentException("订单不存在"));
-        return toAdminOrderSummary(order);
-    }
-
-    public AdminOrderResponse toAdminOrderSummary(Order order) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND));
         return AdminOrderResponse.from(order);
     }
 
@@ -189,40 +180,32 @@ public class OrderService {
         return toOrderSummary(order, userId);
     }
 
-    public OrderSummaryResponse toOrderSummary(Order order, Long userId) {
-        boolean reviewed = order.getBuyerId().equals(userId)
-                && reviewRepository.existsByOrderIdAndReviewerId(order.getId(), userId);
-        return OrderSummaryResponse.from(order, reviewed);
-    }
-
     @Transactional
     public Order payOrder(Long orderId, Long userId, String paymentMethod) {
         log.info("支付订单，订单ID: {}, 用户ID: {}, 支付方式: {}", orderId, userId, paymentMethod);
 
         Order order = orderRepository.findByIdWithLock(orderId)
-                .orElseThrow(() -> new IllegalArgumentException("订单不存在"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND));
 
         if (!order.getBuyerId().equals(userId)) {
-            throw new IllegalArgumentException("无权操作此订单");
+            throw new BusinessException(ErrorCode.OPERATION_NOT_ALLOWED, "无权操作此订单");
         }
 
         if (order.getOrderStatus() != Order.OrderStatus.PENDING_PAYMENT) {
-            throw new IllegalArgumentException("订单状态不正确，无法支付");
+            throw new BusinessException(ErrorCode.OPERATION_NOT_ALLOWED, "订单状态不正确，无法支付");
         }
 
         Item item = itemRepository.findItemByIdWithLock(order.getItemId())
-                .orElseThrow(() -> new IllegalArgumentException("物品不存在"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.ITEM_NOT_FOUND));
 
-        if (item.getStatus() != Item.ItemStatus.ON_SALE) {
-            throw new IllegalArgumentException("物品已下架或已售出，无法支付");
+        int updated = itemRepository.markItemAsSold(order.getItemId());
+        if (updated == 0) {
+            throw new BusinessException(ErrorCode.OPERATION_NOT_ALLOWED, "物品已下架或已售出，无法支付");
         }
 
         order.setOrderStatus(Order.OrderStatus.PENDING_SHIPMENT);
         order.setPaymentMethod(paymentMethod);
         order.setPaymentTime(LocalDateTime.now());
-
-        item.setStatus(Item.ItemStatus.SOLD);
-        itemRepository.save(item);
 
         Order savedOrder = orderRepository.save(order);
         log.info("订单支付成功，订单号: {}, 物品ID: {}", savedOrder.getOrderNo(), item.getId());
@@ -244,14 +227,14 @@ public class OrderService {
 
         // 使用悲观锁防止并发操作
         Order order = orderRepository.findByIdWithLock(orderId)
-                .orElseThrow(() -> new IllegalArgumentException("订单不存在"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND));
 
         if (!order.getBuyerId().equals(userId)) {
-            throw new IllegalArgumentException("无权操作此订单");
+            throw new BusinessException(ErrorCode.OPERATION_NOT_ALLOWED, "无权操作此订单");
         }
 
         if (order.getOrderStatus() != Order.OrderStatus.PENDING_PAYMENT) {
-            throw new IllegalArgumentException("只有待支付的订单才能取消");
+            throw new BusinessException(ErrorCode.OPERATION_NOT_ALLOWED, "只有待支付的订单才能取消");
         }
 
         order.setOrderStatus(Order.OrderStatus.CANCELLED);
@@ -278,14 +261,14 @@ public class OrderService {
 
         // 使用悲观锁防止并发操作
         Order order = orderRepository.findByIdWithLock(orderId)
-                .orElseThrow(() -> new IllegalArgumentException("订单不存在"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND));
 
         if (!order.getSellerId().equals(userId)) {
-            throw new IllegalArgumentException("无权操作此订单");
+            throw new BusinessException(ErrorCode.OPERATION_NOT_ALLOWED, "无权操作此订单");
         }
 
         if (order.getOrderStatus() != Order.OrderStatus.PENDING_SHIPMENT) {
-            throw new IllegalArgumentException("只有待发货的订单才能发货");
+            throw new BusinessException(ErrorCode.OPERATION_NOT_ALLOWED, "只有待发货的订单才能发货");
         }
 
         order.setOrderStatus(Order.OrderStatus.SHIPPED);
@@ -310,16 +293,17 @@ public class OrderService {
         log.info("更新物流信息，订单ID: {}, 用户ID: {}, 快递单号: {}, 快递公司: {}",
                 orderId, userId, trackingNumber, shippingCompany);
 
-        Order order = orderRepository.findById(orderId.longValue())
-                .orElseThrow(() -> new IllegalArgumentException("订单不存在"));
+        // 使用悲观锁防止并发操作
+        Order order = orderRepository.findByIdWithLock(orderId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND));
 
         if (!order.getSellerId().equals(userId)) {
-            throw new IllegalArgumentException("无权操作此订单");
+            throw new BusinessException(ErrorCode.OPERATION_NOT_ALLOWED, "无权操作此订单");
         }
 
         if (order.getOrderStatus() != Order.OrderStatus.PENDING_SHIPMENT
                 && order.getOrderStatus() != Order.OrderStatus.SHIPPED) {
-            throw new IllegalArgumentException("当前订单状态不允许更新物流信息");
+            throw new BusinessException(ErrorCode.OPERATION_NOT_ALLOWED, "当前订单状态不允许更新物流信息");
         }
 
         order.setTrackingNumber(trackingNumber);
@@ -330,6 +314,14 @@ public class OrderService {
         Order savedOrder = orderRepository.save(order);
         log.info("物流信息更新成功，订单号: {}, 快递单号: {}", savedOrder.getOrderNo(), trackingNumber);
 
+        // 发送通知给买家
+        notificationService.createOrderNotification(
+                order.getBuyerId(),
+                "订单已发货",
+                "订单号 " + savedOrder.getOrderNo() + " 已发货，快递公司: " + shippingCompany + "，单号: " + trackingNumber,
+                savedOrder.getId()
+        );
+
         return savedOrder;
     }
 
@@ -339,14 +331,14 @@ public class OrderService {
 
         // 使用悲观锁防止并发操作
         Order order = orderRepository.findByIdWithLock(orderId)
-                .orElseThrow(() -> new IllegalArgumentException("订单不存在"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND));
 
         if (!order.getBuyerId().equals(userId)) {
-            throw new IllegalArgumentException("无权操作此订单");
+            throw new BusinessException(ErrorCode.OPERATION_NOT_ALLOWED, "无权操作此订单");
         }
 
         if (order.getOrderStatus() != Order.OrderStatus.SHIPPED) {
-            throw new IllegalArgumentException("只有已发货的订单才能确认收货");
+            throw new BusinessException(ErrorCode.OPERATION_NOT_ALLOWED, "只有已发货的订单才能确认收货");
         }
 
         order.setOrderStatus(Order.OrderStatus.COMPLETED);
@@ -372,15 +364,15 @@ public class OrderService {
 
         // 使用悲观锁防止并发操作
         Order order = orderRepository.findByIdWithLock(orderId)
-                .orElseThrow(() -> new IllegalArgumentException("订单不存在"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND));
 
         if (!order.getBuyerId().equals(userId)) {
-            throw new IllegalArgumentException("无权操作此订单");
+            throw new BusinessException(ErrorCode.OPERATION_NOT_ALLOWED, "无权操作此订单");
         }
 
         if (order.getOrderStatus() != Order.OrderStatus.PENDING_SHIPMENT &&
             order.getOrderStatus() != Order.OrderStatus.SHIPPED) {
-            throw new IllegalArgumentException("当前状态无法申请退款");
+            throw new BusinessException(ErrorCode.OPERATION_NOT_ALLOWED, "当前状态无法申请退款");
         }
 
         order.setOrderStatus(Order.OrderStatus.REFUND_REQUESTED);
@@ -398,30 +390,37 @@ public class OrderService {
 
         // 使用悲观锁防止并发操作
         Order order = orderRepository.findByIdWithLock(orderId)
-                .orElseThrow(() -> new IllegalArgumentException("订单不存在"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND));
 
         if (order.getOrderStatus() != Order.OrderStatus.REFUND_REQUESTED) {
-            throw new IllegalArgumentException("订单状态不正确");
+            throw new BusinessException(ErrorCode.OPERATION_NOT_ALLOWED, "订单状态不正确");
         }
 
         if ("REJECTED".equals(result)) {
             log.info("退款申请被拒绝，订单号: {}", order.getOrderNo());
-            // 修复：根据原状态回退，而非固定设为PENDING_SHIPMENT
+            // 根据原状态回退
             if (order.getShipTime() != null) {
-                // 如果已发货，回退到SHIPPED状态
                 order.setOrderStatus(Order.OrderStatus.SHIPPED);
             } else {
-                // 如果未发货，回退到PENDING_SHIPMENT状态
                 order.setOrderStatus(Order.OrderStatus.PENDING_SHIPMENT);
             }
             order.setRefundResult(result);
             order.setRefundAdminId(adminId);
             Order savedOrder = orderRepository.save(order);
+
+            // 通知买家退款被拒绝
+            notificationService.createOrderNotification(
+                    order.getBuyerId(),
+                    "退款申请被拒绝",
+                    "订单号 " + savedOrder.getOrderNo() + " 的退款申请已被拒绝，如有疑问请联系管理员",
+                    savedOrder.getId()
+            );
+
             return savedOrder;
         }
 
         if (!"APPROVED".equals(result)) {
-            throw new IllegalArgumentException("无效的审批结果");
+            throw new BusinessException(ErrorCode.OPERATION_NOT_ALLOWED, "无效的审批结果");
         }
 
         order.setOrderStatus(Order.OrderStatus.REFUNDED);
@@ -430,13 +429,29 @@ public class OrderService {
         order.setRefundResult(result);
         order.setRefundAdminId(adminId);
 
-        Item item = itemRepository.findById(order.getItemId().longValue())
-                .orElseThrow(() -> new IllegalArgumentException("物品不存在"));
+        Item item = itemRepository.findById(order.getItemId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.ITEM_NOT_FOUND));
 
         restoreItemToSaleIfAvailable(item, order.getId());
 
         Order savedOrder = orderRepository.save(order);
-        log.info("退款完成，订单号: {}", savedOrder.getOrderNo());
+        log.info("退款审批通过，订单号: {}, 退款金额: {}", savedOrder.getOrderNo(), order.getRefundAmount());
+
+        // 通知买家退款已通过
+        notificationService.createOrderNotification(
+                order.getBuyerId(),
+                "退款申请已通过",
+                "订单号 " + savedOrder.getOrderNo() + " 的退款申请已通过，退款金额: ¥" + order.getRefundAmount() + "，预计1-3个工作日到账",
+                savedOrder.getId()
+        );
+
+        // 通知卖家
+        notificationService.createOrderNotification(
+                order.getSellerId(),
+                "订单退款已处理",
+                "订单号 " + savedOrder.getOrderNo() + " 的退款申请已通过，物品已恢复上架",
+                savedOrder.getId()
+        );
 
         return savedOrder;
     }
@@ -463,13 +478,13 @@ public class OrderService {
         log.info("管理员取消订单，订单ID: {}, 管理员ID: {}, 原因: {}", orderId, adminId, reason);
 
         Order order = orderRepository.findByIdWithLock(orderId)
-                .orElseThrow(() -> new IllegalArgumentException("订单不存在"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND));
 
         if (order.getOrderStatus() == Order.OrderStatus.COMPLETED
                 || order.getOrderStatus() == Order.OrderStatus.CANCELLED
                 || order.getOrderStatus() == Order.OrderStatus.REFUNDED
                 || order.getOrderStatus() == Order.OrderStatus.REFUND_REQUESTED) {
-            throw new IllegalArgumentException("当前订单状态不允许管理员取消");
+            throw new BusinessException(ErrorCode.OPERATION_NOT_ALLOWED, "当前订单状态不允许管理员取消");
         }
 
         boolean wasPaid = order.getPaymentTime() != null;
@@ -482,7 +497,7 @@ public class OrderService {
         if (order.getOrderStatus() == Order.OrderStatus.PENDING_SHIPMENT
                 || order.getOrderStatus() == Order.OrderStatus.SHIPPED) {
             Item item = itemRepository.findItemByIdWithLock(order.getItemId())
-                    .orElseThrow(() -> new IllegalArgumentException("物品不存在"));
+                    .orElseThrow(() -> new BusinessException(ErrorCode.ITEM_NOT_FOUND));
 
             restoreItemToSaleIfAvailable(item, order.getId());
         }
@@ -496,10 +511,29 @@ public class OrderService {
         return savedOrder;
     }
 
+    /**
+     * 生成订单号：ORD + 时间戳(yyyyMMddHHmmss) + 随机数(8位) + 随机字母(4位)
+     * 格式: ORD20260527170216_A3K9B2M7
+     */
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+    private static final String RANDOM_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
     private String generateOrderNo() {
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
-        String uuid = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
-        return "ORD" + timestamp + uuid;
+
+        // 8位随机数字
+        StringBuilder randomDigits = new StringBuilder(8);
+        for (int i = 0; i < 8; i++) {
+            randomDigits.append(ThreadLocalRandom.current().nextInt(10));
+        }
+
+        // 4位随机字母数字（排除易混淆字符 0/O/1/I/L）
+        StringBuilder randomChars = new StringBuilder(4);
+        for (int i = 0; i < 4; i++) {
+            randomChars.append(RANDOM_CHARS.charAt(SECURE_RANDOM.nextInt(RANDOM_CHARS.length())));
+        }
+
+        return "ORD" + timestamp + randomDigits + randomChars;
     }
 
     public int cancelTimeoutOrders(int timeoutMinutes) {
@@ -538,5 +572,11 @@ public class OrderService {
         orderRepository.save(lockedOrder);
 
         log.info("超时订单已取消，订单号: {}", lockedOrder.getOrderNo());
+    }
+
+    public OrderSummaryResponse toOrderSummary(Order order, Long userId) {
+        boolean reviewed = order.getBuyerId().equals(userId)
+                && reviewRepository.existsByOrderIdAndReviewerId(order.getId(), userId);
+        return OrderSummaryResponse.from(order, reviewed);
     }
 }

@@ -37,4 +37,10 @@ public class Chat {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @Column(name = "last_message", length = 500)
+    private String lastMessage;
+
+    @Column(name = "last_message_time")
+    private LocalDateTime lastMessageTime;
 }

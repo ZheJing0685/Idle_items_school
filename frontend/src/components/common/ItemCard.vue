@@ -1,5 +1,5 @@
 <template>
-  <div class="item-card" @click="navigateToDetail">
+  <div class="item-card" @click="navigateToDetail" @keydown.enter="navigateToDetail" @keydown.space.prevent="navigateToDetail" tabindex="0" role="button" :aria-label="`查看 ${item.title} 详情`">
     <div class="card-image">
       <img :src="item.coverImage || defaultImage" :alt="item.title" />
       <div v-if="item.isBargainAllowed" class="bargain-badge">可砍价</div>
@@ -14,7 +14,7 @@
       </div>
       <div class="item-meta">
         <span class="seller">{{ item.sellerNickname || '未知卖家' }}</span>
-        <span class="view-count">👁 {{ item.viewCount || 0 }}</span>
+        <span class="view-count"><Eye :size="14" /> {{ item.viewCount || 0 }}</span>
         <span class="time">{{ formatTime(item.createdAt) }}</span>
       </div>
       <div
@@ -33,9 +33,10 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue';
 import { useRouter } from 'vue-router';
+import { Eye } from 'lucide-vue-next';
 
 const props = defineProps({
   item: {
@@ -46,17 +47,16 @@ const props = defineProps({
 
 const router = useRouter();
 
-const defaultImage =
-  'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=placeholder%20image%20for%20second-hand%20item%20on%20campus%20platform&image_size=landscape_4_3';
+const defaultImage = '/placeholder-item.svg';
 
 const navigateToDetail = () => {
   router.push(`/item/${props.item.id}`);
 };
 
-const formatTime = (time) => {
+const formatTime = (time: string) => {
   if (!time) return '';
-  const now = new Date();
-  const createdAt = new Date(time);
+  const now = new Date().getTime();
+  const createdAt = new Date(time).getTime();
   const diff = now - createdAt;
   const days = Math.floor(diff / (1000 * 60 * 60 * 24));
   const hours = Math.floor(diff / (1000 * 60 * 60));
@@ -68,7 +68,7 @@ const formatTime = (time) => {
   return '刚刚';
 };
 
-const parseTags = (tagsStr) => {
+const parseTags = (tagsStr: string) => {
   if (!tagsStr) return [];
   try {
     const tags = JSON.parse(tagsStr);

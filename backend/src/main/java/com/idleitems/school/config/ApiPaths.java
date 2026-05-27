@@ -15,11 +15,15 @@ public class ApiPaths {
         public static final String REGISTER_PATH = "/register";
         public static final String ME_PATH = "/me";
         public static final String REFRESH_PATH = "/refresh";
+        public static final String CHANGE_PASSWORD_PATH = "/change-password";
+        public static final String LOGOUT_PATH = "/logout";
         // 完整路径（保留用于需要完整路径的场景）
         public static final String LOGIN = BASE + LOGIN_PATH;
         public static final String REGISTER = BASE + REGISTER_PATH;
         public static final String ME = BASE + ME_PATH;
         public static final String REFRESH = BASE + REFRESH_PATH;
+        public static final String CHANGE_PASSWORD = BASE + CHANGE_PASSWORD_PATH;
+        public static final String LOGOUT = BASE + LOGOUT_PATH;
     }
 
     // 物品相关
@@ -70,7 +74,7 @@ public class ApiPaths {
         // 相对于BASE的路径
         public static final String LIST_PATH = "";
         public static final String ADD_PATH = "";
-        public static final String REMOVE_PATH = "/{id}";
+        public static final String REMOVE_PATH = "/{itemId}";
         // 完整路径
         public static final String LIST = BASE + LIST_PATH;
         public static final String ADD = BASE + ADD_PATH;
@@ -139,6 +143,10 @@ public class ApiPaths {
         public static final String STATISTICS = BASE + "/statistics";
         public static final String LOGS = BASE + "/logs";
         public static final String MONITOR = BASE + "/monitor";
+        public static final String DISPUTES = BASE + "/disputes";
+        public static final String BATCH = BASE + "/batch";
+        public static final String VERIFICATIONS = BASE + "/verifications";
+        public static final String LOGS_ANALYSIS = BASE + "/logs/analysis";
     }
 
     // 健康检查
@@ -176,5 +184,35 @@ public class ApiPaths {
         public static final String READ = BASE + READ_PATH;
         public static final String READ_ALL = BASE + READ_ALL_PATH;
         public static final String DELETE = BASE + DELETE_PATH;
+    }
+
+    // 聊天相关
+    public static class Chat {
+        public static final String BASE = API_BASE + "/chats";
+    }
+
+    // 系统配置
+    public static class Config {
+        public static final String BASE = API_BASE + "/configs";
+    }
+
+    // 数据字典
+    public static class Dict {
+        public static final String BASE = API_BASE + "/dicts";
+    }
+
+    // 首页
+    public static class Home {
+        public static final String BASE = API_BASE + "/home";
+    }
+
+    // 文件上传
+    public static class Upload {
+        public static final String BASE = API_BASE + "/upload";
+    }
+
+    // 实名认证
+    public static class Verification {
+        public static final String BASE = API_BASE + "/verification";
     }
 }

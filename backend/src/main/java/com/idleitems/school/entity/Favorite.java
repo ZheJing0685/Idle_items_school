@@ -2,11 +2,14 @@ package com.idleitems.school.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDateTime;
 
 @Data
 @Entity
-@Table(name = "favorites")
+@Table(name = "favorites", uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"user_id", "item_id"})
+})
 public class Favorite {
 
     @Id
@@ -19,11 +22,7 @@ public class Favorite {
     @Column(name = "item_id", nullable = false)
     private Long itemId;
 
+    @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
-
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-    }
 }

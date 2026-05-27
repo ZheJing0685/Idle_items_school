@@ -5,9 +5,10 @@ import com.idleitems.school.repository.NotificationRepository;
 import com.idleitems.school.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,7 +22,9 @@ import java.util.Map;
 public class NotificationServiceImpl implements NotificationService {
 
     private final NotificationRepository notificationRepository;
-    private final SimpMessagingTemplate messagingTemplate;
+    private final WebSocketNotificationSender webSocketSender;
+
+    private static final int RETENTION_DAYS = 90;
 
     @Override
     @Transactional
@@ -40,8 +43,7 @@ public class NotificationServiceImpl implements NotificationService {
 
         Notification saved = notificationRepository.save(notification);
 
-        // 通过WebSocket推送通知
-        sendWebSocketNotification(userId, saved);
+        webSocketSender.sendAsync(userId, saved);
 
         return saved;
     }
@@ -91,45 +93,16 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     /**
-     * 通过WebSocket推送通知
+     * 定期清理过期通知（每天凌晨3点执行）
+     * 删除超过90天的已读通知，释放数据库空间
      */
-    private void sendWebSocketNotification(Long userId, Notification notification) {
-        sendWebSocketNotificationWithRetry(userId, notification, 3);
-    }
-    
-    /**
-     * 带重试的WebSocket通知推送
-     */
-    private void sendWebSocketNotificationWithRetry(Long userId, Notification notification, int maxRetries) {
-        for (int attempt = 1; attempt <= maxRetries; attempt++) {
-            try {
-                Map<String, Object> payload = new HashMap<>();
-                payload.put("id", notification.getId());
-                payload.put("title", notification.getTitle());
-                payload.put("content", notification.getContent());
-                payload.put("type", notification.getNotificationType());
-                payload.put("relatedId", notification.getRelatedId());
-                payload.put("relatedType", notification.getRelatedType());
-                payload.put("createdAt", notification.getCreatedAt());
-
-                messagingTemplate.convertAndSend("/topic/notifications/" + userId, payload);
-                log.debug("WebSocket通知已发送，用户ID: {}, 尝试次数: {}", userId, attempt);
-                return; // 发送成功，退出重试循环
-            } catch (Exception e) {
-                log.warn("WebSocket通知发送失败，尝试次数: {}/{}, 错误: {}", attempt, maxRetries, e.getMessage());
-                if (attempt == maxRetries) {
-                    log.error("WebSocket通知发送最终失败，用户ID: {}, 通知ID: {}", userId, notification.getId());
-                } else {
-                    // 等待一段时间后重试
-                    try {
-                        Thread.sleep(1000L * attempt); // 递增等待时间
-                    } catch (InterruptedException ie) {
-                        Thread.currentThread().interrupt();
-                        log.error("重试等待被中断");
-                        return;
-                    }
-                }
-            }
+    @Scheduled(cron = "0 0 3 * * ?")
+    @Transactional
+    public void cleanupOldNotifications() {
+        LocalDateTime threshold = LocalDateTime.now().minusDays(RETENTION_DAYS);
+        int deletedCount = notificationRepository.hardDeleteOldReadNotifications(threshold);
+        if (deletedCount > 0) {
+            log.info("清理过期通知完成: 删除了{}条超过{}天的已读通知", deletedCount, RETENTION_DAYS);
         }
     }
 }

@@ -6,16 +6,37 @@
       :to="action.path"
       class="action-item"
     >
-      <div class="action-icon" v-html="action.icon"></div>
+      <div class="action-icon">
+        <component :is="getIcon(action.icon)" :size="24" stroke-width="1.5" />
+      </div>
       <span class="action-text">{{ action.name }}</span>
     </router-link>
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+import { Plus, ShoppingBag, MessageSquare } from 'lucide-vue-next';
+
+const iconComponentMap: Record<string, any> = {
+  plus: Plus,
+  'shopping-bag': ShoppingBag,
+  message: MessageSquare,
+};
+
+const getIcon = (iconName: string) => {
+  return iconComponentMap[iconName] || Plus;
+};
+
+interface ActionItem {
+  path: string
+  name: string
+  icon: string
+}
+
 defineProps({
   actions: {
-    type: Array,
+    type: Array as PropType<ActionItem[]>,
     required: true
   }
 });
@@ -57,7 +78,7 @@ defineProps({
   align-items: center;
   justify-content: center;
   background: var(--primary-color);
-  color: white;
+  color: var(--text-inverse);
   border-radius: var(--radius-md);
 }
 
@@ -77,7 +98,7 @@ defineProps({
     grid-template-columns: repeat(3, 1fr);
     padding: var(--space-4);
   }
-  
+
   .action-item {
     padding: var(--space-4);
   }

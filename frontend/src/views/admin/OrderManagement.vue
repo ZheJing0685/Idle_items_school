@@ -31,16 +31,7 @@
     <div class="content-card">
       <div class="toolbar">
         <div class="search-wrapper">
-          <svg
-            class="search-icon"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          >
-            <circle cx="11" cy="11" r="8" />
-            <path d="m21 21-4.35-4.35" />
-          </svg>
+          <Search class="search-icon" :size="18" />
           <input
             v-model="searchKeyword"
             class="search-input"
@@ -49,24 +40,22 @@
             @keyup.enter="handleSearch"
           />
         </div>
-        <select v-model="orderStatus" class="filter-select">
-          <option
+        <el-select v-model="orderStatus" placeholder="全部状态" clearable>
+          <el-option
             v-for="option in ADMIN_ORDER_STATUS_OPTIONS"
             :key="option.value || 'all-status'"
             :value="option.value"
-          >
-            {{ option.label }}
-          </option>
-        </select>
-        <select v-model="paymentMethod" class="filter-select">
-          <option
+            :label="option.label"
+          />
+        </el-select>
+        <el-select v-model="paymentMethod" placeholder="全部支付方式" clearable>
+          <el-option
             v-for="option in ADMIN_ORDER_PAYMENT_OPTIONS"
             :key="option.value || 'all-payment'"
             :value="option.value"
-          >
-            {{ option.label }}
-          </option>
-        </select>
+            :label="option.label"
+          />
+        </el-select>
         <button class="btn" @click="handleSearch">查询</button>
         <button class="btn btn-ghost" @click="handleReset">重置</button>
       </div>
@@ -78,134 +67,92 @@
         </button>
       </div>
 
-      <div class="table-wrap" v-loading="loading">
-        <table class="order-table">
-          <thead>
-            <tr>
-              <th>
-                <input
-                  type="checkbox"
-                  :checked="isAllSelected"
-                  @change="handleSelectAll"
-                />
-              </th>
-              <th>订单号</th>
-              <th>物品</th>
-              <th>金额</th>
-              <th>支付方式</th>
-              <th>状态</th>
-              <th>买家</th>
-              <th>卖家</th>
-              <th>创建时间</th>
-              <th>操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="order in orders" :key="order.id">
-              <td>
-                <input
-                  type="checkbox"
-                  v-model="selectedOrders"
-                  :value="order.id"
-                  :disabled="!canAdminCancelOrder(order.orderStatus)"
-                />
-              </td>
-              <td>
-                <div class="mono">{{ order.orderNo }}</div>
-                <div class="subtext">#{{ order.id }}</div>
-              </td>
-              <td>
-                <div class="item-cell">
-                  <img
-                    :src="order.itemCover || fallbackCover"
-                    :alt="order.itemTitle"
-                    class="thumb"
-                  />
-                  <div>
-                    <div>{{ order.itemTitle }}</div>
-                    <div class="subtext">商品ID {{ order.itemId }}</div>
-                  </div>
-                </div>
-              </td>
-              <td class="price">¥{{ formatPrice(order.price) }}</td>
-              <td>
-                <div>{{ getAdminPaymentText(order.paymentMethod) }}</div>
-                <div
-                  :class="order.paymentTime ? 'status-paid' : 'status-unpaid'"
-                  class="pay-flag"
-                >
-                  {{ order.paymentTime ? '已支付' : '未支付' }}
-                </div>
-              </td>
-              <td>
-                <span
-                  class="badge"
-                  :class="getAdminOrderStatusClass(order.orderStatus)"
-                >
-                  {{ getAdminOrderStatusText(order.orderStatus) }}
-                </span>
-                <div v-if="getStatusTime(order)" class="subtext">
-                  {{ formatDateTime(getStatusTime(order)) }}
-                </div>
-              </td>
-              <td>
-                <div>{{ order.buyerName || `用户#${order.buyerId}` }}</div>
-                <div class="subtext">{{ order.buyerPhone || '未填写' }}</div>
-              </td>
-              <td>卖家 #{{ order.sellerId }}</td>
-              <td>{{ formatDateTime(order.createdAt) }}</td>
-              <td>
-                <div class="actions">
-                  <button
-                    v-for="action in getAdminOrderActions(order)"
-                    :key="action.key"
-                    class="action-btn"
-                    :class="`action-btn-${action.tone}`"
-                    @click="handleAction(action.key, order)"
-                  >
-                    {{ action.label }}
-                  </button>
-                </div>
-              </td>
-            </tr>
-            <tr v-if="!loading && !orders.length">
-              <td colspan="10" class="empty-cell">暂无符合条件的订单</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <el-table
+        :data="orders"
+        row-key="id"
+        v-loading="loading"
+        @selection-change="handleSelectionChange"
+        stripe
+        empty-text="暂无符合条件的订单"
+      >
+        <el-table-column type="selection" width="50" :selectable="(row: any) => canAdminCancelOrder(row.orderStatus)" />
+        <el-table-column label="订单号" width="200">
+          <template #default="{ row }">
+            <div class="mono">{{ row.orderNo }}</div>
+            <div class="subtext">#{{ row.id }}</div>
+          </template>
+        </el-table-column>
+        <el-table-column label="物品" min-width="200">
+          <template #default="{ row }">
+            <div class="item-cell">
+              <img :src="row.itemCover || fallbackCover" :alt="row.itemTitle" class="thumb" />
+              <div>
+                <div>{{ row.itemTitle }}</div>
+                <div class="subtext">商品ID {{ row.itemId }}</div>
+              </div>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column label="金额" width="100">
+          <template #default="{ row }">
+            <span class="price">¥{{ formatPrice(row.price) }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="支付方式" width="120">
+          <template #default="{ row }">
+            <div>{{ getAdminPaymentText(row.paymentMethod) }}</div>
+            <div :class="row.paymentTime ? 'status-paid' : 'status-unpaid'" class="pay-flag">
+              {{ row.paymentTime ? '已支付' : '未支付' }}
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column label="状态" width="120">
+          <template #default="{ row }">
+            <span class="badge" :class="getAdminOrderStatusClass(row.orderStatus)">
+              {{ getAdminOrderStatusText(row.orderStatus) }}
+            </span>
+            <div v-if="getStatusTime(row)" class="subtext">{{ formatDateTime(getStatusTime(row)) }}</div>
+          </template>
+        </el-table-column>
+        <el-table-column label="买家" width="150">
+          <template #default="{ row }">
+            <div>{{ row.buyerName || `用户#${row.buyerId}` }}</div>
+            <div class="subtext">{{ row.buyerPhone || '未填写' }}</div>
+          </template>
+        </el-table-column>
+        <el-table-column label="卖家" width="100">
+          <template #default="{ row }">
+            卖家 #{{ row.sellerId }}
+          </template>
+        </el-table-column>
+        <el-table-column label="创建时间" width="170">
+          <template #default="{ row }">
+            {{ formatDateTime(row.createdAt) }}
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="200" fixed="right">
+          <template #default="{ row }">
+            <div class="actions">
+              <button v-for="action in getAdminOrderActions(row)" :key="action.key"
+                class="action-btn" :class="`action-btn-${action.tone}`"
+                @click="handleAction(action.key, row)">
+                {{ action.label }}
+              </button>
+            </div>
+          </template>
+        </el-table-column>
+      </el-table>
 
       <div class="footer-bar">
-        <span
-          >显示 {{ paginationStart }} - {{ paginationEnd }} 条，共
-          {{ total }} 条</span
-        >
-        <div class="pager">
-          <select
-            v-model="pageSize"
-            class="filter-select compact"
-            @change="handleSizeChange"
-          >
-            <option :value="10">10 / 页</option>
-            <option :value="20">20 / 页</option>
-            <option :value="50">50 / 页</option>
-          </select>
-          <button
-            class="btn btn-ghost"
-            :disabled="page === 1"
-            @click="changePage(page - 1)"
-          >
-            上一页
-          </button>
-          <span>{{ page }} / {{ totalPages }}</span>
-          <button
-            class="btn btn-ghost"
-            :disabled="page >= totalPages"
-            @click="changePage(page + 1)"
-          >
-            下一页
-          </button>
-        </div>
+        <el-pagination
+          v-model:current-page="page"
+          v-model:page-size="pageSize"
+          :page-sizes="[10, 20, 50]"
+          :total="total"
+          layout="total, sizes, prev, pager, next, jumper"
+          @current-change="changePage"
+          @size-change="handleSizeChange"
+        />
       </div>
     </div>
 
@@ -273,11 +220,12 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { userStore } from '../../store';
 import api from '../../api';
+import { Search } from 'lucide-vue-next';
 import {
   ADMIN_ORDER_PAYMENT_OPTIONS,
   ADMIN_ORDER_STATUS_OPTIONS,
@@ -298,13 +246,13 @@ const searchKeyword = ref('');
 const orderStatus = ref('');
 const paymentMethod = ref('');
 const loading = ref(false);
-const orders = ref([]);
-const selectedOrders = ref([]);
+const orders = ref<any[]>([]);
+const selectedOrders = ref<any[]>([]);
 const page = ref(1);
 const pageSize = ref(20);
 const total = ref(0);
 const detailDialogVisible = ref(false);
-const currentOrder = ref(null);
+const currentOrder = ref<any>(null);
 const stats = ref({
   total: 0,
   pendingPayment: 0,
@@ -324,12 +272,7 @@ const paginationStart = computed(() =>
 const paginationEnd = computed(() =>
   Math.min(page.value * pageSize.value, total.value)
 );
-const isAllSelected = computed(
-  () =>
-    orders.value.filter((o) => canAdminCancelOrder(o.orderStatus)).length > 0 &&
-    selectedOrders.value.length ===
-      orders.value.filter((o) => canAdminCancelOrder(o.orderStatus)).length
-);
+
 const primaryStatCards = computed(() => [
   {
     key: 'total',
@@ -377,13 +320,13 @@ const secondaryStatCards = computed(() => [
   },
 ]);
 
-const formatPrice = (price) => {
+const formatPrice = (price: number) => {
   const value = Number(price || 0);
   return Number.isInteger(value) ? `${value}` : value.toFixed(2);
 };
-const formatDateTime = (value) =>
+const formatDateTime = (value: string) =>
   value ? new Date(value).toLocaleString() : '';
-const getStatusTime = (order) => getAdminOrderStatusTime(order);
+const getStatusTime = (order: any) => getAdminOrderStatusTime(order);
 
 const fetchOrders = async () => {
   loading.value = true;
@@ -418,7 +361,7 @@ const fetchStats = async () => {
   stats.value = { ...stats.value, ...response.data };
 };
 
-const fetchOrderDetail = async (orderId) => {
+const fetchOrderDetail = async (orderId: number) => {
   const response = await api.admin.orders.getOrder(orderId);
   return normalizeAdminOrder(response.data);
 };
@@ -446,19 +389,15 @@ const handleSizeChange = async () => {
   page.value = 1;
   await fetchOrders();
 };
-const changePage = async (nextPage) => {
+const changePage = async (nextPage: number) => {
   page.value = nextPage;
   await fetchOrders();
 };
-const handleSelectAll = (event) => {
-  selectedOrders.value = event.target.checked
-    ? orders.value
-        .filter((o) => canAdminCancelOrder(o.orderStatus))
-        .map((order) => order.id)
-    : [];
+const handleSelectionChange = (selection: any[]) => {
+  selectedOrders.value = selection.map((order: any) => order.id);
 };
 
-const handleView = async (order) => {
+const handleView = async (order: any) => {
   try {
     currentOrder.value = await fetchOrderDetail(order.id);
     detailDialogVisible.value = true;
@@ -467,7 +406,7 @@ const handleView = async (order) => {
   }
 };
 
-const handleApproveRefund = async (order) => {
+const handleApproveRefund = async (order: any) => {
   try {
     await ElMessageBox.confirm(
       `确认审批订单 ${order.orderNo} 的退款申请？`,
@@ -485,7 +424,7 @@ const handleApproveRefund = async (order) => {
   }
 };
 
-const handleCancel = async (order) => {
+const handleCancel = async (order: any) => {
   try {
     const { value } = await ElMessageBox.prompt('请输入取消原因', '取消订单', {
       inputValidator: (input) => !!input || '原因不能为空',
@@ -519,7 +458,7 @@ const handleBulkCancel = async () => {
       '批量取消订单',
       { inputValidator: (input) => !!input || '原因不能为空' }
     );
-    await api.admin.orders.batchCancelOrders(cancellableIds, value);
+    await api.admin.orders.batchCancel(cancellableIds, value);
     selectedOrders.value = [];
     ElMessage.success('批量取消成功');
     await refreshData();
@@ -529,7 +468,7 @@ const handleBulkCancel = async () => {
   }
 };
 
-const handleAction = async (actionKey, order) => {
+const handleAction = async (actionKey: string, order: any) => {
   if (actionKey === 'view') return handleView(order);
   if (actionKey === 'approveRefund') return handleApproveRefund(order);
   if (actionKey === 'cancel') return handleCancel(order);

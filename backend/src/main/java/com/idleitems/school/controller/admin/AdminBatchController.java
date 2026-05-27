@@ -3,6 +3,8 @@ package com.idleitems.school.controller.admin;
 import com.idleitems.school.annotation.RequireRole;
 import com.idleitems.school.common.Result;
 import com.idleitems.school.entity.Item;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import com.idleitems.school.entity.Order;
 import com.idleitems.school.entity.User;
 import com.idleitems.school.repository.ItemRepository;
@@ -11,6 +13,7 @@ import com.idleitems.school.service.AdminLogService;
 import com.idleitems.school.service.DictService;
 import com.idleitems.school.service.OrderService;
 import com.idleitems.school.service.UserService;
+import com.idleitems.school.config.ApiPaths;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,9 +26,10 @@ import java.util.Map;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/admin/batch")
+@RequestMapping(ApiPaths.Admin.BATCH)
 @RequiredArgsConstructor
 @RequireRole(value = {User.Role.ADMIN}, message = "需要管理员权限")
+@Tag(name = "管理员-批量操作", description = "管理员批量操作相关接口")
 public class AdminBatchController {
 
     private final ItemRepository itemRepository;
@@ -35,7 +39,8 @@ public class AdminBatchController {
     private final DictService dictService;
     private final UserService userService;
 
-    @PutMapping("/items/approve")
+    @PostMapping("/items/approve")
+    @Operation(summary = "批量审核通过物品", description = "批量审核通过指定ID列表的物品")
     @Transactional
     public Result<Void> batchApproveItems(
             @RequestAttribute("userId") Long adminId,
@@ -57,7 +62,8 @@ public class AdminBatchController {
         return Result.success("批量审核通过成功", null);
     }
 
-    @PutMapping("/items/reject")
+    @PostMapping("/items/reject")
+    @Operation(summary = "批量驳回物品", description = "批量驳回指定ID列表的物品")
     @Transactional
     public Result<Void> batchRejectItems(
             @RequestAttribute("userId") Long adminId,
@@ -89,7 +95,8 @@ public class AdminBatchController {
         return Result.success("批量驳回成功", null);
     }
 
-    @PutMapping("/items/off-shelf")
+    @PostMapping("/items/off-shelf")
+    @Operation(summary = "批量下架物品", description = "批量强制下架指定ID列表的物品")
     @Transactional
     public Result<Void> batchOffShelfItems(
             @RequestAttribute("userId") Long adminId,
@@ -123,7 +130,8 @@ public class AdminBatchController {
         return Result.success("批量下架成功", null);
     }
 
-    @PutMapping("/users/status")
+    @PostMapping("/users/status")
+    @Operation(summary = "批量更新用户状态", description = "批量更新指定ID列表的用户状态")
     @Transactional
     public Result<Void> batchUpdateUserStatus(
             @RequestAttribute("userId") Long adminId,
@@ -154,7 +162,8 @@ public class AdminBatchController {
         return Result.success("批量更新用户状态成功", null);
     }
 
-    @PutMapping("/orders/cancel")
+    @PostMapping("/orders/cancel")
+    @Operation(summary = "批量取消订单", description = "批量取消指定ID列表的订单")
     @Transactional
     public Result<Void> batchCancelOrders(
             @RequestAttribute("userId") Long adminId,
@@ -191,6 +200,7 @@ public class AdminBatchController {
     }
 
     @PostMapping("/users/delete")
+    @Operation(summary = "批量删除用户", description = "批量删除指定ID列表的用户")
     @Transactional
     public Result<Void> batchDeleteUsers(
             @RequestAttribute("userId") Long adminId,

@@ -29,7 +29,7 @@
 
 .view-btn.active {
   background: var(--primary-color);
-  color: white;
+  color: var(--text-inverse);
   box-shadow: var(--shadow-sm);
 }
 
@@ -90,23 +90,23 @@
 }
 
 .status-pending {
-  background: oklch(75% 0.14 85 / 0.15);
-  color: var(--accent-dark);
+  background: var(--color-warning-alpha-10);
+  color: var(--color-warning);
 }
 
 .status-waiting {
-  background: oklch(62% 0.14 195 / 0.1);
-  color: var(--primary-dark);
+  background: var(--color-info-alpha-10);
+  color: var(--color-info);
 }
 
 .status-shipped {
-  background: oklch(62% 0.14 195 / 0.15);
-  color: var(--primary-dark);
+  background: var(--color-info-alpha-15);
+  color: var(--color-info);
 }
 
 .status-completed {
-  background: oklch(62% 0.12 158 / 0.12);
-  color: var(--secondary-dark);
+  background: var(--color-success-alpha-10);
+  color: var(--color-success);
 }
 
 .status-cancelled {
@@ -116,8 +116,8 @@
 
 .status-refund,
 .status-refunded {
-  background: oklch(70% 0.16 38 / 0.12);
-  color: var(--accent-dark);
+  background: var(--color-warning-alpha-15);
+  color: var(--color-warning);
 }
 
 .order-body {
@@ -215,32 +215,34 @@
   font-weight: 500;
 }
 
-.pay-btn {
-  background: var(--primary-color) !important;
-  border-color: var(--primary-color) !important;
+.order-actions .pay-btn {
+  --el-button-bg-color: var(--primary-color);
+  --el-button-border-color: var(--primary-color);
+  --el-button-hover-bg-color: var(--primary-dark);
+  --el-button-hover-border-color: var(--primary-dark);
 }
 
-.pay-btn:hover,
-.ship-btn:hover {
-  background: var(--primary-dark) !important;
-  border-color: var(--primary-dark) !important;
+.order-actions .ship-btn {
+  --el-button-bg-color: var(--primary-color);
+  --el-button-border-color: var(--primary-color);
+  --el-button-hover-bg-color: var(--primary-dark);
+  --el-button-hover-border-color: var(--primary-dark);
 }
 
-.ship-btn {
-  background: var(--primary-color) !important;
-  border-color: var(--primary-color) !important;
+.order-actions .confirm-btn {
+  --el-button-bg-color: var(--secondary-color);
+  --el-button-border-color: var(--secondary-color);
+  --el-button-hover-bg-color: var(--secondary-dark);
+  --el-button-hover-border-color: var(--secondary-dark);
+  --el-button-text-color: var(--text-inverse);
 }
 
-.confirm-btn {
-  background: var(--secondary-color) !important;
-  border-color: var(--secondary-color) !important;
-  color: white !important;
-}
-
-.review-btn {
-  background: var(--accent-color) !important;
-  border-color: var(--accent-color) !important;
-  color: white !important;
+.order-actions .review-btn {
+  --el-button-bg-color: var(--accent-color);
+  --el-button-border-color: var(--accent-color);
+  --el-button-hover-bg-color: var(--accent-dark);
+  --el-button-hover-border-color: var(--accent-dark);
+  --el-button-text-color: var(--text-inverse);
 }
 
 .empty-action-btn {
@@ -249,7 +251,7 @@
   gap: var(--space-2);
   padding: var(--space-3) var(--space-6);
   background: var(--primary-color);
-  color: white;
+  color: var(--text-inverse);
   font-weight: 600;
   font-size: var(--text-sm);
   border-radius: var(--radius-md);
@@ -259,7 +261,7 @@
 
 .empty-action-btn:hover {
   background: var(--primary-dark);
-  color: white;
+  color: var(--text-inverse);
 }
 
 .pagination-wrap {
@@ -278,7 +280,7 @@
 
 .custom-pagination :deep(.el-pager li.is-active) {
   background: var(--primary-color);
-  color: white;
+  color: var(--text-inverse);
   border-radius: var(--radius-md);
 }
 

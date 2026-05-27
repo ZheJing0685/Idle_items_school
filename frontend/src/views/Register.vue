@@ -4,22 +4,7 @@
       <div class="register-visual">
         <div class="visual-content">
           <div class="visual-logo">
-            <svg width="64" height="64" viewBox="0 0 36 36" fill="none">
-              <circle cx="18" cy="18" r="16" fill="white" />
-              <path
-                d="M12 18C12 14.6863 14.6863 12 18 12C21.3137 12 24 14.6863 24 18"
-                stroke="var(--secondary-color)"
-                stroke-width="2.5"
-                stroke-linecap="round"
-              />
-              <path
-                d="M18 18V24"
-                stroke="var(--secondary-color)"
-                stroke-width="2.5"
-                stroke-linecap="round"
-              />
-              <circle cx="18" cy="14" r="2" fill="var(--secondary-color)" />
-            </svg>
+            <Package :size="64" stroke-width="1" color="var(--secondary-color)" />
             <span class="visual-brand">闲置好物</span>
           </div>
           <h1 class="visual-title">
@@ -32,45 +17,15 @@
           </p>
           <div class="visual-features">
             <div class="feature-item">
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                <path d="M22 4L12 14.01l-3-3" />
-              </svg>
+              <CheckCircle :size="20" />
               <span>实名认证交易</span>
             </div>
             <div class="feature-item">
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                <path d="M22 4L12 14.01l-3-3" />
-              </svg>
+              <CheckCircle :size="20" />
               <span>快捷发布闲置</span>
             </div>
             <div class="feature-item">
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                <path d="M22 4L12 14.01l-3-3" />
-              </svg>
+              <CheckCircle :size="20" />
               <span>环保绿色校园</span>
             </div>
           </div>
@@ -96,131 +51,77 @@
             label-position="top"
           >
             <el-form-item prop="username" class="form-item">
-              <label class="form-label">用户名</label>
+              <label class="form-label" for="reg-username">用户名</label>
               <el-input
+                id="reg-username"
                 v-model="registerForm.username"
                 placeholder="请输入用户名（3-20个字符）"
                 size="large"
                 class="form-input"
               >
                 <template #prefix>
-                  <svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
-                    <path
-                      d="M20 21V19C20 16.7909 18.2091 15 16 15H8C5.79086 15 4 16.7909 4 19V21"
-                    />
-                    <circle cx="12" cy="7" r="4" />
-                  </svg>
+                  <User :size="18" />
                 </template>
               </el-input>
             </el-form-item>
 
             <el-form-item prop="password" class="form-item">
-              <label class="form-label">密码</label>
+              <label class="form-label" for="reg-password">密码</label>
               <el-input
+                id="reg-password"
                 v-model="registerForm.password"
-                type="password"
                 placeholder="请输入密码（8-32个字符，包含大小写字母、数字和特殊字符）"
                 show-password
                 size="large"
                 class="form-input"
               >
                 <template #prefix>
-                  <svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                    <path
-                      d="M7 11V7C7 4.23858 9.23858 2 12 2C14.7614 2 17 4.23858 17 7V11"
-                    />
-                  </svg>
+                  <Lock :size="18" />
                 </template>
               </el-input>
             </el-form-item>
 
             <el-form-item prop="nickname" class="form-item">
-              <label class="form-label">昵称</label>
+              <label class="form-label" for="reg-nickname">昵称</label>
               <el-input
+                id="reg-nickname"
                 v-model="registerForm.nickname"
                 placeholder="请输入昵称"
                 size="large"
                 class="form-input"
               >
                 <template #prefix>
-                  <svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
-                    <path
-                      d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
-                    />
-                  </svg>
+                  <Star :size="18" />
                 </template>
               </el-input>
             </el-form-item>
 
             <el-form-item prop="email" class="form-item">
-              <label class="form-label">邮箱</label>
+              <label class="form-label" for="reg-email">邮箱</label>
               <el-input
+                id="reg-email"
                 v-model="registerForm.email"
                 placeholder="请输入邮箱"
                 size="large"
                 class="form-input"
               >
                 <template #prefix>
-                  <svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
-                    <path
-                      d="M4 4H20C21.1 4 22 4.9 22 6V18C22 19.1 21.1 20 20 20H4C2.9 20 2 19.1 2 18V6C2 4.9 2.9 4 4 4Z"
-                    />
-                    <path d="M22 6L12 13L2 6" />
-                  </svg>
+                  <Mail :size="18" />
                 </template>
               </el-input>
             </el-form-item>
 
             <el-form-item prop="phone" class="form-item">
-              <label class="form-label">手机号</label>
+              <label class="form-label" for="reg-phone">手机号</label>
               <el-input
+                id="reg-phone"
                 v-model="registerForm.phone"
                 placeholder="请输入手机号"
                 size="large"
                 class="form-input"
               >
                 <template #prefix>
-                  <svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
-                    <path
-                      d="M22 16.92V19.92C22 20.48 21.56 20.96 21 20.99C20.62 21 20.23 21 19.84 21C10.83 21 3.00003 13.17 3.00003 4.16C3.00003 3.77 3.00003 3.38 3.01003 3C3.04003 2.44 3.52003 2 4.08003 2H7.08003C7.56003 2 7.98003 2.34 8.07003 2.81C8.23003 3.67 8.49003 4.5 8.85003 5.29L7.03003 7.11C8.59003 10.39 11.61 13.41 14.89 14.97L16.71 13.15C17.5 13.51 18.33 13.77 19.19 13.93C19.66 14.02 20 14.44 20 14.92V16.92"
-                    />
-                  </svg>
+                  <Phone :size="18" />
                 </template>
               </el-input>
             </el-form-item>
@@ -258,12 +159,13 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, reactive } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { userStore } from '../store';
 import { formRules, validatePassword } from '../utils/validator';
+import { Package, CheckCircle, User, Lock, Star, Mail, Phone } from 'lucide-vue-next';
 
 const router = useRouter();
 const registerFormRef = ref();
@@ -293,12 +195,14 @@ const handleRegister = async () => {
     await registerFormRef.value.validate();
     loading.value = true;
 
-    await store.register(registerForm);
+    const res = await store.register(registerForm);
     ElMessage.success('注册成功！');
 
-    router.push('/login');
-  } catch (error) {
-    ElMessage.error(error.message || '注册失败');
+    await store.login(registerForm.username, registerForm.password);
+    router.push('/');
+  } catch (error: any) {
+    const msg = error.response?.data?.message || error.message || '注册失败';
+    ElMessage.error(msg);
   } finally {
     loading.value = false;
   }

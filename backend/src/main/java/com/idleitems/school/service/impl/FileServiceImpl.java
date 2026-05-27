@@ -12,8 +12,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.imageio.ImageIO;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -30,6 +32,9 @@ public class FileServiceImpl implements FileService {
     @Value("${file.upload-path}")
     private String uploadPath;
 
+    @Value("${file.base-url:#{null}}")
+    private String baseUrl;
+
     private final StorageServiceFactory storageServiceFactory;
     private final FileValidationService fileValidationService;
     private final ImageProcessingService imageProcessingService;
@@ -43,7 +48,7 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public Map<String, Object> uploadImage(MultipartFile file) throws Exception {
-        fileValidationService.validateImage(file);
+        FileValidationService.ImageValidationResult validation = fileValidationService.validateImage(file);
 
         StorageAdapter storageAdapter = storageServiceFactory.getStorageAdapter();
 
@@ -51,44 +56,57 @@ public class FileServiceImpl implements FileService {
         if (originalFilename == null || originalFilename.isBlank()) {
             originalFilename = "unknown";
         }
-        String extension = fileValidationService.getFileExtension(originalFilename);
+        String extension = validation.getExtension();
         String fileName = UUID.randomUUID().toString() + "." + extension;
         String contentType = file.getContentType();
 
-        File tempFile = File.createTempFile("temp", "." + extension);
-        file.transferTo(tempFile);
-
+        Path tempDir = Files.createTempDirectory("upload_");
         try {
-            File processedFile = File.createTempFile("processed", "." + extension);
-            try {
-                ImageProcessingService.ImageInfo imageInfo = imageProcessingService.processImage(
-                        tempFile, processedFile, extension
-                );
+            Path tempFile = tempDir.resolve("original." + extension);
+            file.transferTo(tempFile.toFile());
 
-                Map<String, Object> storageResult = storageAdapter.upload(
-                        processedFile, fileName, contentType
-                );
+            Path processedFile = tempDir.resolve("processed." + extension);
+            ImageProcessingService.ImageInfo imageInfo = imageProcessingService.processImage(
+                    tempFile.toFile(), processedFile.toFile(), extension,
+                    validation.getWidth(), validation.getHeight()
+            );
 
-                Map<String, Object> result = new HashMap<>();
-                result.put("url", storageResult.get("url"));
-                result.put("path", storageResult.get("path"));
-                result.put("fileName", fileName);
-                result.put("originalName", originalFilename);
-                result.put("width", imageInfo.getWidth());
-                result.put("height", imageInfo.getHeight());
-                result.put("size", imageInfo.getSize());
-                result.put("format", imageInfo.getFormat());
+            Map<String, Object> storageResult = storageAdapter.upload(
+                    processedFile.toFile(), fileName, contentType
+            );
 
-                return result;
-            } finally {
-                if (!processedFile.delete()) {
-                    log.warn("Failed to delete processed temp file: {}", processedFile.getAbsolutePath());
-                }
-            }
+            Map<String, Object> result = new HashMap<>();
+            result.put("url", storageResult.get("url"));
+            result.put("path", storageResult.get("path"));
+            result.put("fileName", fileName);
+            result.put("originalName", originalFilename);
+            result.put("width", imageInfo.getWidth());
+            result.put("height", imageInfo.getHeight());
+            result.put("size", imageInfo.getSize());
+            result.put("format", imageInfo.getFormat());
+
+            return result;
         } finally {
-            if (!tempFile.delete()) {
-                log.warn("Failed to delete temp file: {}", tempFile.getAbsolutePath());
-            }
+            safeDeleteDirectory(tempDir);
+        }
+    }
+
+    /**
+     * 安全删除临时目录，记录删除失败的文件
+     */
+    private void safeDeleteDirectory(Path dir) {
+        try {
+            Files.walk(dir)
+                 .sorted(Comparator.reverseOrder())
+                 .forEach(p -> {
+                     try {
+                         Files.deleteIfExists(p);
+                     } catch (IOException e) {
+                         log.warn("临时文件删除失败: {}, 原因: {}", p.getFileName(), e.getMessage());
+                     }
+                 });
+        } catch (IOException e) {
+            log.error("遍历临时目录失败: {}", dir, e);
         }
     }
 
@@ -120,7 +138,13 @@ public class FileServiceImpl implements FileService {
         String uniqueFileName = UUID.randomUUID().toString() + getFileExtension(fileName);
         Path filePath = uploadDir.resolve(uniqueFileName);
 
-        Files.write(filePath, file.getBytes());
+        try (InputStream inputStream = file.getInputStream()) {
+            if (ImageIO.read(inputStream) == null) {
+                throw new IllegalArgumentException("无效的图片文件");
+            }
+        }
+
+        file.transferTo(filePath.toFile());
 
         return String.format("%s/%s/%s", directory, datePath, uniqueFileName);
     }
@@ -174,8 +198,15 @@ public class FileServiceImpl implements FileService {
         return errors;
     }
 
+    /**
+     * 获取文件访问URL
+     * 支持配置完整的base URL（如CDN地址）
+     */
     @Override
     public String getFileUrl(String fileName) {
+        if (baseUrl != null && !baseUrl.isEmpty()) {
+            return baseUrl.endsWith("/") ? baseUrl + fileName : baseUrl + "/" + fileName;
+        }
         return "/uploads/" + fileName;
     }
 

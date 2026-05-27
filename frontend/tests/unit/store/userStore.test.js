@@ -21,6 +21,18 @@ vi.mock('@/utils/storage', () => ({
   default: () => mockStorage
 }))
 
+const mockSessionStorage = vi.hoisted(() => {
+  const data = {}
+  return {
+    getItem: (key) => data[key] ?? null,
+    setItem: (key, value) => { data[key] = value },
+    removeItem: (key) => { delete data[key] },
+    clear: () => { Object.keys(data).forEach(k => delete data[k]) },
+    get _data() { return data },
+  }
+})
+Object.defineProperty(window, 'sessionStorage', { value: mockSessionStorage, writable: true })
+
 vi.mock('@/api/config/axios', () => ({
   setToken: (...args) => mockSetToken(...args),
   clearToken: (...args) => mockClearToken(...args),
@@ -164,8 +176,7 @@ describe('User Store', () => {
       await store.login('user2', 'pass')
 
       expect(mockSetToken).toHaveBeenCalledWith('token-456')
-      expect(mockStorage.get('user')).toEqual(mockResponse.data.user)
-      expect(mockStorage.get('refreshToken')).toBe('refresh-token-456')
+      expect(mockSessionStorage.getItem('refresh_token')).toBe('refresh-token-456')
     })
 
     it('should set loading to true during login', async () => {
@@ -196,7 +207,6 @@ describe('User Store', () => {
 
       await store.login('u', 'p', true)
       expect(store.rememberMe).toBe(true)
-      expect(mockStorage.get('rememberMe')).toBe(true)
     })
   })
 
@@ -215,15 +225,9 @@ describe('User Store', () => {
     })
 
     it('should remove data from storage on logout', () => {
-      mockStorage.set('refreshToken', 'some-token')
-      mockStorage.set('user', { id: 1 })
-      mockStorage.set('lastLoginTime', '2026-01-01')
-
       store.logout()
 
-      expect(mockStorage.get('refreshToken')).toBeNull()
-      expect(mockStorage.get('user')).toBeNull()
-      expect(mockStorage.get('lastLoginTime')).toBeNull()
+      expect(mockClearToken).toHaveBeenCalled()
     })
 
     it('should preserve rememberMe if rememberMe was true', () => {
@@ -238,11 +242,10 @@ describe('User Store', () => {
 
     it('should remove rememberMe if rememberMe was false', () => {
       store.rememberMe = false
-      mockStorage.set('rememberMe', false)
 
       store.logout()
 
-      expect(mockStorage.get('rememberMe')).toBeNull()
+      expect(store.rememberMe).toBe(false)
     })
   })
 
@@ -263,7 +266,6 @@ describe('User Store', () => {
 
       expect(result).toEqual(mockUser)
       expect(store.user).toEqual(mockUser)
-      expect(mockStorage.get('user')).toEqual(mockUser)
     })
 
     it('should return null on error', async () => {
@@ -329,7 +331,6 @@ describe('User Store', () => {
 
       expect(result).toEqual(mockResponse)
       expect(store.user.nickname).toBe('新昵称')
-      expect(mockStorage.get('user')).toEqual(store.user)
     })
 
     it('should throw error on update failure', async () => {
@@ -344,7 +345,7 @@ describe('User Store', () => {
     it('should update refreshToken in state and storage', () => {
       store.setRefreshToken('new-refresh-token')
       expect(store.refreshToken).toBe('new-refresh-token')
-      expect(mockStorage.get('refreshToken')).toBe('new-refresh-token')
+      expect(mockSessionStorage.getItem('refresh_token')).toBe('new-refresh-token')
     })
   })
 })

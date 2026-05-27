@@ -1,13 +1,14 @@
 .publish-page {
   padding: var(--space-6) 0 var(--space-16);
   min-height: 100vh;
+  min-height: 100dvh;
   background: var(--bg-base);
 }
 
 .page-header {
   background: linear-gradient(
     180deg,
-    oklch(98% 0.005 200) 0%,
+    var(--section-bg) 0%,
     var(--bg-base) 100%
   );
   padding: var(--space-10) 0;
@@ -112,7 +113,7 @@
   background: rgba(0, 0, 0, 0.6);
   border: none;
   border-radius: var(--radius-full);
-  color: white;
+  color: var(--text-inverse);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -131,7 +132,7 @@
   left: var(--space-2);
   padding: var(--space-1) var(--space-2);
   background: var(--primary-color);
-  color: white;
+  color: var(--text-inverse);
   font-size: var(--text-xs);
   font-weight: 700;
   border-radius: var(--radius-sm);

@@ -33,3 +33,11 @@
 .empty-actions {
   margin-top: var(--space-4);
 }
+
+.empty-circle {
+  stroke: var(--border-default);
+}
+
+.empty-x {
+  stroke: var(--border-strong);
+}

@@ -6,10 +6,12 @@ services:
       - "6380:6379"
     environment:
       TZ: ${TZ:-Asia/Shanghai}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}", "--appendonly", "yes"]
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "sh", "-c", "redis-cli ping || redis-cli -a \"${REDIS_PASSWORD}\" ping"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -17,47 +19,39 @@ services:
       - app-network
 
   backend:
-    image: school-backend:fixed
+    image: school-backend:separate
     build:
       context: ./backend
-      dockerfile: Dockerfile
-      args:
-        HTTP_PROXY: "${HTTP_PROXY:-}"
-        HTTPS_PROXY: "${HTTPS_PROXY:-}"
+      dockerfile: Dockerfile.separate
     container_name: backend-idle-items
     ports:
       - "7000:7000"
     environment:
       TZ: ${TZ:-Asia/Shanghai}
-      SPRING_PROFILES_ACTIVE: dev
-      SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:3306/idle_items_school?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
-      SPRING_DATASOURCE_USERNAME: "${SPRING_DATASOURCE_USERNAME}"
-      SPRING_DATASOURCE_PASSWORD: "${SPRING_DATASOURCE_PASSWORD}"
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
+      DB_URL: ${SPRING_DATASOURCE_URL}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      REDIS_PASSWORD: "${REDIS_PASSWORD:-}"
-      JWT_SECRET: "${JWT_SECRET}"
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      ENCRYPTION_SECRET_KEY: ${ENCRYPTION_SECRET_KEY}
       CORS_ALLOWED_ORIGINS: http://localhost:5173,http://localhost:80
-      SPRING_FLYWAY_VALIDATE-ON-MIGRATE: "false"
+      FILE_UPLOAD_PATH: /var/data/uploads
     volumes:
-      - ./backend/uploads:/app/uploads
+      - ./backend/uploads:/var/data/uploads
     depends_on:
       redis:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:7000/actuator/health || exit 1"]
-      interval: 15s
-      timeout: 10s
-      retries: 5
-      start_period: 40s
     networks:
       - app-network
 
   frontend:
-    image: idle_items_school-frontend:fixed
+    image: idle_items_school-frontend:separate
     build:
       context: ./frontend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.separate
     container_name: frontend-idle-items
     ports:
       - "5173:80"

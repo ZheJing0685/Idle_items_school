@@ -2,6 +2,8 @@ package com.idleitems.school.service;
 
 import com.idleitems.school.entity.Favorite;
 import com.idleitems.school.entity.Item;
+import com.idleitems.school.cache.CacheService;
+import com.idleitems.school.common.BusinessException;
 import com.idleitems.school.repository.FavoriteRepository;
 import com.idleitems.school.repository.ItemRepository;
 import com.idleitems.school.repository.UserRepository;
@@ -29,6 +31,9 @@ class FavoriteServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private CacheService cacheService;
 
     @InjectMocks
     private FavoriteService favoriteService;
@@ -75,7 +80,7 @@ class FavoriteServiceTest {
         when(favoriteRepository.existsByUserIdAndItemId(1L, 1L)).thenReturn(true);
 
         // Act & Assert
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(BusinessException.class, () -> {
             favoriteService.addFavorite(1L, 1L);
         });
     }
@@ -87,7 +92,7 @@ class FavoriteServiceTest {
         when(itemRepository.findById(999L)).thenReturn(Optional.empty());
 
         // Act & Assert
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(BusinessException.class, () -> {
             favoriteService.addFavorite(1L, 999L);
         });
     }
@@ -95,13 +100,12 @@ class FavoriteServiceTest {
     @Test
     void removeFavorite_WhenValidRequest_RemovesFavorite() {
         // Arrange
-        when(favoriteRepository.existsByUserIdAndItemId(1L, 1L)).thenReturn(true);
+        when(favoriteRepository.deleteByUserIdAndItemId(1L, 1L)).thenReturn(1);
 
         // Act
         favoriteService.removeFavorite(1L, 1L);
 
         // Assert
-        verify(favoriteRepository, times(1)).existsByUserIdAndItemId(1L, 1L);
         verify(favoriteRepository, times(1)).deleteByUserIdAndItemId(1L, 1L);
         verify(itemRepository, times(1)).decrementFavoriteCount(1L);
     }
@@ -109,10 +113,10 @@ class FavoriteServiceTest {
     @Test
     void removeFavorite_WhenNotFavorited_ThrowsException() {
         // Arrange
-        when(favoriteRepository.existsByUserIdAndItemId(1L, 1L)).thenReturn(false);
+        when(favoriteRepository.deleteByUserIdAndItemId(1L, 1L)).thenReturn(0);
 
         // Act & Assert
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(BusinessException.class, () -> {
             favoriteService.removeFavorite(1L, 1L);
         });
     }

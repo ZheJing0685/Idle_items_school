@@ -1,16 +1,12 @@
 <template>
   <aside class="sidebar" :class="{ collapsed }">
     <div class="sidebar-header">
-      <button class="toggle-btn" @click="$emit('toggle')">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" v-if="collapsed">
-          <path d="M9 18l6-6-6-6"/>
-        </svg>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" v-else>
-          <path d="M15 18l-6-6 6-6"/>
-        </svg>
+      <button class="toggle-btn" @click="$emit('toggle')" :aria-label="collapsed ? '展开侧边栏' : '收起侧边栏'">
+        <ChevronRight :size="20" v-if="collapsed" />
+        <ChevronLeft :size="20" v-else />
       </button>
     </div>
-    
+
     <nav class="sidebar-nav">
       <router-link
         v-for="item in menuItems"
@@ -20,7 +16,9 @@
         :class="{ active: isActive(item.path) }"
         :title="collapsed ? item.name : ''"
       >
-        <span class="nav-icon" v-html="item.icon"></span>
+        <span class="nav-icon">
+          <component :is="getIcon(item.icon)" :size="20" />
+        </span>
         <span class="nav-text" v-if="!collapsed">{{ item.name }}</span>
         <span class="nav-badge" v-if="item.badge && !collapsed">{{ item.badge }}</span>
       </router-link>
@@ -28,13 +26,39 @@
   </aside>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { useRoute } from 'vue-router';
+import type { PropType } from 'vue';
+import { ChevronRight, ChevronLeft, User, Package, ShoppingBag, Heart, MessageSquare, Bell, Shield, CheckCircle, Plus, FileText } from 'lucide-vue-next';
+
+interface MenuItem {
+  path: string
+  name: string
+  icon: string
+  badge?: string | number
+}
+
+const iconComponentMap: Record<string, any> = {
+  user: User,
+  box: Package,
+  'shopping-bag': ShoppingBag,
+  heart: Heart,
+  message: MessageSquare,
+  bell: Bell,
+  shield: Shield,
+  check: CheckCircle,
+  plus: Plus,
+  file: FileText,
+};
+
+const getIcon = (iconName: string) => {
+  return iconComponentMap[iconName] || Package;
+};
 
 const props = defineProps({
   collapsed: Boolean,
   menuItems: {
-    type: Array,
+    type: Array as PropType<MenuItem[]>,
     required: true
   }
 });
@@ -43,7 +67,7 @@ defineEmits(['toggle']);
 
 const route = useRoute();
 
-const isActive = (path) => {
+const isActive = (path: string) => {
   return route.path === path || route.path.startsWith(path + '/');
 };
 </script>
@@ -157,7 +181,7 @@ const isActive = (path) => {
   font-size: var(--text-xs);
   font-weight: 600;
   background: var(--error-color);
-  color: white;
+  color: var(--text-inverse);
   border-radius: var(--radius-full);
 }
 

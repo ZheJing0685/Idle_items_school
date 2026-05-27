@@ -61,7 +61,7 @@ class AuthServiceTest {
         assertNotNull(result);
         assertEquals("testToken", result.get("token"));
         assertEquals("testRefreshToken", result.get("refreshToken"));
-        assertEquals(user, result.get("user"));
+        assertTrue(result.get("user") instanceof com.idleitems.school.dto.UserDTO);
     }
 
     @Test

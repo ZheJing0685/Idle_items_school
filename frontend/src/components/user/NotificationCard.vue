@@ -1,18 +1,10 @@
 <template>
-  <div class="notification-card" :class="{ unread: !isRead }" @click="$emit('click')">
+  <div class="notification-card" :class="{ unread: !isRead }" @click="$emit('click')" @keydown.enter="$emit('click')" @keydown.space.prevent="$emit('click')" tabindex="0" role="button" aria-label="查看通知详情">
     <div class="card-icon" :style="{ background: iconBg }">
-      <svg v-if="type === 1" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/>
-      </svg>
-      <svg v-else-if="type === 2" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/>
-      </svg>
-      <svg v-else-if="type === 3" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
-      </svg>
-      <svg v-else width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/>
-      </svg>
+      <Settings v-if="type === 1" :size="24" />
+      <ShoppingCart v-else-if="type === 2" :size="24" />
+      <MessageSquare v-else-if="type === 3" :size="24" />
+      <Bell v-else :size="24" />
     </div>
     <div class="card-content">
       <h4 class="card-title">{{ title }}</h4>
@@ -25,8 +17,9 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue';
+import { Settings, ShoppingCart, MessageSquare, Bell } from 'lucide-vue-next';
 
 const props = defineProps({
   id: [String, Number],
@@ -40,14 +33,15 @@ const props = defineProps({
 defineEmits(['click', 'read']);
 
 const iconBg = computed(() => {
-  const map = {
-    1: 'oklch(58% 0.01 195 / 0.1)',
-    2: 'oklch(62% 0.14 250 / 0.1)',
-    3: 'oklch(62% 0.12 158 / 0.1)',
-    4: 'oklch(75% 0.14 85 / 0.1)'
+  const map: Record<number, string> = {
+    1: 'var(--color-info-alpha-10)',
+    2: 'var(--color-primary-alpha-10)',
+    3: 'var(--color-success-alpha-10)',
+    4: 'var(--color-warning-alpha-10)'
   };
-  return map[props.type] || map[4];
+  return map[props.type] || 'var(--color-info-alpha-10)';
 });
+
 </script>
 
 <style scoped>
@@ -68,8 +62,8 @@ const iconBg = computed(() => {
 }
 
 .notification-card.unread {
-  background: oklch(62% 0.14 195 / 0.04);
-  border-color: oklch(62% 0.14 195 / 0.2);
+  background: var(--color-primary-alpha-10);
+  border-color: var(--color-primary-alpha-20);
 }
 
 .card-icon {

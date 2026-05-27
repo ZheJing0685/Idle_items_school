@@ -73,16 +73,16 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElForm } from 'element-plus';
 import api from '../api';
 
 const router = useRouter();
-const formRef = ref(null);
+const formRef = ref<InstanceType<typeof ElForm> | null>(null);
 const submitting = ref(false);
-const categoryTreeOptions = ref([]);
+const categoryTreeOptions = ref<any[]>([]);
 
 const form = reactive({
   feedbackType: 'INVALID',
@@ -112,23 +112,21 @@ const loadCategories = async () => {
 };
 
 const handleSubmit = async () => {
-  const valid = await formRef.value.validate().catch(() => false);
+  const valid = await formRef.value!.validate().catch(() => false);
   if (!valid) return;
 
   submitting.value = true;
   try {
-    const data = {
-      feedbackType: form.feedbackType,
-      categoryId: form.categoryId || null,
-      description: form.description,
-    };
-    const res = await api.category.submitFeedback(data);
+    const res = await api.category.submitFeedback({
+      categoryName: form.feedbackType,
+      reason: form.description,
+    });
     if (res.code === 200) {
       ElMessage.success('反馈提交成功');
       form.feedbackType = 'INVALID';
       form.categoryId = null;
       form.description = '';
-      formRef.value.resetFields();
+      formRef.value!.resetFields();
     } else {
       ElMessage.error(res.message || '提交失败');
     }

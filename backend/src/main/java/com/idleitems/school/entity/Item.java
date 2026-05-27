@@ -51,11 +51,11 @@ public class Item {
     @Column(name = "min_price", precision = 10, scale = 2)
     private BigDecimal minPrice;
 
-    @Column(name = "delivery_method")
-    private Integer deliveryMethod;
+    @Column(name = "delivery_method", length = 50)
+    private String deliveryMethod;
 
-    @Column(name = "contact_type")
-    private Integer contactType;
+    @Column(name = "contact_type", length = 50)
+    private String contactType;
 
     @Column(name = "is_bargain_allowed")
     private Boolean isBargainAllowed = true;

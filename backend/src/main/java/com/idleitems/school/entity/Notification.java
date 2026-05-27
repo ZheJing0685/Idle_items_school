@@ -2,6 +2,8 @@ package com.idleitems.school.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
+
 import java.time.LocalDateTime;
 
 @Data
@@ -20,7 +22,7 @@ public class Notification {
     private Long userId;
 
     @Column(name = "notification_type", nullable = false)
-    private Integer notificationType;  // 1-系统通知，2-订单通知，3-商品通知，4-互动通知
+    private Integer notificationType;
 
     @Column(name = "title", nullable = false, length = 100)
     private String title;
@@ -32,7 +34,7 @@ public class Notification {
     private Long relatedId;
 
     @Column(name = "related_type", length = 50)
-    private String relatedType;  // ORDER/ITEM/REVIEW/DISPUTE
+    private String relatedType;
 
     @Column(name = "is_read", nullable = false)
     private Boolean isRead = false;
@@ -43,15 +45,10 @@ public class Notification {
     @Column(name = "is_deleted", nullable = false)
     private Boolean isDeleted = false;
 
+    @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-    }
-
-    // 通知类型枚举
     public enum NotificationType {
         SYSTEM(1, "系统通知"),
         ORDER(2, "订单通知"),
@@ -66,19 +63,12 @@ public class Notification {
             this.description = description;
         }
 
-        public int getCode() {
-            return code;
-        }
-
-        public String getDescription() {
-            return description;
-        }
+        public int getCode() { return code; }
+        public String getDescription() { return description; }
 
         public static NotificationType fromCode(int code) {
             for (NotificationType type : values()) {
-                if (type.code == code) {
-                    return type;
-                }
+                if (type.code == code) return type;
             }
             return SYSTEM;
         }

@@ -167,7 +167,7 @@
 
 .message-item.is-mine .message-text {
   background: var(--primary-color);
-  color: white;
+  color: var(--text-inverse);
 }
 
 .message-time {
@@ -221,6 +221,6 @@
     display: flex;
     position: fixed;
     inset: 0;
-    z-index: 100;
+    z-index: var(--z-sticky);
   }
 }

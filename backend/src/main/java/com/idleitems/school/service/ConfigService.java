@@ -25,6 +25,8 @@ public class ConfigService {
     private static final String CONFIG_CACHE_PREFIX = "config:";
     private static final String CONFIG_ALL_CACHE_KEY = "config:all";
     private static final long CONFIG_CACHE_TTL_HOURS = 1;
+    private static final String NULL_SENTINEL = "NULL_SENTINEL";
+    private static final long NULL_CACHE_TTL_MINUTES = 5;
 
     /**
      * 获取所有配置
@@ -56,6 +58,9 @@ public class ConfigService {
         String cacheKey = CONFIG_CACHE_PREFIX + configKey;
         Object cached = redisTemplate.opsForValue().get(cacheKey);
         if (cached != null) {
+            if (NULL_SENTINEL.equals(cached)) {
+                return null;
+            }
             return cached;
         }
 
@@ -66,6 +71,8 @@ public class ConfigService {
             redisTemplate.opsForValue().set(cacheKey, value, CONFIG_CACHE_TTL_HOURS, TimeUnit.HOURS);
             return value;
         }
+
+        redisTemplate.opsForValue().set(cacheKey, NULL_SENTINEL, NULL_CACHE_TTL_MINUTES, TimeUnit.MINUTES);
         return null;
     }
 

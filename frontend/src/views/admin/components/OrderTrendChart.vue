@@ -2,8 +2,9 @@
   <div ref="chartRef" class="echarts-container"></div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch } from 'vue';
+import type { PropType } from 'vue';
 import * as echarts from 'echarts/core';
 import { LineChart } from 'echarts/charts';
 import {
@@ -12,6 +13,7 @@ import {
   GridComponent,
 } from 'echarts/components';
 import { CanvasRenderer } from 'echarts/renderers';
+import { useThemeColor } from '../../../composables/useThemeColor';
 
 echarts.use([
   LineChart,
@@ -21,15 +23,22 @@ echarts.use([
   CanvasRenderer,
 ]);
 
+interface TrendItem {
+  date: string
+  count: number
+  amount: number
+}
+
 const props = defineProps({
   data: {
-    type: Array,
+    type: Array as PropType<TrendItem[]>,
     default: () => [],
   },
 });
 
-const chartRef = ref(null);
-let chartInstance = null;
+const chartRef = ref<HTMLDivElement | null>(null);
+let chartInstance: echarts.ECharts | null = null;
+const { trendColors } = useThemeColor();
 
 const initChart = () => {
   if (!chartRef.value) return;
@@ -77,7 +86,7 @@ const updateChart = () => {
         name: '交易额(元)',
         position: 'right',
         axisLabel: {
-          formatter: (value) => '¥' + value,
+          formatter: (value: number) => '¥' + value,
         },
       },
     ],
@@ -87,7 +96,7 @@ const updateChart = () => {
         type: 'line',
         smooth: true,
         data: orderCounts,
-        itemStyle: { color: '#6366f1' },
+        itemStyle: { color: trendColors().count },
       },
       {
         name: '交易额',
@@ -95,7 +104,7 @@ const updateChart = () => {
         smooth: true,
         yAxisIndex: 1,
         data: amounts,
-        itemStyle: { color: '#22c55e' },
+        itemStyle: { color: trendColors().amount },
       },
     ],
   };

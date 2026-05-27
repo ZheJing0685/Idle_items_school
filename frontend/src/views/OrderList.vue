@@ -64,7 +64,7 @@
                   :key="action.key"
                   :type="action.type"
                   size="small"
-                  :class="action.className"
+                  :class="(action as any).className"
                   @click="handleAction(action.key, order)"
                 >
                   {{ action.label }}
@@ -124,18 +124,15 @@
         <div class="rating-section">
           <span class="rating-label">商品评分</span>
           <div class="rating-stars">
-            <svg
+            <Star
               v-for="i in 5"
               :key="i"
-              width="32"
-              height="32"
-              viewBox="0 0 24 24"
+              :size="32"
               :fill="i <= reviewRating ? 'var(--accent-color)' : 'var(--border-default)'"
+              :color="i <= reviewRating ? 'var(--accent-color)' : 'var(--border-default)'"
               class="star-icon"
               @click="reviewRating = i"
-            >
-              <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
-            </svg>
+            />
           </div>
         </div>
         <el-input
@@ -157,11 +154,12 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import api from '../api';
+import { Star } from 'lucide-vue-next';
 import {
   getOrderActions,
   getOrderHint as buildOrderHint,
@@ -182,17 +180,17 @@ const fallbackCover =
 const route = useRoute();
 const router = useRouter();
 
-const currentView = ref(sanitizeOrderView(route.query.view));
+const currentView = ref(sanitizeOrderView(route.query.view as string));
 const currentTab = ref(
-  sanitizeOrderStatus(route.query.status, currentView.value)
+  sanitizeOrderStatus(route.query.status as string)
 );
 const currentPage = ref(1);
 const pageSize = ref(10);
 const total = ref(0);
-const orders = ref([]);
+const orders = ref<any[]>([]);
 const loading = ref(false);
 const showReviewDialog = ref(false);
-const currentReviewOrder = ref(null);
+const currentReviewOrder = ref<any>(null);
 const reviewRating = ref(5);
 const reviewContent = ref('');
 
@@ -221,12 +219,12 @@ const emptyDesc = computed(() =>
     : '暂时还没有成交订单，商品卖出后会在这里出现'
 );
 
-const formatTime = (time) => {
+const formatTime = (time: string) => {
   if (!time) return '';
   return new Date(time).toLocaleDateString();
 };
 
-const formatPrice = (price) => {
+const formatPrice = (price: number) => {
   const numericPrice = Number(price || 0);
   return Number.isInteger(numericPrice)
     ? numericPrice.toString()
@@ -234,7 +232,7 @@ const formatPrice = (price) => {
 };
 
 const syncQuery = async () => {
-  const query = {};
+  const query: Record<string, string> = {};
 
   if (currentView.value === 'seller') {
     query.view = 'seller';
@@ -251,7 +249,7 @@ const loadOrders = async () => {
   loading.value = true;
 
   try {
-    const params = {
+    const params: Record<string, any> = {
       page: currentPage.value,
       size: pageSize.value,
     };
@@ -282,7 +280,7 @@ const refreshOrders = async () => {
   await loadOrders();
 };
 
-const setView = async (view) => {
+const setView = async (view: string) => {
   const nextView = sanitizeOrderView(view);
   if (currentView.value === nextView) return;
 
@@ -293,12 +291,12 @@ const setView = async (view) => {
   await loadOrders();
 };
 
-const handleTabChange = async (value) => {
+const handleTabChange = async (value: string) => {
   await setTab(value);
 };
 
-const setTab = async (status) => {
-  const nextStatus = sanitizeOrderStatus(status, currentView.value);
+const setTab = async (status: string) => {
+  const nextStatus = sanitizeOrderStatus(status);
   if (currentTab.value === nextStatus) return;
 
   currentTab.value = nextStatus;
@@ -307,7 +305,7 @@ const setTab = async (status) => {
   await loadOrders();
 };
 
-const handlePay = async (order) => {
+const handlePay = async (order: any) => {
   try {
     await ElMessageBox.confirm('确认支付该订单？', '提示', { type: 'warning' });
     await api.order.payOrder(order.id);
@@ -320,7 +318,7 @@ const handlePay = async (order) => {
   }
 };
 
-const handleCancel = async (order) => {
+const handleCancel = async (order: any) => {
   try {
     await ElMessageBox.confirm('确认取消该订单？', '提示', { type: 'warning' });
     await api.order.cancelOrder(order.id, '用户主动取消');
@@ -333,7 +331,7 @@ const handleCancel = async (order) => {
   }
 };
 
-const handleShip = async (order) => {
+const handleShip = async (order: any) => {
   try {
     await ElMessageBox.confirm('确认已准备好发货？', '提示', {
       type: 'warning',
@@ -348,7 +346,7 @@ const handleShip = async (order) => {
   }
 };
 
-const handleConfirmReceive = async (order) => {
+const handleConfirmReceive = async (order: any) => {
   try {
     await ElMessageBox.confirm('确认已收到货物？', '提示', { type: 'warning' });
     await api.order.confirmReceive(order.id);
@@ -361,7 +359,7 @@ const handleConfirmReceive = async (order) => {
   }
 };
 
-const handleApplyRefund = async (order) => {
+const handleApplyRefund = async (order: any) => {
   try {
     const { value: reason } = await ElMessageBox.prompt(
       '请输入退款原因',
@@ -386,7 +384,7 @@ const handleApplyRefund = async (order) => {
   }
 };
 
-const handleReview = (order) => {
+const handleReview = (order: any) => {
   if (order.reviewed) {
     ElMessage.info('该订单已评价');
     return;
@@ -408,6 +406,7 @@ const submitReview = async () => {
 
   try {
     await api.review.createReview(currentReviewOrder.value.id, {
+      itemId: currentReviewOrder.value.itemId,
       rating: reviewRating.value,
       content: reviewContent.value.trim(),
       isAnonymous: false,
@@ -420,7 +419,7 @@ const submitReview = async () => {
   }
 };
 
-const handleAction = async (actionKey, order) => {
+const handleAction = async (actionKey: string, order: any) => {
   switch (actionKey) {
     case 'pay':
       await handlePay(order);
@@ -445,17 +444,17 @@ const handleAction = async (actionKey, order) => {
   }
 };
 
-const getActions = (order) =>
+const getActions = (order: any) =>
   getOrderActions(order.orderStatus, currentView.value);
 
-const getOrderHint = (order) =>
+const getOrderHint = (order: any) =>
   buildOrderHint(order.orderStatus, currentView.value);
 
-const viewDetail = (order) => {
+const viewDetail = (order: any) => {
   router.push(`/item/${order.itemId}`);
 };
 
-const handlePageChange = async (page) => {
+const handlePageChange = async (page: number) => {
   currentPage.value = page;
   await loadOrders();
 };

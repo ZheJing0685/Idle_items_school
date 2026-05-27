@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.MockMvc;
@@ -26,7 +26,7 @@ import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -35,34 +35,27 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @EnableAspectJAutoProxy
 @Import(PermissionAspect.class)
 @DisplayName("AdminBatchController 批量操作接口测试")
-@SuppressWarnings("deprecation")
 class AdminBatchControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
-    @SuppressWarnings("deprecation")
-    @MockBean
+    @MockitoBean
     private ItemRepository itemRepository;
 
-    @SuppressWarnings("deprecation")
-    @MockBean
+    @MockitoBean
     private UserRepository userRepository;
 
-    @SuppressWarnings("deprecation")
-    @MockBean
+    @MockitoBean
     private OrderService orderService;
 
-    @SuppressWarnings("deprecation")
-    @MockBean
+    @MockitoBean
     private AdminLogService adminLogService;
 
-    @SuppressWarnings("deprecation")
-    @MockBean
+    @MockitoBean
     private DictService dictService;
 
-    @SuppressWarnings("deprecation")
-    @MockBean
+    @MockitoBean
     private UserService userService;
 
     @BeforeEach
@@ -80,7 +73,7 @@ class AdminBatchControllerTest {
         when(itemRepository.findById(1L)).thenReturn(Optional.of(item));
         when(dictService.getDictLabel("ITEM_STATUS", "ON_SALE")).thenReturn("在售");
 
-        mockMvc.perform(put("/api/admin/batch/items/approve")
+        mockMvc.perform(post("/api/admin/batch/items/approve")
                         .requestAttr("userId", 99L)
                         .contentType("application/json")
                         .content("[1]"))
@@ -95,7 +88,7 @@ class AdminBatchControllerTest {
         when(itemRepository.findById(1L)).thenReturn(Optional.of(item));
         when(dictService.getDictLabel("ITEM_STATUS", "REJECTED")).thenReturn("已驳回");
 
-        mockMvc.perform(put("/api/admin/batch/items/reject")
+        mockMvc.perform(post("/api/admin/batch/items/reject")
                         .requestAttr("userId", 99L)
                         .contentType("application/json")
                         .content("{\"itemIds\":[1],\"reason\":\"违规内容\"}"))
@@ -110,7 +103,7 @@ class AdminBatchControllerTest {
         when(itemRepository.findById(1L)).thenReturn(Optional.of(item));
         when(dictService.getDictLabel("ITEM_STATUS", "OFF_SHELF")).thenReturn("已下架");
 
-        mockMvc.perform(put("/api/admin/batch/items/off-shelf")
+        mockMvc.perform(post("/api/admin/batch/items/off-shelf")
                         .requestAttr("userId", 99L)
                         .contentType("application/json")
                         .content("{\"itemIds\":[1],\"reason\":\"违规操作\"}"))
@@ -124,7 +117,7 @@ class AdminBatchControllerTest {
         User user = buildUser();
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 
-        mockMvc.perform(put("/api/admin/batch/users/status")
+        mockMvc.perform(post("/api/admin/batch/users/status")
                         .requestAttr("userId", 99L)
                         .contentType("application/json")
                         .content("{\"userIds\":[1],\"status\":\"DISABLED\"}"))
@@ -141,7 +134,7 @@ class AdminBatchControllerTest {
         when(orderService.adminCancelOrder(1L, 99L, "管理员取消")).thenReturn(order);
         when(dictService.getDictLabel("ORDER_STATUS", "CANCELLED")).thenReturn("已取消");
 
-        mockMvc.perform(put("/api/admin/batch/orders/cancel")
+        mockMvc.perform(post("/api/admin/batch/orders/cancel")
                         .requestAttr("userId", 99L)
                         .contentType("application/json")
                         .content("{\"orderIds\":[1],\"reason\":\"管理员取消\"}"))

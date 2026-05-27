@@ -69,4 +69,11 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
                     @Param("relatedId") Long relatedId,
                     @Param("relatedType") String relatedType,
                     @Param("createdAt") LocalDateTime createdAt);
+
+    /**
+     * 硬删除过期的已读通知（超过指定时间）
+     */
+    @Modifying
+    @Query("DELETE FROM Notification n WHERE n.isRead = true AND n.createdAt < :threshold")
+    int hardDeleteOldReadNotifications(@Param("threshold") LocalDateTime threshold);
 }

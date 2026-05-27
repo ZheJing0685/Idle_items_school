@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -22,14 +22,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(UploadController.class)
 @AutoConfigureMockMvc(addFilters = false)
 @DisplayName("UploadController 接口测试")
-@SuppressWarnings("deprecation")
 class UploadControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
-    @SuppressWarnings("deprecation")
-    @MockBean
+    @MockitoBean
     private FileService fileService;
 
     @Test
@@ -83,13 +81,13 @@ class UploadControllerTest {
         );
 
         when(fileService.uploadImage(any()))
-                .thenThrow(new IllegalArgumentException("文件类型不支持，仅支持JPG、PNG、WebP格式"));
+                .thenThrow(new IllegalArgumentException("文件类型不支持，仅支持JPG、PNG格式"));
 
         mockMvc.perform(multipart("/api/upload").file(file)
                         .requestAttr("userId", 1L))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(400))
-                .andExpect(jsonPath("$.message").value("文件验证失败：文件类型不支持，仅支持JPG、PNG、WebP格式"));
+                .andExpect(jsonPath("$.message").value("文件验证失败：文件类型不支持，仅支持JPG、PNG格式"));
     }
 
     @Test

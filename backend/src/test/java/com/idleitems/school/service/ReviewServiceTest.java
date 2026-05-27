@@ -1,5 +1,6 @@
 package com.idleitems.school.service;
 
+import com.idleitems.school.common.BusinessException;
 import com.idleitems.school.dto.order.CreateReviewRequest;
 import com.idleitems.school.entity.Order;
 import com.idleitems.school.entity.Review;
@@ -79,10 +80,8 @@ class ReviewServiceTest {
         completedOrder.setOrderStatus(Order.OrderStatus.SHIPPED);
         when(orderRepository.findById(1L)).thenReturn(Optional.of(completedOrder));
 
-        IllegalArgumentException exception = assertThrows(
-                IllegalArgumentException.class,
-                () -> reviewService.createReview(1L, 1L, request)
-        );
+        BusinessException exception = assertThrows(BusinessException.class,
+                () -> reviewService.createReview(1L, 1L, request));
 
         assertEquals("只能在订单完成后评价", exception.getMessage());
     }
@@ -93,8 +92,8 @@ class ReviewServiceTest {
         when(orderRepository.findById(1L)).thenReturn(Optional.of(completedOrder));
         when(reviewRepository.existsByOrderIdAndReviewerId(1L, 1L)).thenReturn(true);
 
-        IllegalArgumentException exception = assertThrows(
-                IllegalArgumentException.class,
+        BusinessException exception = assertThrows(
+                BusinessException.class,
                 () -> reviewService.createReview(1L, 1L, request)
         );
 

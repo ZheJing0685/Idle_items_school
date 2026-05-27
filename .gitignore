@@ -155,6 +155,7 @@ GIT_WORKFLOW.md
 .playwright-mcp/
 .trae_spec/
 doc/
+CONTEXT.md
 findings.md
 progress.md
 task_plan.md
@@ -166,3 +167,9 @@ websocket-*-report.md
 
 # Database exports (may contain sensitive data)
 sql/idle_items_school.sql
+前端浅色模式主题色系文档.txt
+浅色模式主题审查报告.html
+项目架构文档.html
+feature-review.html
+skills-lock.json
+nul

@@ -1,5 +1,6 @@
 .items-page {
   min-height: 100vh;
+  min-height: 100dvh;
   padding-bottom: var(--space-16);
   width: 100%;
 }
@@ -7,7 +8,7 @@
 .page-hero {
   background: linear-gradient(
     180deg,
-    oklch(98% 0.005 200) 0%,
+    var(--section-bg) 0%,
     var(--bg-base) 100%
   );
   padding: var(--space-10) 0;
@@ -61,7 +62,7 @@
   --el-select-border-color-hover: var(--primary-color);
   --el-select-menu-item-hover-bg-color: var(--primary-light);
   --el-select-menu-item-active-bg-color: var(--primary-color);
-  --el-select-menu-item-active-color: white;
+  --el-select-menu-item-active-color: var(--text-inverse);
   width: 130px;
   min-width: 0;
   overflow: hidden;
@@ -94,7 +95,7 @@
 
 .filter-select :deep(.el-select-dropdown__item.selected) {
   background-color: var(--primary-color);
-  color: white;
+  color: var(--text-inverse);
 }
 
 .filter-select :deep(.el-select-dropdown__item:hover) {
@@ -117,7 +118,7 @@
 
 .search-btn {
   background: var(--primary-color) !important;
-  color: white !important;
+  color: var(--text-inverse) !important;
   border: none !important;
   border-radius: 0 var(--radius-full) var(--radius-full) 0;
   padding: 0 var(--space-5);
@@ -188,7 +189,7 @@
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-3) var(--space-5);
-  background: white;
+  background: var(--bg-surface);
   border: none;
   border-radius: var(--radius-full);
   font-weight: 600;
@@ -200,7 +201,7 @@
 
 .view-btn:hover {
   background: var(--primary-color);
-  color: white;
+  color: var(--text-inverse);
 }
 
 .item-badge {
@@ -209,7 +210,7 @@
   font-size: var(--text-xs);
   font-weight: 700;
   border-radius: var(--radius-sm);
-  color: white;
+  color: var(--text-inverse);
 }
 
 .item-badge-new {
@@ -376,7 +377,7 @@
   gap: var(--space-2);
   padding: var(--space-3) var(--space-6);
   background: var(--primary-color);
-  color: white;
+  color: var(--text-inverse);
   font-weight: 600;
   font-size: var(--text-sm);
   border-radius: var(--radius-lg);
@@ -386,7 +387,7 @@
 
 .empty-action:hover {
   background: var(--primary-dark);
-  color: white;
+  color: var(--text-inverse);
   transform: translateY(-2px);
 }
 
@@ -409,7 +410,7 @@
 
 .custom-pagination :deep(.el-pager li.is-active) {
   background: var(--primary-color);
-  color: white;
+  color: var(--text-inverse);
   border-radius: var(--radius-md);
 }
 
@@ -417,16 +418,6 @@
   color: var(--primary-color);
 }
 
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(24px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
 
 @media (max-width: 1024px) {
   .items-grid {

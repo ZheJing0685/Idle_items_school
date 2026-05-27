@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageImpl;
@@ -40,13 +40,13 @@ class AdminUserControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @MockitoBean
     private UserRepository userRepository;
 
-    @MockBean
+    @MockitoBean
     private AdminLogService adminLogService;
 
-    @MockBean
+    @MockitoBean
     private UserService userService;
 
     @BeforeEach
@@ -106,7 +106,7 @@ class AdminUserControllerTest {
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(userRepository.save(any(User.class))).thenReturn(user);
 
-        mockMvc.perform(put("/api/admin/users/1/status")
+        mockMvc.perform(post("/api/admin/users/1/status")
                         .requestAttr("userId", 99L)
                         .param("status", "DISABLED"))
                 .andExpect(status().isOk())

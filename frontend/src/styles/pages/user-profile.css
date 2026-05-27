@@ -33,7 +33,7 @@
   background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
   font-size: var(--text-4xl);
   font-weight: 700;
-  border: 3px solid white;
+  border: 3px solid var(--bg-surface);
   box-shadow: var(--shadow-md);
 }
 

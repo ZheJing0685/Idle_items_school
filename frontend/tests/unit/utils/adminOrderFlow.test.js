@@ -31,8 +31,10 @@ describe('adminOrderFlow', () => {
   it('maps status text and class to the unified state machine', () => {
     expect(getAdminOrderStatusText('REFUNDED')).toBe('已退款');
     expect(getAdminOrderStatusText('COMPLETED')).toBe('已完成');
+    expect(getAdminOrderStatusText('REFUND_REQUESTED')).toBe('退款申请中');
     expect(getAdminOrderStatusClass('COMPLETED')).toBe('admin-status-completed');
     expect(getAdminOrderStatusClass('SHIPPED')).toBe('admin-status-shipped');
+    expect(getAdminOrderStatusClass('REFUND_REQUESTED')).toBe('admin-status-refunding');
   });
 
   it('maps payment methods', () => {
@@ -42,23 +44,28 @@ describe('adminOrderFlow', () => {
   });
 
   it('gates admin actions correctly', () => {
-    expect(canAdminCancelOrder('SHIPPED')).toBe(false);
+    // canAdminCancelOrder: 对齐后端 adminCancelOrder，PENDING_PAYMENT/PENDING_SHIPMENT/SHIPPED 可取消
+    expect(canAdminCancelOrder('SHIPPED')).toBe(true);
     expect(canAdminCancelOrder('PENDING_PAYMENT')).toBe(true);
-    expect(canAdminApproveRefund('SHIPPED')).toBe(true);
-    expect(canAdminApproveRefund('PAID')).toBe(true);
+    expect(canAdminCancelOrder('COMPLETED')).toBe(false);
+
+    // canAdminApproveRefund: 仅 REFUND_REQUESTED 可审批
+    expect(canAdminApproveRefund('REFUND_REQUESTED')).toBe(true);
+    expect(canAdminApproveRefund('SHIPPED')).toBe(false);
     expect(canAdminApproveRefund('PENDING_PAYMENT')).toBe(false);
+
     expect(
-      getAdminOrderActions('PAID').map(
+      getAdminOrderActions('REFUND_REQUESTED').map(
         (action) => action.label
       )
-    ).toEqual(['查看详情', '取消订单', '标记发货', '处理退款']);
+    ).toEqual(['查看详情', '处理退款']);
   });
 
   it('returns status timestamps for terminal states', () => {
     expect(
       getAdminOrderStatusTime({
         orderStatus: 'REFUNDED',
-        refundedAt: '2026-04-23T10:00:00',
+        refundTime: '2026-04-23T10:00:00',
       })
     ).toBe('2026-04-23T10:00:00');
   });

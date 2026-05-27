@@ -88,7 +88,7 @@
                 :key="index"
                 class="thumb-item"
                 :class="{ active: currentImage === img }"
-                @click="currentImage = img"
+                @click="currentImage = img" @keydown.enter="currentImage = img" @keydown.space.prevent="currentImage = img" tabindex="0" role="button" :aria-label="`查看第 ${index + 1} 张图片`"
               >
                 <img :src="img" :alt="`图片 ${index + 1}`" />
               </div>
@@ -458,10 +458,12 @@ import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import api from '../api';
+import { useDictStore } from '../store/dict';
 
 const route = useRoute();
 const router = useRouter();
 
+const dictStore = useDictStore();
 const loading = ref(true);
 const item = ref(null);
 const reviews = ref([]);
@@ -529,22 +531,28 @@ const discountPercent = computed(() => {
 });
 
 const getConditionText = (condition) => {
-  const map = {
+  const label = dictStore.getDictLabel('ITEM_CONDITION', condition);
+  if (label && label !== condition) return label;
+  const fallbackMap = {
     NEW: '全新',
     LIKE_NEW: '九成新',
     GOOD: '八成新',
     FAIR: '七成新',
     POOR: '六成新及以下',
   };
-  return map[condition] || condition;
+  return fallbackMap[condition] || condition;
 };
 
 const getDeliveryText = (method) => {
-  const map = {
-    1: '自提',
-    2: '上门',
+  const label = dictStore.getDictLabel('DELIVERY_METHOD', method);
+  if (label && label !== method) return label;
+  const fallbackMap = {
+    LOCAL_DELIVERY: '自提',
+    HOME_DELIVERY: '上门',
+    EXPRESS: '快递',
+    MAIL: '邮寄',
   };
-  return map[method] || method;
+  return fallbackMap[method] || method;
 };
 
 const formatTime = (time) => {

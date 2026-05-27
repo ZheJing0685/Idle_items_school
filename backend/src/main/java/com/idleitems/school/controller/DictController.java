@@ -1,6 +1,7 @@
 package com.idleitems.school.controller;
 
 import com.idleitems.school.common.Result;
+import com.idleitems.school.config.ApiPaths;
 import com.idleitems.school.service.DictService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -12,7 +13,7 @@ import java.util.Map;
 
 @Tag(name = "字典管理", description = "数据字典相关接口")
 @RestController
-@RequestMapping("/api/dicts")
+@RequestMapping(ApiPaths.Dict.BASE)
 @RequiredArgsConstructor
 public class DictController {
 

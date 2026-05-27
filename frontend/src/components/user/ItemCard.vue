@@ -1,5 +1,5 @@
 <template>
-  <div class="item-card" @click="$emit('click')">
+  <div class="item-card" @click="$emit('click')" @keydown.enter="$emit('click')" @keydown.space.prevent="$emit('click')" tabindex="0" role="button" :aria-label="`查看 ${title} 详情`">
     <div class="card-image">
       <img :src="coverImage || defaultImage" :alt="title" loading="lazy"/>
       <div class="image-overlay" v-if="status">
@@ -11,10 +11,7 @@
       <div class="item-price">¥{{ price }}</div>
       <div class="item-meta">
         <span class="view-count" v-if="viewCount !== undefined">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M1 12S5 4 12 4s11 8 11 8-4 8-11 8-11-8-11-8z"/>
-            <circle cx="12" cy="12" r="3"/>
-          </svg>
+          <Eye :size="14" />
           {{ viewCount }}浏览
         </span>
         <span class="time" v-if="time">{{ time }}</span>
@@ -26,8 +23,9 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue';
+import { Eye } from 'lucide-vue-next';
 
 const props = defineProps({
   id: [String, Number],
@@ -42,16 +40,16 @@ const props = defineProps({
 
 defineEmits(['click']);
 
-const defaultImage = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="150" viewBox="0 0 200 150"%3E%3Crect fill="%23f0f0f0" width="200" height="150"/%3E%3Cpath fill="%23ccc" d="M80 60h40v30h-40z"/%3E%3Ccircle cx="90" cy="50" r="8" fill="%23ccc"/%3E%3C/svg%3E';
+const defaultImage = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="150" viewBox="0 0 200 150"%3E%3Crect fill="%23555" width="200" height="150"/%3E%3Cpath fill="%23777" d="M80 60h40v30h-40z"/%3E%3Ccircle cx="90" cy="50" r="8" fill="%23777"/%3E%3C/svg%3E';
 
 const statusClass = computed(() => {
-  const map = {
+  const map: Record<string, string> = {
     'ON_SALE': 'status-on-sale',
     'SOLD': 'status-sold',
     'PENDING': 'status-pending',
     'OFF_SHELF': 'status-off-shelf'
   };
-  return map[props.status] || 'status-default';
+  return map[props.status || ''] || 'status-default';
 });
 </script>
 
@@ -104,23 +102,23 @@ const statusClass = computed(() => {
 }
 
 .status-on-sale {
-  background: oklch(62% 0.12 158 / 0.9);
-  color: white;
+  background: var(--color-success);
+  color: var(--text-inverse);
 }
 
 .status-sold {
-  background: oklch(58% 0.01 195 / 0.9);
-  color: white;
+  background: oklch(50% 0.02 195);
+  color: var(--text-inverse);
 }
 
 .status-pending {
-  background: oklch(75% 0.14 85 / 0.9);
-  color: white;
+  background: var(--color-warning);
+  color: var(--text-inverse);
 }
 
 .status-off-shelf {
-  background: oklch(60% 0.20 25 / 0.9);
-  color: white;
+  background: var(--color-danger);
+  color: var(--text-inverse);
 }
 
 .card-content {
@@ -163,7 +161,7 @@ const statusClass = computed(() => {
 
 .card-actions {
   display: flex;
-  gap: var(--space-2);
+  justify-content: space-between;
   padding: var(--space-3) var(--space-4);
   border-top: 1px solid var(--border-subtle);
 }

@@ -8,13 +8,13 @@
               cx="100"
               cy="100"
               r="90"
-              fill="oklch(62% 0.14 195 / 0.08)"
+              class="circle-bg-primary"
             />
             <circle
               cx="100"
               cy="100"
               r="70"
-              fill="oklch(62% 0.14 195 / 0.05)"
+              class="circle-bg-primary-light"
             />
             <text
               x="100"
@@ -30,34 +30,10 @@
           </svg>
         </div>
         <div class="deco-leaf leaf-1">
-          <svg
-            width="40"
-            height="40"
-            viewBox="0 0 24 24"
-            fill="var(--secondary-color)"
-          >
-            <path
-              d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-            />
-            <path
-              d="M7 13C7 13 8 15 12 15C16 15 17 13 17 13"
-              stroke="white"
-              stroke-width="2"
-              stroke-linecap="round"
-            />
-          </svg>
+          <Smile :size="40" fill="var(--secondary-color)" color="var(--secondary-color)" />
         </div>
         <div class="deco-leaf leaf-2">
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="var(--primary-light)"
-          >
-            <path
-              d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-            />
-          </svg>
+          <Circle :size="24" fill="var(--primary-light)" color="var(--primary-light)" />
         </div>
       </div>
 
@@ -70,56 +46,17 @@
 
         <div class="not-found-actions">
           <router-link to="/" class="action-btn action-btn-primary">
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path
-                d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z"
-              />
-              <path d="M9 22V12H15V22" />
-            </svg>
+            <Home :size="18" />
             返回首页
           </router-link>
           <router-link to="/items" class="action-btn action-btn-secondary">
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <rect x="3" y="3" width="7" height="7" />
-              <rect x="14" y="3" width="7" height="7" />
-              <rect x="14" y="14" width="7" height="7" />
-              <rect x="3" y="14" width="7" height="7" />
-            </svg>
+            <Grid :size="18" />
             浏览好物
           </router-link>
         </div>
 
         <div class="eco-message">
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="var(--secondary-color)"
-          >
-            <path
-              d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-            />
-            <path
-              d="M7 13C7 13 8 15 12 15C16 15 17 13 17 13"
-              stroke="white"
-              stroke-width="2"
-              stroke-linecap="round"
-            />
-          </svg>
+          <Smile :size="20" fill="var(--secondary-color)" color="var(--secondary-color)" />
           <span>每一次浏览都在为环保贡献力量</span>
         </div>
       </div>
@@ -127,7 +64,9 @@
   </div>
 </template>
 
-<script setup></script>
+<script setup lang="ts">
+import { Smile, Circle, Home, Grid } from 'lucide-vue-next';
+</script>
 
 <style scoped>
 .not-found-page {
@@ -216,15 +155,23 @@
 
 .action-btn-primary {
   background: var(--primary-color);
-  color: white;
-  box-shadow: 0 4px 14px oklch(62% 0.14 195 / 0.35);
+  color: var(--text-inverse);
+  box-shadow: 0 4px 14px var(--color-primary-alpha-20);
+}
+
+.circle-bg-primary {
+  fill: var(--color-primary-alpha-15);
+}
+
+.circle-bg-primary-light {
+  fill: var(--color-primary-alpha-10);
 }
 
 .action-btn-primary:hover {
   background: var(--primary-dark);
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px oklch(62% 0.14 195 / 0.4);
-  color: white;
+  box-shadow: 0 6px 20px var(--color-primary-alpha-30);
+  color: var(--text-inverse);
 }
 
 .action-btn-secondary {
@@ -244,7 +191,7 @@
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-3) var(--space-4);
-  background: oklch(62% 0.12 158 / 0.08);
+  background: var(--color-success-alpha-10);
   border-radius: var(--radius-full);
   font-size: var(--text-sm);
   font-weight: 500;

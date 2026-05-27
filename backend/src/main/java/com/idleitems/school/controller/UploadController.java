@@ -2,6 +2,7 @@ package com.idleitems.school.controller;
 
 import com.idleitems.school.common.ErrorCode;
 import com.idleitems.school.common.Result;
+import com.idleitems.school.config.ApiPaths;
 import com.idleitems.school.service.FileService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -15,7 +16,7 @@ import java.util.Map;
 @Slf4j
 @Tag(name = "文件上传", description = "通用文件上传接口")
 @RestController
-@RequestMapping("/api/upload")
+@RequestMapping(ApiPaths.Upload.BASE)
 @RequiredArgsConstructor
 public class UploadController {
 
@@ -33,6 +34,7 @@ public class UploadController {
 
         try {
             Map<String, Object> result = fileService.uploadImage(file);
+            result.put("uploadUserId", userId);
             return Result.success("上传成功", result);
         } catch (IllegalArgumentException e) {
             log.warn("文件上传验证失败: {}", e.getMessage());

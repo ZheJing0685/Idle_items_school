@@ -7,7 +7,7 @@
         </el-button>
       </template>
     </PageHeader>
-    
+
     <div class="notifications-list">
       <NotificationCard
         v-for="item in notifications"
@@ -21,14 +21,14 @@
         @click="handleNotification(item)"
         @read="markAsRead(item.id)"
       />
-      
+
       <EmptyState v-if="notifications.length === 0 && !loading" title="暂无通知" description="新的通知会显示在这里">
         <template #action>
           <el-button type="primary" @click="$router.push('/')">去浏览物品</el-button>
         </template>
       </EmptyState>
     </div>
-    
+
     <div class="pagination" v-if="total > 0">
       <el-pagination
         v-model:current-page="currentPage"
@@ -41,7 +41,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
 import { ElMessage } from 'element-plus';
 import { useRouter } from 'vue-router';
@@ -56,7 +56,7 @@ import EmptyState from '@/components/user/EmptyState.vue';
 const router = useRouter();
 const userStore = useUserStore();
 
-const notifications = ref([]);
+const notifications = ref<any[]>([]);
 const currentPage = ref(1);
 const pageSize = ref(20);
 const total = ref(0);
@@ -78,7 +78,7 @@ const loadNotifications = async () => {
   }
 };
 
-const markAsRead = async (id) => {
+const markAsRead = async (id: string) => {
   try {
     await notificationApi.markAsRead(id);
     const item = notifications.value.find(n => n.id === id);
@@ -98,25 +98,26 @@ const markAllAsRead = async () => {
   }
 };
 
-const handleNotification = (item) => {
+const handleNotification = (item: any) => {
   if (!item.isRead) markAsRead(item.id);
   if (item.relatedType === 'ORDER' && item.relatedId) {
     router.push('/user/orders');
   }
 };
 
-const formatTime = (time) => {
+const formatTime = (time: string) => {
   if (!time) return '';
   const date = new Date(time);
   const now = new Date();
-  const diff = now - date;
+  const diff = now.getTime() - date.getTime();
   if (diff < 60000) return '刚刚';
   if (diff < 3600000) return Math.floor(diff / 60000) + '分钟前';
   if (diff < 86400000) return Math.floor(diff / 3600000) + '小时前';
   return date.toLocaleDateString();
 };
 
-const handleNewNotification = (notification) => {
+const handleNewNotification = (notification: any) => {
+  if (notifications.value.some(n => n.id === notification.id)) return;
   notifications.value.unshift(notification);
   total.value++;
 };
@@ -128,7 +129,7 @@ onMounted(() => {
   const token = getToken();
   const userId = userStore.user?.id;
   if (token && userId) {
-    wsService.connect(token, userId).catch((err) => {
+    wsService.connect(token, String(userId)).catch((err) => {
       console.error('WebSocket连接失败:', err);
     });
   }

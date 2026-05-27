@@ -5,22 +5,7 @@
         <div class="header-content">
           <router-link to="/" class="logo">
             <div class="logo-icon">
-              <svg width="32" height="32" viewBox="0 0 36 36" fill="none">
-                <circle cx="18" cy="18" r="16" fill="var(--primary-color)" />
-                <path
-                  d="M12 18C12 14.6863 14.6863 12 18 12C21.3137 12 24 14.6863 24 18"
-                  stroke="white"
-                  stroke-width="2.5"
-                  stroke-linecap="round"
-                />
-                <path
-                  d="M18 18V24"
-                  stroke="white"
-                  stroke-width="2.5"
-                  stroke-linecap="round"
-                />
-                <circle cx="18" cy="14" r="2" fill="white" />
-              </svg>
+              <Package :size="32" stroke-width="1.5" color="var(--primary-color)" />
             </div>
             <div class="logo-text">
               <span class="logo-title">闲置好物</span>
@@ -36,15 +21,7 @@
               class="nav-item"
               :class="{ active: isActiveRoute(item.path) }"
             >
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                v-html="iconMap[item.icon]"
-              />
+              <component :is="navIconMap[item.icon]" :size="18" />
               <span>{{ item.name }}</span>
             </router-link>
           </nav>
@@ -59,24 +36,17 @@
                   class="search-input"
                 >
                   <template #prefix>
-                    <svg
-                      class="search-icon"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                    >
-                      <circle cx="11" cy="11" r="8" />
-                      <path d="M21 21L16.65 16.65" />
-                    </svg>
+                    <Search class="search-icon" :size="16" />
                   </template>
                 </el-input>
               </div>
             </div>
 
             <div class="nav-actions">
+              <button class="theme-toggle" @click="toggleDark" :title="isDark ? '切换亮色模式' : '切换暗色模式'" :aria-label="isDark ? '切换亮色模式' : '切换暗色模式'">
+                <Sun v-if="isDark" :size="20" />
+                <Moon v-else :size="20" />
+              </button>
               <template v-if="store.isLoggedIn">
                 <div class="user-section">
                   <el-dropdown
@@ -89,31 +59,15 @@
                           {{ getAvatarText() }}
                         </el-avatar>
                         <span class="user-badge" v-if="store.user?.verified">
-                          <svg
-                            width="10"
-                            height="10"
-                            viewBox="0 0 24 24"
-                            fill="var(--secondary-color)"
-                          >
-                            <path
-                              d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
-                            />
-                          </svg>
+                          <Star :size="10" fill="var(--secondary-color)" color="var(--secondary-color)" />
                         </span>
                       </div>
                       <span class="user-name">{{ getUserName() }}</span>
-                      <svg
+                      <ChevronDown
                         class="dropdown-arrow"
                         :class="{ open: dropdownOpen }"
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                      >
-                        <path d="M6 9L12 15L18 9" />
-                      </svg>
+                        :size="14"
+                      />
                     </div>
                     <template #dropdown>
                       <el-dropdown-menu class="user-menu">
@@ -129,34 +83,13 @@
                           :divided="menuItem.divided"
                         >
                           <router-link :to="menuItem.path" class="menu-link">
-                            <svg
-                              width="16"
-                              height="16"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              stroke-width="2"
-                              v-html="iconMap[menuItem.icon]"
-                            />
+                            <component :is="navIconMap[menuItem.icon]" :size="16" />
                             <span>{{ menuItem.name }}</span>
                           </router-link>
                         </el-dropdown-item>
                         <el-dropdown-item divided @click="handleLogout">
                           <div class="menu-link menu-link-logout">
-                            <svg
-                              width="16"
-                              height="16"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              stroke-width="2"
-                            >
-                              <path
-                                d="M9 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H9"
-                              />
-                              <path d="M16 17L21 12L16 7" />
-                              <path d="M21 12H9" />
-                            </svg>
+                            <LogOut :size="16" />
                             <span>退出登录</span>
                           </div>
                         </el-dropdown-item>
@@ -181,15 +114,34 @@
   </header>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ElMessageBox, ElMessage } from 'element-plus';
 import { userStore } from '../store';
-import { getNavigationItems, getUserMenuItems, iconMap } from '../config/navigation';
+import { getNavigationItems, getUserMenuItems } from '../config/navigation';
+import { useDarkMode } from '../composables/useDarkMode';
+import {
+  Package, Search, Sun, Moon, Star, ChevronDown, LogOut,
+  Home, Grid, CirclePlus, Shield, User, ShoppingBag, Heart, MessageSquare, Bell
+} from 'lucide-vue-next';
+
+const navIconMap: Record<string, any> = {
+  home: Home,
+  grid: Grid,
+  'plus-circle': CirclePlus,
+  shield: Shield,
+  user: User,
+  box: Package,
+  'shopping-bag': ShoppingBag,
+  heart: Heart,
+  message: MessageSquare,
+  bell: Bell,
+};
 
 const route = useRoute();
 const router = useRouter();
+const { isDark, toggle: toggleDark } = useDarkMode();
 const searchKeyword = ref('');
 const dropdownOpen = ref(false);
 const store = userStore();
@@ -216,7 +168,7 @@ const userMenuItems = computed(() => {
 });
 
 // 判断路由是否激活
-const isActiveRoute = (path) => {
+const isActiveRoute = (path: string) => {
   if (path === '/') {
     return route.path === '/';
   }
@@ -244,17 +196,19 @@ const handleLogout = () => {
 };
 
 const getAvatarText = () => {
-  if (store.user) {
-    if (store.user.nickname?.length > 0) return store.user.nickname.charAt(0);
-    if (store.user.username?.length > 0) return store.user.username.charAt(0);
+  const u = store.user;
+  if (u) {
+    if (u.nickname && u.nickname.length > 0) return u.nickname.charAt(0);
+    if (u.username && u.username.length > 0) return u.username.charAt(0);
   }
   return '我';
 };
 
 const getUserName = () => {
-  if (store.user) {
-    if (store.user.nickname?.length > 0) return store.user.nickname;
-    if (store.user.username?.length > 0) return store.user.username;
+  const u = store.user;
+  if (u) {
+    if (u.nickname && u.nickname.length > 0) return u.nickname;
+    if (u.username && u.username.length > 0) return u.username;
   }
   return '用户';
 };

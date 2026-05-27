@@ -18,7 +18,7 @@ public class OrderTimeoutTask {
     private static final String CONFIG_TIMEOUT_MINUTES = "order_timeout_minutes";
     private static final int DEFAULT_TIMEOUT_MINUTES = 30;
 
-    @Scheduled(fixedRateString = "${order.timeout.check-interval:300000}")
+    @Scheduled(fixedDelayString = "${order.timeout.check-interval:300000}")
     public void checkTimeoutOrders() {
         log.info("开始执行订单超时检查任务");
         try {

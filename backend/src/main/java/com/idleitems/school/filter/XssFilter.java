@@ -13,23 +13,33 @@ import java.util.regex.Pattern;
 @Component
 public class XssFilter implements Filter {
 
+    /**
+     * 危险的XSS模式 - 只过滤真正危险的内容
+     * 不再移除所有HTML标签，允许安全的富文本
+     */
     private static final Pattern[] XSS_PATTERNS = {
         Pattern.compile("<script[^>]*>(.*?)</script>", Pattern.CASE_INSENSITIVE | Pattern.DOTALL),
         Pattern.compile("javascript:", Pattern.CASE_INSENSITIVE),
-        Pattern.compile("on\\w+\\s*=", Pattern.CASE_INSENSITIVE),
-        Pattern.compile("<[^>]*>"),
+        Pattern.compile("on(?:click|dblclick|load|error|mouseover|mouseout|mousedown|mouseup|mousemove|keydown|keyup|keypress|focus|blur|change|submit|reset|select|input)\\s*=", Pattern.CASE_INSENSITIVE),
         Pattern.compile("expression\\s*\\([^)]*\\)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL),
         Pattern.compile("data:\\s*text/html", Pattern.CASE_INSENSITIVE),
         Pattern.compile("vbscript:", Pattern.CASE_INSENSITIVE),
         Pattern.compile("<iframe[^>]*>", Pattern.CASE_INSENSITIVE | Pattern.DOTALL),
+        Pattern.compile("<object[^>]*>", Pattern.CASE_INSENSITIVE | Pattern.DOTALL),
+        Pattern.compile("<embed[^>]*>", Pattern.CASE_INSENSITIVE | Pattern.DOTALL),
+        Pattern.compile("<form[^>]*>", Pattern.CASE_INSENSITIVE | Pattern.DOTALL),
         Pattern.compile("alert\\s*\\(", Pattern.CASE_INSENSITIVE),
         Pattern.compile("prompt\\s*\\(", Pattern.CASE_INSENSITIVE),
-        Pattern.compile("confirm\\s*\\(", Pattern.CASE_INSENSITIVE)
+        Pattern.compile("confirm\\s*\\(", Pattern.CASE_INSENSITIVE),
+        Pattern.compile("eval\\s*\\(", Pattern.CASE_INSENSITIVE),
+        Pattern.compile("document\\.cookie", Pattern.CASE_INSENSITIVE),
+        Pattern.compile("document\\.write", Pattern.CASE_INSENSITIVE),
+        Pattern.compile("window\\.location", Pattern.CASE_INSENSITIVE)
     };
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
-        log.info("XSS过滤器初始化完成");
+        log.info("XSS过滤器初始化完成（安全模式：仅过滤危险模式）");
     }
 
     @Override
@@ -43,7 +53,6 @@ public class XssFilter implements Filter {
             String method = httpRequest.getMethod();
             String contentType = httpRequest.getContentType();
             
-            // 只对有请求体的方法（POST/PUT/PATCH）且非multipart进行XSS包装
             if (("POST".equals(method) || "PUT".equals(method) || "PATCH".equals(method))
                     && (contentType == null || !contentType.startsWith("multipart/form-data"))) {
                 XssHttpServletRequestWrapper xssRequest = new XssHttpServletRequestWrapper(httpRequest);
@@ -88,6 +97,10 @@ public class XssFilter implements Filter {
         return Encode.forJavaScript(input);
     }
 
+    /**
+     * 过滤XSS内容
+     * 只移除危险的XSS模式，保留安全的HTML标签
+     */
     public static String filterXss(String input) {
         if (input == null) {
             return null;
@@ -98,8 +111,6 @@ public class XssFilter implements Filter {
         for (Pattern pattern : XSS_PATTERNS) {
             filtered = pattern.matcher(filtered).replaceAll("");
         }
-
-        filtered = Encode.forHtml(filtered);
 
         return filtered;
     }

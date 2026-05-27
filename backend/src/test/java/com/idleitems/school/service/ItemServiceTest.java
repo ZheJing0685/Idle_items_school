@@ -1,10 +1,11 @@
 package com.idleitems.school.service;
 
+import com.idleitems.school.common.BusinessException;
 import com.idleitems.school.entity.Item;
 import com.idleitems.school.repository.ItemRepository;
 import com.idleitems.school.repository.ReviewRepository;
 import com.idleitems.school.repository.UserRepository;
-import com.idleitems.school.util.CacheManager;
+import com.idleitems.school.cache.CacheService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,7 +33,10 @@ class ItemServiceTest {
     private ReviewRepository reviewRepository;
 
     @Mock
-    private CacheManager cacheManager;
+    private CacheService cacheService;
+
+    @Mock
+    private ViewCountService viewCountService;
 
     @InjectMocks
     private ItemService itemService;
@@ -55,7 +59,7 @@ class ItemServiceTest {
     @Test
     void getItemById_WhenItemExists_ReturnsItem() {
         // Arrange
-        when(cacheManager.get(anyString())).thenReturn(null);
+        when(cacheService.get(anyString())).thenReturn(null);
         when(itemRepository.findById(1L)).thenReturn(Optional.of(testItem));
         when(itemRepository.countByUserId(anyLong())).thenReturn(1L);
         when(userRepository.findById(anyLong())).thenReturn(Optional.empty());
@@ -72,11 +76,11 @@ class ItemServiceTest {
     @Test
     void getItemById_WhenItemNotExists_ThrowsException() {
         // Arrange
-        when(cacheManager.get(anyString())).thenReturn(null);
+        when(cacheService.get(anyString())).thenReturn(null);
         when(itemRepository.findById(999L)).thenReturn(Optional.empty());
 
         // Act & Assert
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(BusinessException.class, () -> {
             itemService.getItemById(999L);
         });
     }
@@ -84,7 +88,7 @@ class ItemServiceTest {
     @Test
     void getItemById_WhenCached_ReturnsCachedItem() {
         // Arrange
-        when(cacheManager.get(anyString())).thenReturn(testItem);
+        when(cacheService.get(anyString())).thenReturn(testItem);
 
         // Act
         Item result = itemService.getItemById(1L);
@@ -96,18 +100,9 @@ class ItemServiceTest {
     }
 
     @Test
-    void incrementViewCountAsync_ShouldIncrementViewCount() {
-        // Act
-        itemService.incrementViewCountAsync(1L);
-
-        // Assert
-        verify(itemRepository, times(1)).incrementViewCount(1L);
-    }
-
-    @Test
     void getSellerItemCount_WhenCached_ReturnsCachedCount() {
         // Arrange
-        when(cacheManager.get(anyString())).thenReturn(5);
+        when(cacheService.get(anyString())).thenReturn(5);
 
         // Act
         int result = itemService.getSellerItemCount(1L);
@@ -120,7 +115,7 @@ class ItemServiceTest {
     @Test
     void getSellerItemCount_WhenNotCached_ReturnsFromRepository() {
         // Arrange
-        when(cacheManager.get(anyString())).thenReturn(null);
+        when(cacheService.get(anyString())).thenReturn(null);
         when(itemRepository.countByUserId(1L)).thenReturn(3L);
 
         // Act
@@ -129,6 +124,6 @@ class ItemServiceTest {
         // Assert
         assertEquals(3, result);
         verify(itemRepository, times(1)).countByUserId(1L);
-        verify(cacheManager, times(1)).set(anyString(), anyInt(), anyLong());
+        verify(cacheService, times(1)).set(anyString(), anyInt(), anyLong(), any());
     }
 }

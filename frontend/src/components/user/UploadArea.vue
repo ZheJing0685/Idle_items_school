@@ -1,25 +1,19 @@
 <template>
-  <div class="upload-area" :class="{ 'has-file': modelValue, 'is-dragging': isDragging }" @click="triggerUpload" @dragover.prevent="isDragging = true" @dragleave="isDragging = false" @drop.prevent="handleDrop">
+  <div class="upload-area" :class="{ 'has-file': modelValue, 'is-dragging': isDragging }" @click="triggerUpload" @keydown.enter="triggerUpload" @keydown.space.prevent="triggerUpload" tabindex="0" role="button" aria-label="点击上传图片" @dragover.prevent="isDragging = true" @dragleave="isDragging = false" @drop.prevent="handleDrop">
     <input ref="fileInput" type="file" :accept="accept" @change="handleFileChange" hidden />
-    
+
     <template v-if="modelValue">
       <img :src="modelValue" class="preview-image" alt="预览" />
       <div class="preview-overlay">
-        <button class="remove-btn" @click.stop="removeFile">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M18 6L6 18M6 6l12 12"/>
-          </svg>
+        <button class="remove-btn" @click.stop="removeFile" aria-label="删除图片">
+          <X :size="20" />
         </button>
       </div>
     </template>
-    
+
     <template v-else>
       <div class="upload-icon">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-          <polyline points="17 8 12 3 7 8"/>
-          <line x1="12" y1="3" x2="12" y2="15"/>
-        </svg>
+        <Upload :size="48" stroke-width="1.5" />
       </div>
       <p class="upload-text">{{ text }}</p>
       <p class="upload-hint" v-if="hint">{{ hint }}</p>
@@ -27,8 +21,9 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue';
+import { X, Upload } from 'lucide-vue-next';
 
 const props = defineProps({
   modelValue: String,
@@ -49,7 +44,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'upload']);
 
-const fileInput = ref(null);
+const fileInput = ref<HTMLInputElement | null>(null);
 const isDragging = ref(false);
 
 const triggerUpload = () => {
@@ -58,26 +53,27 @@ const triggerUpload = () => {
   }
 };
 
-const handleFileChange = (e) => {
-  const file = e.target.files?.[0];
+const handleFileChange = (e: Event) => {
+  const target = e.target as HTMLInputElement
+  const file = target.files?.[0];
   if (file) processFile(file);
 };
 
-const handleDrop = (e) => {
+const handleDrop = (e: DragEvent) => {
   isDragging.value = false;
-  const file = e.dataTransfer.files?.[0];
+  const file = e.dataTransfer?.files?.[0];
   if (file) processFile(file);
 };
 
-const processFile = (file) => {
+const processFile = (file: File) => {
   if (file.size > props.maxSize * 1024 * 1024) {
     alert(`文件大小不能超过${props.maxSize}MB`);
     return;
   }
-  
+
   const reader = new FileReader();
-  reader.onload = (e) => {
-    emit('update:modelValue', e.target.result);
+  reader.onload = (e: ProgressEvent<FileReader>) => {
+    emit('update:modelValue', (e.target as FileReader).result);
     emit('upload', file);
   };
   reader.readAsDataURL(file);
@@ -151,7 +147,7 @@ const removeFile = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: white;
+  background: var(--bg-surface);
   border-radius: var(--radius-full);
   color: var(--error-color);
   transition: transform var(--duration-fast);

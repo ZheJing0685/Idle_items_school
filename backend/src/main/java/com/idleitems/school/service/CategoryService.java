@@ -1,5 +1,7 @@
 package com.idleitems.school.service;
 
+import com.idleitems.school.common.BusinessException;
+import com.idleitems.school.common.ErrorCode;
 import com.idleitems.school.entity.Category;
 import com.idleitems.school.entity.CategoryChangeLog;
 import com.idleitems.school.entity.CategoryFeedback;
@@ -7,7 +9,7 @@ import com.idleitems.school.repository.CategoryChangeLogRepository;
 import com.idleitems.school.repository.CategoryFeedbackRepository;
 import com.idleitems.school.repository.CategoryRepository;
 import com.idleitems.school.repository.ItemRepository;
-import com.idleitems.school.util.CacheManager;
+import com.idleitems.school.cache.CacheService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +26,7 @@ import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -35,7 +38,7 @@ public class CategoryService {
     private final ItemRepository itemRepository;
     private final CategoryFeedbackRepository categoryFeedbackRepository;
     private final CategoryChangeLogRepository categoryChangeLogRepository;
-    private final CacheManager cacheManager;
+    private final CacheService cacheService;
     private final ObjectMapper objectMapper;
 
     private static final String CATEGORIES_CACHE_KEY = "categories:all";
@@ -43,19 +46,13 @@ public class CategoryService {
 
     @SuppressWarnings("unchecked")
     public List<Map<String, Object>> getAllCategories() {
-        try {
-            Object cached = cacheManager.get(CATEGORIES_CACHE_KEY);
-            if (cached instanceof List) {
-                return (List<Map<String, Object>>) cached;
-            }
-        } catch (Exception e) {
-            log.error("获取分类缓存失败: {}", e.getMessage());
+        Object cached = cacheService.get(CATEGORIES_CACHE_KEY);
+        if (cached instanceof List) {
+            return (List<Map<String, Object>>) cached;
         }
 
-        List<Category> categories = categoryRepository.findAll();
-        Map<Long, List<Long>> categoryChildrenMap = buildCategoryChildrenMap(categories);
-
-        List<Map<String, Object>> result = categories.stream()
+        CategoryData data = loadCategoryData();
+        List<Map<String, Object>> result = data.categories.stream()
                 .map(category -> {
                     Map<String, Object> map = new HashMap<>();
                     map.put("id", category.getId());
@@ -66,34 +63,25 @@ public class CategoryService {
                     map.put("icon", category.getIcon());
                     map.put("createdAt", category.getCreatedAt());
                     map.put("updatedAt", category.getUpdatedAt());
-                    map.put("itemCount", calculateItemCount(category.getId(), categoryChildrenMap));
+                    map.put("itemCount", getItemCountForCategory(category.getId(), data));
                     return map;
                 })
                 .collect(Collectors.toList());
 
-        try {
-            cacheManager.set(CATEGORIES_CACHE_KEY, result, 1800);
-        } catch (Exception e) {
-            log.error("设置分类缓存失败: {}", e.getMessage());
-        }
+        cacheService.set(CATEGORIES_CACHE_KEY, result, 1800, TimeUnit.SECONDS);
         return result;
     }
 
     @SuppressWarnings("unchecked")
     public List<Map<String, Object>> getCategoryTree() {
-        try {
-            Object cached = cacheManager.get(CATEGORY_TREE_CACHE_KEY);
-            if (cached instanceof List) {
-                return (List<Map<String, Object>>) cached;
-            }
-        } catch (Exception e) {
-            log.error("获取分类树缓存失败: {}", e.getMessage());
+        Object cached = cacheService.get(CATEGORY_TREE_CACHE_KEY);
+        if (cached instanceof List) {
+            return (List<Map<String, Object>>) cached;
         }
 
-        List<Category> categories = categoryRepository.findAll();
-        Map<Long, List<Long>> categoryChildrenMap = buildCategoryChildrenMap(categories);
+        CategoryData data = loadCategoryData();
 
-        Map<Long, Map<String, Object>> categoryMap = categories.stream()
+        Map<Long, Map<String, Object>> categoryMap = data.categories.stream()
                 .collect(Collectors.toMap(
                         Category::getId,
                         category -> {
@@ -102,14 +90,14 @@ public class CategoryService {
                             map.put("name", category.getName());
                             map.put("icon", category.getIcon());
                             map.put("keywords", category.getKeywords());
-                            map.put("itemCount", calculateItemCount(category.getId(), categoryChildrenMap));
+                            map.put("itemCount", getItemCountForCategory(category.getId(), data));
                             map.put("children", new ArrayList<>());
                             return map;
                         }
                 ));
 
         List<Map<String, Object>> tree = new ArrayList<>();
-        for (Category category : categories) {
+        for (Category category : data.categories) {
             if (category.getParentId() == null) {
                 tree.add(categoryMap.get(category.getId()));
             } else {
@@ -122,12 +110,43 @@ public class CategoryService {
             }
         }
 
-        try {
-            cacheManager.set(CATEGORY_TREE_CACHE_KEY, tree, 1800);
-        } catch (Exception e) {
-            log.error("设置分类树缓存失败: {}", e.getMessage());
-        }
+        cacheService.set(CATEGORY_TREE_CACHE_KEY, tree, 1800, TimeUnit.SECONDS);
         return tree;
+    }
+
+    private CategoryData loadCategoryData() {
+        List<Category> categories = categoryRepository.findAll();
+        Map<Long, List<Long>> childrenMap = buildCategoryChildrenMap(categories);
+
+        Set<Long> allIds = categories.stream().map(Category::getId).collect(Collectors.toSet());
+        List<Object[]> groupedCounts = itemRepository.countByCategoryIdsGrouped(new ArrayList<>(allIds));
+        Map<Long, Long> directCountMap = new HashMap<>();
+        for (Object[] row : groupedCounts) {
+            Long categoryId = (Long) row[0];
+            Long count = (Long) row[1];
+            directCountMap.put(categoryId, count != null ? count : 0L);
+        }
+
+        return new CategoryData(categories, childrenMap, directCountMap);
+    }
+
+    private long getItemCountForCategory(Long categoryId, CategoryData data) {
+        List<Long> ids = new ArrayList<>();
+        ids.add(categoryId);
+        collectAllChildCategoryIds(categoryId, data.childrenMap, ids);
+        return ids.stream().mapToLong(id -> data.directCountMap.getOrDefault(id, 0L)).sum();
+    }
+
+    private static class CategoryData {
+        final List<Category> categories;
+        final Map<Long, List<Long>> childrenMap;
+        final Map<Long, Long> directCountMap;
+
+        CategoryData(List<Category> categories, Map<Long, List<Long>> childrenMap, Map<Long, Long> directCountMap) {
+            this.categories = categories;
+            this.childrenMap = childrenMap;
+            this.directCountMap = directCountMap;
+        }
     }
 
     public List<Map<String, Object>> searchCategories(String keyword) {
@@ -151,14 +170,14 @@ public class CategoryService {
     @Transactional
     public Category createCategory(Category category, Long operatorId) {
         if (category.getName() == null || category.getName().trim().isEmpty()) {
-            throw new IllegalArgumentException("分类名称不能为空");
+            throw new BusinessException(ErrorCode.BAD_REQUEST, "分类名称不能为空");
         }
 
         if (category.getParentId() != null) {
             Category parent = categoryRepository.findById(category.getParentId())
-                    .orElseThrow(() -> new IllegalArgumentException("父分类不存在"));
+                    .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "父分类不存在"));
             if (parent.getLevel() >= 3) {
-                throw new IllegalArgumentException("分类层级不能超过3级");
+                throw new BusinessException(ErrorCode.OPERATION_NOT_ALLOWED, "分类层级不能超过3级");
             }
             category.setLevel(parent.getLevel() + 1);
         } else {
@@ -171,7 +190,7 @@ public class CategoryService {
         boolean nameExists = siblings.stream()
                 .anyMatch(c -> c.getName().equals(category.getName()));
         if (nameExists) {
-            throw new IllegalArgumentException("同级分类下已存在相同名称的分类");
+            throw new BusinessException(ErrorCode.CONFLICT, "同级分类下已存在相同名称的分类");
         }
 
         if (category.getSort() == null) {
@@ -183,6 +202,8 @@ public class CategoryService {
 
         Category saved = categoryRepository.save(category);
         recordChangeLog(saved, CategoryChangeLog.ActionType.CREATE, operatorId, null);
+        // 归一化同级分类排序值
+        normalizeSortValues(category.getParentId());
         clearCategoryCache();
         return saved;
     }
@@ -201,7 +222,7 @@ public class CategoryService {
             boolean nameExists = siblings.stream()
                     .anyMatch(c -> !c.getId().equals(id) && c.getName().equals(updateData.getName()));
             if (nameExists) {
-                throw new IllegalArgumentException("同级分类下已存在相同名称的分类");
+                throw new BusinessException(ErrorCode.CONFLICT, "同级分类下已存在相同名称的分类");
             }
             changes.put("name", Map.of("old", existing.getName(), "new", updateData.getName()));
             existing.setName(updateData.getName());
@@ -235,12 +256,12 @@ public class CategoryService {
 
         if (updateData.getParentId() != null && !updateData.getParentId().equals(existing.getParentId())) {
             if (updateData.getParentId().equals(id)) {
-                throw new IllegalArgumentException("不能将分类设置为自己的子分类");
+                throw new BusinessException(ErrorCode.BAD_REQUEST, "不能将分类设置为自己的子分类");
             }
             Category newParent = categoryRepository.findById(updateData.getParentId())
-                    .orElseThrow(() -> new IllegalArgumentException("父分类不存在"));
+                    .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "父分类不存在"));
             if (newParent.getLevel() >= 3) {
-                throw new IllegalArgumentException("分类层级不能超过3级");
+                throw new BusinessException(ErrorCode.OPERATION_NOT_ALLOWED, "分类层级不能超过3级");
             }
             changes.put("parentId", Map.of("old", existing.getParentId(), "new", updateData.getParentId()));
             existing.setParentId(updateData.getParentId());
@@ -260,21 +281,71 @@ public class CategoryService {
     @Transactional
     public void deleteCategory(Long id, Long operatorId) {
         Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("分类不存在"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "分类不存在"));
 
+        // 检查子分类
         List<Category> children = categoryRepository.findByParentId(id);
         if (!children.isEmpty()) {
-            throw new IllegalArgumentException("该分类下存在子分类，无法删除");
+            throw new BusinessException(ErrorCode.OPERATION_NOT_ALLOWED,
+                    "该分类下存在" + children.size() + "个子分类，无法删除。请先删除子分类或移动到其他分类下");
         }
 
-        Long itemCount = itemRepository.countByCategoryId(id);
-        if (itemCount > 0) {
-            throw new IllegalArgumentException("该分类下存在商品，无法删除");
+        // 检查直接关联物品
+        Long directItemCount = itemRepository.countByCategoryId(id);
+        if (directItemCount > 0) {
+            throw new BusinessException(ErrorCode.OPERATION_NOT_ALLOWED,
+                    "该分类下存在" + directItemCount + "个商品，无法删除。请先将商品移至其他分类或下架商品");
         }
 
+        // 记录变更日志
         recordChangeLog(category, CategoryChangeLog.ActionType.DELETE, operatorId, null);
         categoryRepository.deleteById(id);
+        // 归一化同级分类排序值（删除后排序值可能不连续）
+        normalizeSortValues(category.getParentId());
         clearCategoryCache();
+        log.info("分类已删除: id={}, name={}, operator={}", id, category.getName(), operatorId);
+    }
+
+    /**
+     * 批量删除分类（带安全检查）
+     */
+    @Transactional
+    public void batchDeleteCategories(List<Long> ids, Long operatorId) {
+        List<String> errors = new ArrayList<>();
+
+        for (Long id : ids) {
+            Category category = categoryRepository.findById(id).orElse(null);
+            if (category == null) {
+                errors.add("分类ID " + id + " 不存在");
+                continue;
+            }
+
+            // 检查子分类
+            List<Category> children = categoryRepository.findByParentId(id);
+            if (!children.isEmpty()) {
+                errors.add("分类「" + category.getName() + "」下存在" + children.size() + "个子分类，无法删除");
+                continue;
+            }
+
+            // 检查关联物品
+            Long itemCount = itemRepository.countByCategoryId(id);
+            if (itemCount > 0) {
+                errors.add("分类「" + category.getName() + "」下存在" + itemCount + "个商品，无法删除");
+                continue;
+            }
+
+            recordChangeLog(category, CategoryChangeLog.ActionType.DELETE, operatorId, null);
+            categoryRepository.deleteById(id);
+        }
+
+        if (!errors.isEmpty()) {
+            log.warn("批量删除分类部分失败: {}", errors);
+            throw new BusinessException(ErrorCode.OPERATION_NOT_ALLOWED,
+                    "以下分类无法删除: " + String.join("; ", errors));
+        }
+
+        clearCategoryCache();
+        log.info("批量删除分类完成: ids={}, operator={}", ids, operatorId);
     }
 
     @Transactional
@@ -393,7 +464,7 @@ public class CategoryService {
                 new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8))) {
             String header = reader.readLine();
             if (header == null) {
-                throw new IllegalArgumentException("文件为空");
+                throw new BusinessException(ErrorCode.BAD_REQUEST, "文件为空");
             }
 
             String line;
@@ -481,8 +552,37 @@ public class CategoryService {
     }
 
     private void clearCategoryCache() {
-        cacheManager.delete(CATEGORIES_CACHE_KEY);
-        cacheManager.delete(CATEGORY_TREE_CACHE_KEY);
+        cacheService.delete(CATEGORIES_CACHE_KEY);
+        cacheService.delete(CATEGORY_TREE_CACHE_KEY);
+    }
+
+    /**
+     * 归一化同级分类的排序值
+     * 确保同级分类的排序值连续且唯一（从0开始递增）
+     */
+    public void normalizeSortValues(Long parentId) {
+        List<Category> siblings;
+        if (parentId != null) {
+            siblings = categoryRepository.findByParentId(parentId);
+        } else {
+            siblings = categoryRepository.findByParentIdIsNull();
+        }
+
+        siblings.sort(Comparator.comparing(c -> c.getSort() != null ? c.getSort() : 0));
+
+        boolean changed = false;
+        for (int i = 0; i < siblings.size(); i++) {
+            Category sibling = siblings.get(i);
+            if (sibling.getSort() == null || sibling.getSort() != i) {
+                sibling.setSort(i);
+                categoryRepository.save(sibling);
+                changed = true;
+            }
+        }
+
+        if (changed) {
+            log.debug("已归一化分类排序: parentId={}, 数量={}", parentId, siblings.size());
+        }
     }
 
     private Map<Long, List<Long>> buildCategoryChildrenMap(List<Category> categories) {

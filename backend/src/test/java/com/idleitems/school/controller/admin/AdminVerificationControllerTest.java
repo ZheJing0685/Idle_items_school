@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageImpl;
@@ -36,18 +36,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @EnableAspectJAutoProxy
 @Import(PermissionAspect.class)
 @DisplayName("AdminVerificationController 实名认证管理接口测试")
+@SuppressWarnings("unchecked")
 class AdminVerificationControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @MockitoBean
     private VerificationRecordRepository verificationRecordRepository;
 
-    @MockBean
+    @MockitoBean
     private UserRepository userRepository;
 
-    @MockBean
+    @MockitoBean
     private AdminLogService adminLogService;
 
     @BeforeEach
@@ -95,12 +96,12 @@ class AdminVerificationControllerTest {
         User user = new User();
         user.setId(1L);
         user.setVerified(false);
-        
+
         when(verificationRecordRepository.findById(1L)).thenReturn(Optional.of(record));
         when(verificationRecordRepository.save(any(VerificationRecord.class))).thenReturn(record);
         when(userRepository.findById(any(Long.class))).thenReturn(Optional.of(user));
 
-        mockMvc.perform(put("/api/admin/verifications/1/approve")
+        mockMvc.perform(post("/api/admin/verifications/1/approve")
                         .requestAttr("userId", 99L))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200));
@@ -110,10 +111,14 @@ class AdminVerificationControllerTest {
     @DisplayName("测试拒绝认证")
     void testRejectVerification() throws Exception {
         VerificationRecord record = buildVerificationRecord();
+        User user = new User();
+        user.setId(1L);
+
         when(verificationRecordRepository.findById(1L)).thenReturn(Optional.of(record));
         when(verificationRecordRepository.save(any(VerificationRecord.class))).thenReturn(record);
+        when(userRepository.findById(any(Long.class))).thenReturn(Optional.of(user));
 
-        mockMvc.perform(put("/api/admin/verifications/1/reject")
+        mockMvc.perform(post("/api/admin/verifications/1/reject")
                         .requestAttr("userId", 99L)
                         .param("reason", "证件照片模糊"))
                 .andExpect(status().isOk())
@@ -127,15 +132,39 @@ class AdminVerificationControllerTest {
         User user = new User();
         user.setId(1L);
         user.setVerified(false);
-        
-        when(verificationRecordRepository.findById(1L)).thenReturn(Optional.of(record));
-        when(verificationRecordRepository.save(any(VerificationRecord.class))).thenReturn(record);
-        when(userRepository.findById(any(Long.class))).thenReturn(Optional.of(user));
 
-        mockMvc.perform(put("/api/admin/verifications/batch/approve")
+        when(verificationRecordRepository.findAllById(any(List.class)))
+                .thenReturn(List.of(record));
+        when(verificationRecordRepository.saveAll(any(List.class)))
+                .thenReturn(List.of(record));
+        when(userRepository.findAllById(any(List.class))).thenReturn(List.of(user));
+        when(userRepository.saveAll(any(List.class))).thenReturn(List.of(user));
+
+        mockMvc.perform(post("/api/admin/verifications/batch/approve")
                         .requestAttr("userId", 99L)
                         .contentType("application/json")
                         .content("[1]"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200));
+    }
+
+    @Test
+    @DisplayName("测试批量拒绝认证")
+    void testBatchRejectVerifications() throws Exception {
+        VerificationRecord record = buildVerificationRecord();
+        User user = new User();
+        user.setId(1L);
+
+        when(verificationRecordRepository.findAllById(any(List.class)))
+                .thenReturn(List.of(record));
+        when(verificationRecordRepository.saveAll(any(List.class)))
+                .thenReturn(List.of(record));
+        when(userRepository.findById(any(Long.class))).thenReturn(Optional.of(user));
+
+        mockMvc.perform(post("/api/admin/verifications/batch/reject")
+                        .requestAttr("userId", 99L)
+                        .contentType("application/json")
+                        .content("{\"verificationIds\":[1],\"reason\":\"照片模糊\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200));
     }
@@ -146,6 +175,7 @@ class AdminVerificationControllerTest {
         record.setUserId(1L);
         record.setRealName("张三");
         record.setIdCard("110101199901011234");
+        record.setType(VerificationRecord.Type.ID_CARD);
         record.setStatus(VerificationRecord.Status.PENDING);
         record.setCreatedAt(LocalDateTime.now());
         return record;

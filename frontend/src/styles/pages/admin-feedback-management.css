@@ -95,7 +95,7 @@
 .status-tab.active {
   background: var(--color-primary);
   border-color: var(--color-primary);
-  color: white;
+  color: var(--text-inverse);
 }
 
 .tab-count {
@@ -108,7 +108,7 @@
 
 .status-tab.active .tab-count {
   background: rgba(255, 255, 255, 0.25);
-  color: white;
+  color: var(--text-inverse);
 }
 
 .table-wrapper {

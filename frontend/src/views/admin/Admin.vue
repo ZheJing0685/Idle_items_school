@@ -7,15 +7,7 @@
           @click="isCollapsed = !isCollapsed"
           :class="{ clickable: true }"
         >
-          <svg viewBox="0 0 32 32" fill="none">
-            <rect width="32" height="32" rx="8" fill="currentColor" />
-            <path
-              d="M8 12h16M8 16h12M8 20h8"
-              stroke="white"
-              stroke-width="2"
-              stroke-linecap="round"
-            />
-          </svg>
+          <LayoutDashboard :size="32" />
         </div>
         <transition name="label-fade">
           <div v-if="!isCollapsed" class="brand-text">
@@ -33,18 +25,7 @@
             class="nav-item"
             exact-active-class="is-active"
           >
-            <svg
-              class="nav-icon"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-            >
-              <rect x="3" y="3" width="7" height="9" rx="1" />
-              <rect x="14" y="3" width="7" height="5" rx="1" />
-              <rect x="14" y="12" width="7" height="9" rx="1" />
-              <rect x="3" y="16" width="7" height="5" rx="1" />
-            </svg>
+            <LayoutDashboard class="nav-icon" :size="20" stroke-width="1.5" />
             <span v-if="!isCollapsed" class="nav-text">控制台</span>
           </router-link>
         </div>
@@ -56,16 +37,7 @@
             class="nav-item"
             active-class="is-active"
           >
-            <svg
-              class="nav-icon"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-            >
-              <circle cx="12" cy="8" r="4" />
-              <path d="M4 21v-2a4 4 0 014-4h8a4 4 0 014 4v2" />
-            </svg>
+            <Users class="nav-icon" :size="20" stroke-width="1.5" />
             <span v-if="!isCollapsed" class="nav-text">用户管理</span>
           </router-link>
           <router-link
@@ -73,16 +45,7 @@
             class="nav-item"
             active-class="is-active"
           >
-            <svg
-              class="nav-icon"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-            >
-              <path d="M9 12l2 2 4-4" />
-              <circle cx="12" cy="12" r="9" />
-            </svg>
+            <CheckCircle class="nav-icon" :size="20" stroke-width="1.5" />
             <span v-if="!isCollapsed" class="nav-text">实名认证</span>
           </router-link>
           <router-link
@@ -90,17 +53,7 @@
             class="nav-item"
             active-class="is-active"
           >
-            <svg
-              class="nav-icon"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-            >
-              <path
-                d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-              />
-            </svg>
+            <Package class="nav-icon" :size="20" stroke-width="1.5" />
             <span v-if="!isCollapsed" class="nav-text">物品管理</span>
           </router-link>
           <router-link
@@ -108,15 +61,7 @@
             class="nav-item"
             active-class="is-active"
           >
-            <svg
-              class="nav-icon"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-            >
-              <path d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
+            <Menu class="nav-icon" :size="20" stroke-width="1.5" />
             <span v-if="!isCollapsed" class="nav-text">分类管理</span>
           </router-link>
           <router-link
@@ -124,17 +69,7 @@
             class="nav-item"
             active-class="is-active"
           >
-            <svg
-              class="nav-icon"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-            >
-              <path
-                d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"
-              />
-            </svg>
+            <MessageSquare class="nav-icon" :size="20" stroke-width="1.5" />
             <span v-if="!isCollapsed" class="nav-text">分类反馈</span>
           </router-link>
         </div>
@@ -146,16 +81,7 @@
             class="nav-item"
             active-class="is-active"
           >
-            <svg
-              class="nav-icon"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-            >
-              <rect x="3" y="4" width="18" height="18" rx="2" />
-              <path d="M7 8h10M7 12h10M7 16h6" />
-            </svg>
+            <ClipboardList class="nav-icon" :size="20" stroke-width="1.5" />
             <span v-if="!isCollapsed" class="nav-text">订单管理</span>
           </router-link>
           <router-link
@@ -163,15 +89,7 @@
             class="nav-item"
             active-class="is-active"
           >
-            <svg
-              class="nav-icon"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-            >
-              <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
+            <AlertTriangle class="nav-icon" :size="20" stroke-width="1.5" />
             <span v-if="!isCollapsed" class="nav-text">纠纷管理</span>
           </router-link>
           <router-link
@@ -179,16 +97,7 @@
             class="nav-item"
             active-class="is-active"
           >
-            <svg
-              class="nav-icon"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-            >
-              <path d="M3 3v18h18" />
-              <path d="M7 14l4-4 4 4 5-5" />
-            </svg>
+            <TrendingUp class="nav-icon" :size="20" stroke-width="1.5" />
             <span v-if="!isCollapsed" class="nav-text">数据统计</span>
           </router-link>
         </div>
@@ -200,16 +109,7 @@
             class="nav-item"
             active-class="is-active"
           >
-            <svg
-              class="nav-icon"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-            >
-              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-              <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" />
-            </svg>
+            <FileText class="nav-icon" :size="20" stroke-width="1.5" />
             <span v-if="!isCollapsed" class="nav-text">操作日志</span>
           </router-link>
         </div>
@@ -218,26 +118,17 @@
       <div class="sidebar-footer">
         <div class="user-card" v-if="!isCollapsed">
           <div class="user-avatar">
-            {{ userStore.user?.nickname?.charAt(0) || '管' }}
+            {{ userStoreInstance.user?.nickname?.charAt(0) || '管' }}
           </div>
           <div class="user-info">
             <span class="user-name">{{
-              userStore.user?.nickname || '管理员'
+              userStoreInstance.user?.nickname || '管理员'
             }}</span>
             <span class="user-role">{{ getRoleText() }}</span>
           </div>
         </div>
         <button class="logout-btn" @click="handleLogout">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-          >
-            <path
-              d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"
-            />
-          </svg>
+          <LogOut :size="20" stroke-width="1.5" />
           <span v-if="!isCollapsed">退出登录</span>
         </button>
       </div>
@@ -250,29 +141,11 @@
         </div>
         <div class="header-right">
           <div class="header-search">
-            <svg
-              class="search-icon"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <circle cx="11" cy="11" r="8" />
-              <path d="M21 21l-4.35-4.35" />
-            </svg>
+            <Search :size="16" class="search-icon" />
             <input type="text" placeholder="搜索功能..." class="search-input" />
           </div>
           <button class="header-action" aria-label="通知">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-            >
-              <path
-                d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"
-              />
-            </svg>
+            <Bell :size="18" />
             <span class="notification-badge">3</span>
           </button>
         </div>
@@ -289,11 +162,12 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { userStore } from '../../store';
+import { LayoutDashboard, Users, CheckCircle, Package, Menu, MessageSquare, ClipboardList, AlertTriangle, TrendingUp, FileText, LogOut, Search, Bell } from 'lucide-vue-next';
 
 const route = useRoute();
 const router = useRouter();
@@ -313,7 +187,7 @@ const pageTitles = {
 };
 
 const currentPageTitle = computed(() => {
-  return pageTitles[route.path] || '管理后台';
+  return (pageTitles as Record<string, string>)[route.path] || '管理后台';
 });
 
 const getRoleText = () => {

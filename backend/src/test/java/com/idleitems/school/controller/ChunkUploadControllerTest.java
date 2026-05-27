@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -24,22 +24,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(ChunkUploadController.class)
 @AutoConfigureMockMvc(addFilters = false)
 @DisplayName("ChunkUploadController 接口测试")
-@SuppressWarnings("deprecation")
 class ChunkUploadControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
-    @SuppressWarnings("deprecation")
-    @MockBean
+    @MockitoBean
     private ChunkUploadService chunkUploadService;
 
-    @SuppressWarnings("deprecation")
-    @MockBean
+    @MockitoBean
     private FileService fileService;
 
-    @SuppressWarnings("deprecation")
-    @MockBean
+    @MockitoBean
     private FileValidationService fileValidationService;
 
     @Test
@@ -116,7 +112,7 @@ class ChunkUploadControllerTest {
 
         when(chunkUploadService.isUploadComplete(anyString(), anyInt())).thenReturn(true);
         when(chunkUploadService.mergeChunks(anyString(), anyInt(), anyString())).thenReturn(tempFile);
-        doNothing().when(fileValidationService).validateImage(any());
+        when(fileValidationService.validateImage(any())).thenReturn(new com.idleitems.school.util.FileValidationService.ImageValidationResult(100, 100, "jpg"));
 
         Map<String, Object> expectedResult = new HashMap<>();
         expectedResult.put("url", "http://localhost:7000/uploads/2026/05/07/test.jpg");

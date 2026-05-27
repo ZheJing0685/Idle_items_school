@@ -8,32 +8,24 @@
         <div class="avatar-glow"></div>
       </div>
     </div>
-    
+
     <div class="info-section">
       <div class="info-header">
         <h2 class="user-name">{{ user?.nickname || user?.username || '用户' }}</h2>
         <router-link to="/user/profile" class="edit-btn">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
-            <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
-          </svg>
+          <Edit3 :size="14" />
           编辑资料
         </router-link>
       </div>
-      
+
       <div class="user-meta">
         <span class="meta-item" v-if="user?.schoolName">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M3 21h18M3 7v1a3 3 0 006 0V7m0 1a3 3 0 006 0V7m0 1a3 3 0 006 0V7H3l2-4h14l2 4M4 21V10.87M20 21V10.87"/>
-          </svg>
+          <School :size="14" />
           {{ user.schoolName }}
         </span>
         <span class="meta-divider" v-if="user?.schoolName && user?.studentId">·</span>
         <span class="meta-item" v-if="user?.studentId">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
-            <polyline points="14 2 14 8 20 8"/>
-          </svg>
+          <FileText :size="14" />
           {{ user.studentId }}
         </span>
         <span class="meta-divider" v-if="user?.gender">·</span>
@@ -41,13 +33,15 @@
           {{ user.gender === 1 ? '男' : '女' }}
         </span>
       </div>
-      
+
       <p class="user-bio">{{ user?.bio || '这个人很懒，什么都没写~' }}</p>
     </div>
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { Edit3, School, FileText } from 'lucide-vue-next';
+
 defineProps({
   user: Object
 });
@@ -76,7 +70,7 @@ defineProps({
   background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
   font-size: var(--text-3xl);
   font-weight: 700;
-  border: 3px solid white;
+  border: 3px solid var(--bg-surface);
   box-shadow: var(--shadow-md);
 }
 
@@ -120,7 +114,7 @@ defineProps({
   gap: var(--space-2);
   padding: var(--space-2) var(--space-4);
   background: var(--primary-color);
-  color: white;
+  color: var(--text-inverse);
   border-radius: var(--radius-full);
   font-size: var(--text-sm);
   font-weight: 500;
@@ -171,12 +165,12 @@ defineProps({
     align-items: center;
     text-align: center;
   }
-  
+
   .info-header {
     flex-direction: column;
     gap: var(--space-2);
   }
-  
+
   .user-meta {
     justify-content: center;
   }

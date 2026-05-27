@@ -1,10 +1,11 @@
 import js from '@eslint/js';
 import pluginVue from 'eslint-plugin-vue';
 import vueParser from 'vue-eslint-parser';
+import tseslint from 'typescript-eslint';
 
 export default [
   {
-    files: ['**/*.js'],
+    files: ['**/*.{js,ts}'],
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',
@@ -13,6 +14,7 @@ export default [
         node: true,
         document: 'readonly',
         window: 'readonly',
+        WebSocket: 'readonly',
         console: 'readonly',
         localStorage: 'readonly',
         sessionStorage: 'readonly',
@@ -32,21 +34,17 @@ export default [
         prompt: 'readonly',
       },
     },
-    plugins: {
-      vue: pluginVue,
-    },
     rules: {
       ...js.configs.recommended.rules,
-      
-      // 语法检查
+
       'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
       'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
+      'no-unused-vars': 'off',
       'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
       'no-duplicate-imports': 'error',
       'no-var': 'error',
       'no-useless-escape': 'warn',
-      
-      // 代码风格
+
       'prefer-const': 'warn',
       'no-trailing-spaces': 'warn',
       'semi': ['warn', 'always'],
@@ -57,17 +55,31 @@ export default [
       'array-bracket-spacing': ['warn', 'never'],
     },
   },
+  ...tseslint.configs.recommended.map((config) => ({
+    ...config,
+    files: ['**/*.{ts,tsx}'],
+    rules: {
+      ...config.rules,
+      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+    },
+  })),
   {
     files: ['**/*.vue'],
     languageOptions: {
       parser: vueParser,
-      ecmaVersion: 'latest',
-      sourceType: 'module',
+      parserOptions: {
+        parser: tseslint.parser,
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+        extraFileExtensions: ['.vue'],
+      },
       globals: {
         browser: true,
         node: true,
         document: 'readonly',
         window: 'readonly',
+        WebSocket: 'readonly',
         console: 'readonly',
         localStorage: 'readonly',
         sessionStorage: 'readonly',
@@ -89,24 +101,25 @@ export default [
     },
     plugins: {
       vue: pluginVue,
+      '@typescript-eslint': tseslint.plugin,
     },
     rules: {
       ...pluginVue.configs.base.rules,
-      
-      // 禁用comment-directive规则，因为Vue文件中常用eslint-disable注释
+
       'vue/comment-directive': 'off',
-      
-      // Vue 规则
       'vue/no-unused-vars': 'warn',
       'vue/require-v-for-key': 'error',
       'vue/no-dupe-keys': 'error',
       'vue/max-attributes-per-line': 'off',
       'vue/singleline-html-element-content-newline': 'off',
       'vue/multi-word-component-names': 'off',
+
+      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
     },
   },
   {
-    files: ['**/*.test.js', '**/*.spec.js'],
+    files: ['**/*.test.{js,ts}', '**/*.spec.{js,ts}'],
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',

@@ -23,18 +23,7 @@
           >
             <div class="form-section">
               <h3 class="section-title">
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                  <circle cx="8.5" cy="8.5" r="1.5" />
-                  <path d="M21 15L16 10L5 21" />
-                </svg>
+                <Image :size="20" />
                 物品图片
               </h3>
               <div class="image-upload-area">
@@ -45,18 +34,8 @@
                     class="uploaded-image"
                   >
                     <img :src="img" alt="上传图片" />
-                    <button class="remove-btn" @click="removeImage(index)">
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                      >
-                        <line x1="18" y1="6" x2="6" y2="18" />
-                        <line x1="6" y1="6" x2="18" y2="18" />
-                      </svg>
+                    <button class="remove-btn" @click="removeImage(index)" aria-label="删除图片">
+                      <X :size="16" />
                     </button>
                     <span class="cover-badge" v-if="index === 0">封面</span>
                   </div>
@@ -75,18 +54,7 @@
                     style="display: none"
                   />
                   <div class="upload-content">
-                    <svg
-                      width="48"
-                      height="48"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="var(--text-muted)"
-                      stroke-width="1.5"
-                    >
-                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                      <circle cx="8.5" cy="8.5" r="1.5" />
-                      <path d="M21 15L16 10L5 21" />
-                    </svg>
+                    <Image :size="48" color="var(--text-muted)" stroke-width="1.5" />
                     <p class="upload-text">点击上传图片</p>
                     <p class="upload-hint">支持 JPG、PNG、WebP，最多9张</p>
                   </div>
@@ -99,21 +67,7 @@
 
             <div class="form-section">
               <h3 class="section-title">
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <path
-                    d="M11 4H4C2.89543 4 2 4.89543 2 6V20C2 21.1046 2.89543 22 4 22H18C19.1046 22 20 21.1046 20 20V13"
-                  />
-                  <path
-                    d="M18.5 2.5C19.3284 1.67157 20.6716 1.67157 21.5 2.5C22.3284 3.32843 22.3284 4.67157 21.5 5.5L12 15L8 16L9 12L18.5 2.5Z"
-                  />
-                </svg>
+                <Edit3 :size="20" />
                 物品信息
               </h3>
 
@@ -312,19 +266,7 @@
                   size="large"
                 >
                   <template #prefix>
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                    >
-                      <path
-                        d="M21 10C21 17 12 23 12 23C12 23 3 17 3 10C3 7.61305 3.94821 5.32387 5.63604 3.63604C7.32387 1.94821 9.61305 1 12 1C14.3869 1 16.6761 1.94821 18.364 3.63604C20.0518 5.32387 21 7.61305 21 10Z"
-                      />
-                      <circle cx="12" cy="10" r="3" />
-                    </svg>
+                    <MapPin :size="18" />
                   </template>
                 </el-input>
               </el-form-item>
@@ -347,19 +289,7 @@
 
             <div class="form-section">
               <h3 class="section-title">
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <path
-                    d="M4 4H16C16.5304 4 17.0391 4.21071 17.4142 4.58579C17.7893 4.96086 18 5.46957 18 6V18C18 18.5304 17.7893 19.0391 17.4142 19.4142C17.0391 19.7893 16.5304 20 16 20H4C3.46957 20 2.96086 19.7893 2.58579 19.4142C2.21071 19.0391 2 18.5304 2 18V6C2 5.46957 2.21071 4.96086 2.58579 4.58579C2.96086 4.21071 3.46957 4 4 4Z"
-                  />
-                  <path d="M2 10H18" />
-                </svg>
+                <ClipboardList :size="20" />
                 联系方式
               </h3>
 
@@ -446,27 +376,10 @@
 
         <aside class="publish-sidebar">
           <div class="sidebar-card">
-            <h4 class="card-title">
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="var(--secondary-color)"
-                stroke-width="2"
-              >
-                <path
-                  d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                />
-                <path
-                  d="M7 13C7 13 8 15 12 15C16 15 17 13 17 13"
-                  stroke="white"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                />
-              </svg>
-              发布小贴士
-            </h4>
+              <h4 class="card-title">
+                <Smile :size="18" color="var(--secondary-color)" />
+                发布小贴士
+              </h4>
             <ul class="tips-list">
               <li>清晰真实的图片能提高成交率</li>
               <li>详细描述物品的品牌型号和使用情况</li>
@@ -476,50 +389,27 @@
             </ul>
           </div>
 
-          <div class="sidebar-card eco-card">
-            <div class="eco-icon">
-              <svg
-                width="32"
-                height="32"
-                viewBox="0 0 24 24"
-                fill="var(--secondary-color)"
-              >
-                <path
-                  d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                />
-                <path
-                  d="M7 13C7 13 8 15 12 15C16 15 17 13 17 13"
-                  stroke="white"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                />
-              </svg>
-            </div>
-            <div class="eco-content">
-              <h4>环保交易</h4>
-              <p>每完成一笔交易，都在为绿色校园贡献力量</p>
-            </div>
-          </div>
         </aside>
       </div>
     </div>
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElForm } from 'element-plus';
 import api from '../api';
 import { itemRules } from '../utils/validator';
 import { useDictStore } from '../store/dict.js';
+import { Image, X, Edit3, MapPin, ClipboardList, Smile } from 'lucide-vue-next';
 
 const route = useRoute();
 const router = useRouter();
-const formRef = ref();
-const fileInput = ref();
+const formRef = ref<InstanceType<typeof ElForm> | null>(null);
+const fileInput = ref<HTMLInputElement | null>(null);
 const submitting = ref(false);
-const categoryTreeOptions = ref([]);
+const categoryTreeOptions = ref<any[]>([]);
 const dictStore = useDictStore();
 
 const isEdit = computed(() => !!route.query.edit);
@@ -530,8 +420,8 @@ const form = reactive({
   price: null,
   originalPrice: null,
   minPrice: null,
-  categoryId: null,
-  condition: 'GOOD',
+  categoryId: null as number | null,
+  condition: null,
   deliveryMethod: null,
   contactType: null,
   isBargainAllowed: true,
@@ -539,19 +429,27 @@ const form = reactive({
   brand: '',
   purchaseDate: null,
   warrantyInfo: '',
-  tags: [],
+  tags: [] as string[],
   contactName: '',
   contactPhone: '',
   contactInfo: '',
-  images: [],
+  images: [] as string[],
 });
 
 const tagInput = ref('');
 
 // 获取字典选项
-const conditionOptions = computed(() =>
-  dictStore.getDictOptions('ITEM_CONDITION')
-);
+const conditionOptions = computed(() => {
+  const options = dictStore.getDictOptions('ITEM_CONDITION');
+  if (options.length > 0) return options;
+  return [
+    { value: 'NEW', label: '全新' },
+    { value: 'LIKE_NEW', label: '九成新' },
+    { value: 'GOOD', label: '八成新' },
+    { value: 'FAIR', label: '七成新' },
+    { value: 'POOR', label: '六成新及以下' },
+  ];
+});
 const deliveryMethodOptions = computed(() =>
   dictStore.getDictOptions('DELIVERY_METHOD')
 );
@@ -559,7 +457,7 @@ const contactTypeOptions = computed(() =>
   dictStore.getDictOptions('CONTACT_TYPE')
 );
 
-const validateContactInfo = (rule, value, callback) => {
+const validateContactInfo = (rule: any, value: string, callback: any) => {
   if (form.contactType === '2' && !value) {
     callback(new Error('请输入微信号'));
   } else if (form.contactType === '3' && !value) {
@@ -601,8 +499,8 @@ const loadCategories = async () => {
 const loadItemForEdit = async () => {
   if (!isEdit.value) return;
   try {
-    const response = await api.item.getItem(route.query.edit);
-    const item = response.data;
+    const response = await api.item.getItem(route.query.edit as string);
+    const item: any = response.data;
     form.title = item.title;
     form.description = item.description;
     form.price = item.price;
@@ -628,43 +526,49 @@ const loadItemForEdit = async () => {
 };
 
 const triggerUpload = () => {
-  fileInput.value.click();
+  fileInput.value?.click();
 };
 
-const handleFileChange = async (e) => {
-  const files = Array.from(e.target.files);
+const handleFileChange = async (e: Event) => {
+  const target = e.target as HTMLInputElement;
+  const files = Array.from(target.files || []);
   if (files.length === 0) return;
 
   const remainingSlots = 9 - form.images.length;
   const filesToUpload = files.slice(0, remainingSlots);
 
-  for (const file of filesToUpload) {
-    if (!file.type.startsWith('image/')) {
-      ElMessage.warning('只能上传图片文件');
-      continue;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      ElMessage.warning('图片大小不能超过5MB');
-      continue;
-    }
-
-    try {
+  const uploadTasks = filesToUpload
+    .filter(file => {
+      if (!file.type.startsWith('image/')) {
+        ElMessage.warning('只能上传图片文件');
+        return false;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        ElMessage.warning('图片大小不能超过5MB');
+        return false;
+      }
+      return true;
+    })
+    .map(async (file) => {
       const formData = new FormData();
       formData.append('file', file);
       const response = await api.item.uploadImage(formData);
       if (response.code === 200) {
         form.images.push(response.data.url);
-        ElMessage.success('图片上传成功');
       }
-    } catch (error) {
-      ElMessage.error('图片上传失败');
-    }
+      return response;
+    });
+
+  const results = await Promise.allSettled(uploadTasks);
+  const failed = results.filter(r => r.status === 'rejected').length;
+  if (failed > 0) {
+    ElMessage.warning(`${failed} 张图片上传失败`);
   }
 
-  e.target.value = '';
+  (e.target as HTMLInputElement).value = '';
 };
 
-const removeImage = (index) => {
+const removeImage = (index: number) => {
   form.images.splice(index, 1);
 };
 
@@ -688,11 +592,11 @@ const handleSubmit = async () => {
 
     const payload = {
       ...form,
-      tags: form.tags.join(','),
+      tags: form.tags,
     };
 
     if (isEdit.value) {
-      const response = await api.item.updateItem(route.query.edit, payload);
+      const response = await api.item.updateItem(route.query.edit as string, payload as any);
       if (response.code === 200) {
         ElMessage.success('修改成功');
         router.push('/user/items');
@@ -700,7 +604,7 @@ const handleSubmit = async () => {
         ElMessage.error(response.message || '修改失败');
       }
     } else {
-      const response = await api.item.createItem(payload);
+      const response = await api.item.createItem(payload as any);
       if (response.code === 200) {
         ElMessage.success('发布成功');
         router.push('/user/items');
