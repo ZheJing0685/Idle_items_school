@@ -96,8 +96,11 @@ export const useUserStore = defineStore('user', () => {
         return response.data;
       }
       return null;
-    } catch {
-      // axios拦截器已处理401（弹框+跳转登录），此处只需返回null
+    } catch (error: any) {
+      // 401错误时登出（axios拦截器会弹框提示）
+      if (error?.response?.status === 401 || error?.code === 401) {
+        await logout();
+      }
       return null;
     }
   };
