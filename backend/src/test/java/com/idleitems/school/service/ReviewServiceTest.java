@@ -97,6 +97,6 @@ class ReviewServiceTest {
                 () -> reviewService.createReview(1L, 1L, request)
         );
 
-        assertEquals("您已评价过此订单", exception.getMessage());
+        assertEquals("您已评价过此订单，不可重复评价", exception.getMessage());
     }
 }

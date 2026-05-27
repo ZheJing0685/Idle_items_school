@@ -4,6 +4,7 @@ import com.idleitems.school.dto.LoginRequest;
 import com.idleitems.school.dto.RegisterRequest;
 import com.idleitems.school.entity.User;
 import com.idleitems.school.repository.UserRepository;
+import com.idleitems.school.security.JwtTokenBlacklistService;
 import com.idleitems.school.security.JwtUtil;
 import com.idleitems.school.service.impl.AuthServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Map;
@@ -29,6 +31,12 @@ class AuthServiceTest {
 
     @Mock
     private JwtUtil jwtUtil;
+
+    @Mock
+    private JwtTokenBlacklistService jwtTokenBlacklistService;
+
+    @Mock
+    private RedisTemplate<String, String> redisTemplate;
 
     @InjectMocks
     private AuthServiceImpl authService;

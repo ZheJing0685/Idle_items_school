@@ -112,6 +112,9 @@ dump.rdb
 # ==================== AI Agent Tools ====================
 .agents/
 Vibe-Skills/
+.codegraph/
+.embed-svc/
+.opencode/
 
 # ==================== Trae IDE ====================
 .trae/

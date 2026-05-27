@@ -3,6 +3,7 @@ package com.idleitems.school.service;
 import com.idleitems.school.common.BusinessException;
 import com.idleitems.school.entity.User;
 import com.idleitems.school.repository.UserRepository;
+import com.idleitems.school.security.JwtTokenBlacklistService;
 import com.idleitems.school.service.impl.PasswordResetServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,6 +34,9 @@ class PasswordResetServiceTest {
 
     @Mock
     private ValueOperations<String, String> valueOperations;
+
+    @Mock
+    private JwtTokenBlacklistService jwtTokenBlacklistService;
 
     @InjectMocks
     private PasswordResetServiceImpl passwordResetService;
