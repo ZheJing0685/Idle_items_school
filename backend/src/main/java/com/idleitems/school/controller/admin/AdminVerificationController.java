@@ -13,7 +13,6 @@ import com.idleitems.school.repository.UserRepository;
 import com.idleitems.school.repository.VerificationRecordRepository;
 import com.idleitems.school.service.AdminLogService;
 import com.idleitems.school.service.VerificationService;
-import com.idleitems.school.service.impl.VerificationServiceImpl;
 import com.idleitems.school.config.ApiPaths;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.constraints.Min;
@@ -44,7 +43,7 @@ public class AdminVerificationController {
     private final VerificationRecordRepository verificationRecordRepository;
     private final UserRepository userRepository;
     private final AdminLogService adminLogService;
-    private final VerificationServiceImpl verificationService;
+    private final VerificationService verificationService;
 
     private static final int MAX_BATCH_SIZE = 50;
 

@@ -181,8 +181,9 @@ class ChatServiceTest {
 
         Page<ChatMessage> result = chatService.getMessagesByChatId(1L, 1L, Pageable.unpaged());
 
-        assertTrue(result.getContent().get(0).getIsRead());
-        assertNotNull(result.getContent().get(0).getReadAt());
+        // 新逻辑：getMessagesByChatId不再自动标记已读，需要调用markMessagesAsReadAsync
+        assertFalse(result.getContent().get(0).getIsRead());
+        assertNull(result.getContent().get(0).getReadAt());
         assertFalse(result.getContent().get(1).getIsRead());
         assertNull(result.getContent().get(1).getReadAt());
     }

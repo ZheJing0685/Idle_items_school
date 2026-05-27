@@ -6,6 +6,7 @@ import com.idleitems.school.entity.User;
 import com.idleitems.school.entity.VerificationRecord;
 import com.idleitems.school.repository.UserRepository;
 import com.idleitems.school.repository.VerificationRecordRepository;
+import com.idleitems.school.service.VerificationService;
 import com.idleitems.school.service.AdminLogService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -47,6 +48,9 @@ class AdminVerificationControllerTest {
 
     @MockitoBean
     private UserRepository userRepository;
+
+    @MockitoBean
+    private VerificationService verificationService;
 
     @MockitoBean
     private AdminLogService adminLogService;

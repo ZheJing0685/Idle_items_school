@@ -47,6 +47,7 @@ class FavoriteServiceTest {
         testItem.setId(1L);
         testItem.setTitle("测试物品");
         testItem.setFavoriteCount(5);
+        testItem.setStatus(Item.ItemStatus.ON_SALE);
 
         testFavorite = new Favorite();
         testFavorite.setId(1L);

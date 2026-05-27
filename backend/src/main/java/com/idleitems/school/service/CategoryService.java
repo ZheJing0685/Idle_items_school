@@ -568,11 +568,13 @@ public class CategoryService {
             siblings = categoryRepository.findByParentIdIsNull();
         }
 
-        siblings.sort(Comparator.comparing(c -> c.getSort() != null ? c.getSort() : 0));
+        // 创建可变副本以支持排序
+        List<Category> mutableSiblings = new ArrayList<>(siblings);
+        mutableSiblings.sort(Comparator.comparing(c -> c.getSort() != null ? c.getSort() : 0));
 
         boolean changed = false;
-        for (int i = 0; i < siblings.size(); i++) {
-            Category sibling = siblings.get(i);
+        for (int i = 0; i < mutableSiblings.size(); i++) {
+            Category sibling = mutableSiblings.get(i);
             if (sibling.getSort() == null || sibling.getSort() != i) {
                 sibling.setSort(i);
                 categoryRepository.save(sibling);
@@ -581,7 +583,7 @@ public class CategoryService {
         }
 
         if (changed) {
-            log.debug("已归一化分类排序: parentId={}, 数量={}", parentId, siblings.size());
+            log.debug("已归一化分类排序: parentId={}, 数量={}", parentId, mutableSiblings.size());
         }
     }
 

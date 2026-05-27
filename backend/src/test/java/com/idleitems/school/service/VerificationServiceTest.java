@@ -7,6 +7,7 @@ import com.idleitems.school.entity.VerificationRecord;
 import com.idleitems.school.repository.UserRepository;
 import com.idleitems.school.repository.VerificationRecordRepository;
 import com.idleitems.school.service.impl.VerificationServiceImpl;
+import com.idleitems.school.util.DataEncryptionUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
@@ -30,6 +31,9 @@ class VerificationServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private DataEncryptionUtil dataEncryptionUtil;
 
     @InjectMocks
     private VerificationServiceImpl verificationService;
@@ -154,29 +158,30 @@ class VerificationServiceTest {
     }
 
     @Test
-    @DisplayName("测试重新提交更新已有记录")
-    void testResubmitUpdatesExistingRecord() {
+    @DisplayName("测试重新提交创建新记录")
+    void testResubmitCreatesNewRecord() {
         SubmitVerificationRequest req = buildIdCardRequest();
         VerificationRecord existing = new VerificationRecord();
         existing.setUserId(1L);
         existing.setStatus(VerificationRecord.Status.REJECTED);
 
         when(userRepository.existsById(1L)).thenReturn(true);
-        when(verificationRecordRepository.findByUserId(1L)).thenReturn(Optional.of(existing));
+        when(verificationRecordRepository.findByUserIdOrderByCreatedAtDesc(1L))
+                .thenReturn(List.of(existing));
         when(verificationRecordRepository.save(any(VerificationRecord.class)))
                 .thenAnswer(inv -> inv.getArgument(0));
 
         VerificationRecord result = verificationService.submit(1L, req);
 
         assertEquals(VerificationRecord.Status.PENDING, result.getStatus());
-        verify(verificationRecordRepository, times(1)).save(existing);
+        verify(verificationRecordRepository, times(1)).save(any(VerificationRecord.class));
     }
 
     private SubmitVerificationRequest buildIdCardRequest() {
         SubmitVerificationRequest req = new SubmitVerificationRequest();
         req.setVerificationType("1");
         req.setRealName("张三");
-        req.setIdCard("110101199901011234");
+        req.setIdCard("110101199901011232"); // 有效的18位身份证号（含正确校验位）
         req.setIdCardFront("http://img/front.jpg");
         req.setIdCardBack("http://img/back.jpg");
         return req;

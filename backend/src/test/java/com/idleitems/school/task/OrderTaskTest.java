@@ -86,7 +86,7 @@ class OrderTaskTest {
 
         autoConfirmReceiveTask.autoConfirmReceived();
 
-        verify(orderRepository, never()).saveAll(any());
+        verify(orderRepository, never()).save(any());
         verify(notificationService, never()).createOrderNotification(any(), anyString(), anyString(), anyLong());
     }
 
@@ -95,10 +95,11 @@ class OrderTaskTest {
         Order order = createTestOrder(1L, "ORD001");
         when(orderRepository.findByOrderStatusAndShipTimeBefore(
                 eq(Order.OrderStatus.SHIPPED), any())).thenReturn(List.of(order));
+        when(orderRepository.findById(1L)).thenReturn(java.util.Optional.of(order));
 
         autoConfirmReceiveTask.autoConfirmReceived();
 
-        verify(orderRepository, times(1)).saveAll(anyList());
+        verify(orderRepository, times(1)).save(any(Order.class));
         verify(notificationService, times(2)).createOrderNotification(any(), anyString(), anyString(), anyLong());
     }
 
@@ -107,12 +108,13 @@ class OrderTaskTest {
         Order order = createTestOrder(1L, "ORD001");
         when(orderRepository.findByOrderStatusAndShipTimeBefore(
                 eq(Order.OrderStatus.SHIPPED), any())).thenReturn(List.of(order));
+        when(orderRepository.findById(1L)).thenReturn(java.util.Optional.of(order));
         doThrow(new RuntimeException("通知发送失败"))
                 .when(notificationService).createOrderNotification(any(), anyString(), anyString(), anyLong());
 
         autoConfirmReceiveTask.autoConfirmReceived();
 
-        verify(orderRepository, times(1)).saveAll(anyList());
+        verify(orderRepository, times(1)).save(any(Order.class));
     }
 
     @Test
