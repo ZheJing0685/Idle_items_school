@@ -33,6 +33,21 @@ vi.mock('../../../../src/router', () => ({
   }
 }))
 
+// Mock API module
+vi.mock('../../../../src/api', () => ({
+  default: {
+    order: {
+      getOrder: vi.fn().mockResolvedValue({ data: { id: 1, orderNo: 'TEST001', orderStatus: 'PENDING_PAYMENT', price: 100, itemId: 1, itemTitle: '测试商品', itemImage: null, createdAt: '2024-01-01T00:00:00' } })
+    },
+    user: {
+      disputes: {
+        getByOrder: vi.fn().mockResolvedValue({ data: null }),
+        canDispute: vi.fn().mockResolvedValue({ data: { canDispute: false, reason: '订单状态不允许' } })
+      }
+    }
+  }
+}))
+
 import { mount } from '@vue/test-utils'
 import { getAllStubs } from '../../helpers/elementPlusMock'
 import OrderDetail from '../../../../src/views/user/OrderDetail.vue'

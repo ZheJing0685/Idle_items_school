@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeAll } from 'vitest'
+import { describe, it, expect, vi, beforeAll, afterAll } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { getAllStubs } from '../../helpers/elementPlusMock'
 import { routerMockPlugin } from '../../helpers/routerMock'
@@ -17,6 +17,16 @@ beforeAll(() => {
     createRadialGradient: vi.fn(() => ({ addColorStop: vi.fn() })),
     createPattern: vi.fn(), canvas: { width: 0, height: 0 },
   }))
+
+  // Mock window.addEventListener and removeEventListener for ECharts
+  const originalAddEventListener = window.addEventListener
+  const originalRemoveEventListener = window.removeEventListener
+  window.addEventListener = vi.fn()
+  window.removeEventListener = vi.fn()
+  
+  // Store original functions for cleanup
+  window.__originalAddEventListener = originalAddEventListener
+  window.__originalRemoveEventListener = originalRemoveEventListener
 })
 
 // Mock dictStore
@@ -39,6 +49,7 @@ vi.mock('../../../src/api/services/admin', () => ({
   default: {
     statistics: {
       getDashboard: vi.fn().mockResolvedValue({
+        code: 200,
         data: {
           totalUsers: 100, 
           newUsersToday: 5, 

@@ -89,6 +89,8 @@ const originalConsoleError = console.error
 console.error = (...args) => {
   if (args[0]?.includes?.('[Vue warn]')) return
   if (args[0]?.includes?.('observer.disconnect')) return
+  if (args[0]?.includes?.('Unhandled error during execution of watcher callback')) return
+  if (args[0]?.includes?.('Unhandled error during execution of mounted hook')) return
   originalConsoleError(...args)
 }
 
