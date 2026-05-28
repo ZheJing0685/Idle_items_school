@@ -34,15 +34,16 @@ class AuthIntegrationTest extends BaseIntegrationTest {
     private static final String TEST_EMAIL = "test_integration@example.com";
     private static String authToken;
     private static String refreshToken;
+    private static Long testUserId;
 
     @BeforeEach
     void setUp() {
         // 清理测试数据
-        userRepository.deleteByUsername(TEST_USERNAME);
+        userRepository.findByUsername(TEST_USERNAME).ifPresent(user -> userRepository.deleteById(user.getId()));
     }
 
     @Test
-    @Order(1)
+    @org.junit.jupiter.api.Order(1)
     @DisplayName("用户注册 - 成功")
     void testRegisterSuccess() throws Exception {
         RegisterRequest request = new RegisterRequest();
@@ -68,10 +69,11 @@ class AuthIntegrationTest extends BaseIntegrationTest {
         // 保存token供后续测试使用
         authToken = extractToken(response);
         refreshToken = extractRefreshToken(response);
+        testUserId = extractUserId(response);
     }
 
     @Test
-    @Order(2)
+    @org.junit.jupiter.api.Order(2)
     @DisplayName("用户注册 - 用户名已存在")
     void testRegisterDuplicateUsername() throws Exception {
         // 先创建用户
@@ -91,7 +93,7 @@ class AuthIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
-    @Order(3)
+    @org.junit.jupiter.api.Order(3)
     @DisplayName("用户登录 - 成功")
     void testLoginSuccess() throws Exception {
         // 先创建用户
@@ -113,7 +115,7 @@ class AuthIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
-    @Order(4)
+    @org.junit.jupiter.api.Order(4)
     @DisplayName("用户登录 - 密码错误")
     void testLoginWrongPassword() throws Exception {
         // 先创建用户
@@ -132,7 +134,7 @@ class AuthIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
-    @Order(5)
+    @org.junit.jupiter.api.Order(5)
     @DisplayName("用户登录 - 用户不存在")
     void testLoginUserNotFound() throws Exception {
         LoginRequest request = new LoginRequest();
@@ -148,7 +150,7 @@ class AuthIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
-    @Order(6)
+    @org.junit.jupiter.api.Order(6)
     @DisplayName("获取当前用户信息 - 成功")
     void testGetCurrentUserSuccess() throws Exception {
         // 先登录获取token
@@ -163,7 +165,7 @@ class AuthIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
-    @Order(7)
+    @org.junit.jupiter.api.Order(7)
     @DisplayName("获取当前用户信息 - 未登录")
     void testGetCurrentUserUnauthorized() throws Exception {
         mockMvc.perform(get("/api/auth/me"))
@@ -171,7 +173,7 @@ class AuthIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
-    @Order(8)
+    @org.junit.jupiter.api.Order(8)
     @DisplayName("刷新Token - 成功")
     void testRefreshTokenSuccess() throws Exception {
         // 先登录获取token
@@ -187,7 +189,7 @@ class AuthIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
-    @Order(9)
+    @org.junit.jupiter.api.Order(9)
     @DisplayName("修改密码 - 成功")
     void testChangePasswordSuccess() throws Exception {
         // 先登录获取token
@@ -204,7 +206,7 @@ class AuthIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
-    @Order(10)
+    @org.junit.jupiter.api.Order(10)
     @DisplayName("修改密码 - 旧密码错误")
     void testChangePasswordWrongOldPassword() throws Exception {
         // 先登录获取token
@@ -220,7 +222,7 @@ class AuthIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
-    @Order(11)
+    @org.junit.jupiter.api.Order(11)
     @DisplayName("用户登出 - 成功")
     void testLogoutSuccess() throws Exception {
         // 先登录获取token
@@ -234,7 +236,7 @@ class AuthIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
-    @Order(12)
+    @org.junit.jupiter.api.Order(12)
     @DisplayName("完整认证流程测试")
     void testFullAuthFlow() throws Exception {
         // 1. 注册
@@ -254,6 +256,7 @@ class AuthIntegrationTest extends BaseIntegrationTest {
                 .getContentAsString();
 
         String token = extractToken(registerResponse);
+        Long userId = extractUserId(registerResponse);
 
         // 2. 获取用户信息
         mockMvc.perform(get("/api/auth/me")
@@ -272,23 +275,27 @@ class AuthIntegrationTest extends BaseIntegrationTest {
                 .andExpect(status().isUnauthorized());
 
         // 清理
-        userRepository.deleteByUsername("flow_test_user");
+        userRepository.deleteById(userId);
     }
 
     // ========== 辅助方法 ==========
 
     private void createTestUser() {
-        if (userRepository.findByUsername(TEST_USERNAME).isEmpty()) {
-            User user = new User();
-            user.setUsername(TEST_USERNAME);
-            user.setPassword(passwordEncoder.encode(TEST_PASSWORD));
-            user.setEmail(TEST_EMAIL);
-            user.setPhone("13800138001");
-            user.setNickname("集成测试用户");
-            user.setRole(User.Role.STUDENT);
-            user.setStatus(User.UserStatus.ACTIVE);
-            userRepository.save(user);
-        }
+        userRepository.findByUsername(TEST_USERNAME).ifPresentOrElse(
+                user -> testUserId = user.getId(),
+                () -> {
+                    User user = new User();
+                    user.setUsername(TEST_USERNAME);
+                    user.setPassword(passwordEncoder.encode(TEST_PASSWORD));
+                    user.setEmail(TEST_EMAIL);
+                    user.setPhone("13800138001");
+                    user.setNickname("集成测试用户");
+                    user.setRole(User.Role.STUDENT);
+                    user.setStatus(User.UserStatus.ACTIVE);
+                    User saved = userRepository.save(user);
+                    testUserId = saved.getId();
+                }
+        );
     }
 
     private String loginAndGetToken() throws Exception {
@@ -320,5 +327,13 @@ class AuthIntegrationTest extends BaseIntegrationTest {
                 .path("data")
                 .path("refreshToken")
                 .asText();
+    }
+
+    private Long extractUserId(String response) throws Exception {
+        return objectMapper.readTree(response)
+                .path("data")
+                .path("user")
+                .path("id")
+                .asLong();
     }
 }
