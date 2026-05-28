@@ -18,8 +18,13 @@ class WebSocketService {
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private userId: string | null = null;
   private reconnectAttempt: number = 0;
+  private maxReconnectAttempts: number = 10;
+  private baseDelay: number = 1000;
+  private maxDelay: number = 30000;
+  private connectionState: 'connecting' | 'connected' | 'disconnected' | 'reconnecting' = 'disconnected';
 
-  connect(token: string, userId: string): Promise<void> {
+  async connect(token: string, userId: string): Promise<void> {
+    this.connectionState = 'connecting';
     return new Promise((resolve, reject) => {
       this.userId = userId;
 
@@ -36,6 +41,7 @@ class WebSocketService {
         this.ws.onopen = () => {
           console.log('WebSocket已连接，发送STOMP CONNECT...');
           this.connected = true;
+          this.connectionState = 'connected';
 
           this.sendStompFrame('CONNECT', {
             'accept-version': '1.1,1.0',
@@ -56,6 +62,7 @@ class WebSocketService {
 
         this.ws.onerror = (error: Event) => {
           console.error('WebSocket错误:', error);
+          this.connectionState = 'disconnected';
           reject(error);
         };
       } catch (error) {
@@ -188,28 +195,33 @@ class WebSocketService {
   scheduleReconnect(token: string, userId: string): void {
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
     }
 
-    const maxAttempts = 10;
-    const baseDelay = 1000;
-    const maxDelay = 30000;
-
-    if (this.reconnectAttempt >= maxAttempts) {
-      console.log('达到最大重连次数，停止重连');
+    if (this.reconnectAttempt >= this.maxReconnectAttempts) {
+      console.error('WebSocket重连次数超过限制，停止重连');
       return;
     }
 
-    const delay = Math.min(baseDelay * Math.pow(2, this.reconnectAttempt), maxDelay);
+    const delay = Math.min(
+      this.baseDelay * Math.pow(2, this.reconnectAttempt) + Math.random() * 1000,
+      this.maxDelay,
+    );
+
+    console.log(`WebSocket将在${delay}ms后重连，第${this.reconnectAttempt + 1}次尝试`);
 
     this.reconnectTimer = setTimeout(() => {
-      console.log(`尝试重新连接WebSocket... (第${this.reconnectAttempt + 1}次)`);
-      this.connect(token, userId).then(() => {
-        this.subscribeToUserChannel(userId);
-        this.reconnectAttempt = 0;
-      }).catch(() => {
-        this.reconnectAttempt++;
-        this.scheduleReconnect(token, userId);
-      });
+      this.reconnectAttempt++;
+
+      this.connect(token, userId)
+        .then(() => {
+          console.log('WebSocket重连成功');
+          this.reconnectAttempt = 0;
+        })
+        .catch((error) => {
+          console.error('WebSocket重连失败:', error);
+          this.scheduleReconnect(token, userId);
+        });
     }, delay);
   }
 
@@ -224,6 +236,7 @@ class WebSocketService {
     }
 
     this.connected = false;
+    this.connectionState = 'disconnected';
     this.subscriptions.clear();
     this.messageHandlers.clear();
     this.reconnectAttempt = 0;
@@ -231,6 +244,10 @@ class WebSocketService {
 
   isConnected(): boolean {
     return this.connected;
+  }
+
+  getConnectionState(): string {
+    return this.connectionState;
   }
 }
 
