@@ -208,4 +208,34 @@ describe('RequestManager工具', () => {
       expect(requestManager.getDefaultCacheExpiry()).toBe(10000);
     });
   });
+
+  describe('缓存命中率统计', () => {
+    it('应该正确统计缓存命中和未命中', async () => {
+      const mockFn = vi.fn().mockResolvedValue({ data: 'test' });
+      
+      // 第一次请求（未命中）
+      await requestManager.request('/api/test', mockFn, { useCache: true });
+      // 第二次请求（命中）
+      await requestManager.request('/api/test', mockFn, { useCache: true });
+      
+      const stats = requestManager.getCacheStats();
+      expect(stats.hits).toBe(1);
+      expect(stats.misses).toBe(1);
+      expect(stats.hitRate).toBe(0.5);
+    });
+
+    it('应该返回正确的命中率', async () => {
+      const mockFn = vi.fn().mockResolvedValue({ data: 'test' });
+      
+      // 多次请求
+      for (let i = 0; i < 5; i++) {
+        await requestManager.request('/api/test', mockFn, { useCache: true });
+      }
+      
+      const stats = requestManager.getCacheStats();
+      expect(stats.hits).toBe(4); // 第一次未命中，后面4次命中
+      expect(stats.misses).toBe(1);
+      expect(stats.hitRate).toBe(0.8);
+    });
+  });
 });

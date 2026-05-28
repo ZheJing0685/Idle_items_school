@@ -2,6 +2,7 @@ interface CacheEntry<T = any> {
   data: T
   timestamp: number
   expiry: number
+  accessCount: number
 }
 
 interface RequestOptions {
@@ -27,6 +28,8 @@ class RequestManager {
   private requests: Map<string, Promise<any>>;
   private cacheSize: number;
   private defaultCacheExpiry: number;
+  private cacheHits = 0;
+  private cacheMisses = 0;
 
   constructor() {
     this.cache = new Map();
@@ -52,8 +55,10 @@ class RequestManager {
     if (useCache) {
       const cachedData = this.getCache(key);
       if (cachedData && !this.isCacheExpired(cachedData)) {
+        this.cacheHits++;
         return cachedData.data as T;
       }
+      this.cacheMisses++;
     }
 
     if (useMerge && this.requests.has(key)) {
@@ -147,11 +152,16 @@ class RequestManager {
       data: value,
       timestamp: Date.now(),
       expiry,
+      accessCount: 0,
     });
   }
 
   getCache(key: string): CacheEntry | undefined {
-    return this.cache.get(key);
+    const entry = this.cache.get(key);
+    if (entry) {
+      entry.accessCount++;
+    }
+    return entry;
   }
 
   isCacheExpired(cachedData: CacheEntry): boolean {
@@ -159,16 +169,21 @@ class RequestManager {
   }
 
   evictOldestCache(): void {
-    let oldestKey: string | null = null;
-    let oldestTimestamp = Infinity;
-
+    if (this.cache.size === 0) return;
+    
+    let oldestKey = '';
+    let oldestScore = -Infinity;
+    
+    // 计算每个条目的淘汰分数（越大越容易被淘汰）
     for (const [key, value] of this.cache.entries()) {
-      if (value.timestamp < oldestTimestamp) {
+      const age = Date.now() - value.timestamp;
+      const score = age / (value.accessCount + 1); // 考虑访问频率
+      if (score > oldestScore) {
+        oldestScore = score;
         oldestKey = key;
-        oldestTimestamp = value.timestamp;
       }
     }
-
+    
     if (oldestKey) {
       this.cache.delete(oldestKey);
     }
@@ -181,6 +196,8 @@ class RequestManager {
 
   clearAllCache(): void {
     this.cache.clear();
+    this.cacheHits = 0;
+    this.cacheMisses = 0;
   }
 
   clearCacheByPattern(pattern: string): void {
@@ -197,8 +214,19 @@ class RequestManager {
 
   setCacheSize(size: number): void {
     this.cacheSize = size;
-    while (this.cache.size > size) {
-      this.evictOldestCache();
+    if (this.cache.size <= size) return;
+    
+    // 一次性淘汰所有超限条目
+    const entries = Array.from(this.cache.entries())
+      .map(([key, value]) => ({
+        key,
+        score: (Date.now() - value.timestamp) / (value.accessCount + 1)
+      }))
+      .sort((a, b) => b.score - a.score); // 按分数降序排列
+    
+    const toDelete = entries.length - size;
+    for (let i = 0; i < toDelete; i++) {
+      this.cache.delete(entries[i].key);
     }
   }
 
@@ -208,6 +236,15 @@ class RequestManager {
 
   getDefaultCacheExpiry(): number {
     return this.defaultCacheExpiry;
+  }
+
+  getCacheStats(): { hits: number; misses: number; hitRate: number } {
+    const total = this.cacheHits + this.cacheMisses;
+    return {
+      hits: this.cacheHits,
+      misses: this.cacheMisses,
+      hitRate: total > 0 ? this.cacheHits / total : 0
+    };
   }
 }
 
