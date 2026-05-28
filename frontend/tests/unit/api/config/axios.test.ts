@@ -125,10 +125,17 @@ describe('Axios配置', () => {
       expect(() => setUnauthorizedHandler(handler)).not.toThrow()
     })
 
-    it('应该可以设置null处理器', async () => {
+    it('应该可以重新设置处理器', async () => {
       const { setUnauthorizedHandler } = await import('@/api/config/axios')
+      const handler1 = vi.fn()
+      const handler2 = vi.fn()
       
-      expect(() => setUnauthorizedHandler(null)).not.toThrow()
+      setUnauthorizedHandler(handler1)
+      setUnauthorizedHandler(handler2)
+      
+      // 验证函数可以被多次调用而不抛出错误
+      expect(() => setUnauthorizedHandler(handler1)).not.toThrow()
+      expect(() => setUnauthorizedHandler(handler2)).not.toThrow()
     })
   })
 
