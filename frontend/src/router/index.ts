@@ -305,7 +305,9 @@ const router = createRouter({
 });
 
 router.beforeEach(async (to, from, next) => {
-  document.title = (to.meta.title as string) || '闲置物品交易平台';
+  const brandName = '闲置物品交易平台';
+  const pageTitle = to.meta.title as string;
+  document.title = pageTitle ? `${pageTitle} - ${brandName}` : brandName;
   const store = userStore();
 
   if (to.matched.some((record) => record.meta.requiresAuth)) {
