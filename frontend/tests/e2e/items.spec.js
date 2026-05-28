@@ -75,7 +75,7 @@ test.describe('物品发布流程测试', () => {
     const categorySelect = page.locator('select, .el-select').first()
     if (await categorySelect.isVisible()) {
       await categorySelect.click()
-      await page.waitForTimeout(500)
+      await expect(page.locator('.el-select-dropdown')).toBeVisible({ timeout: 3000 })
 
       // 检查下拉选项
       const options = page.locator('option, .el-select-dropdown__item')
@@ -92,7 +92,7 @@ test.describe('物品发布流程测试', () => {
     const conditionSelect = page.locator('select:near(:text("成色")), .el-select:near(:text("成色"))').first()
     if (await conditionSelect.isVisible()) {
       await conditionSelect.click()
-      await page.waitForTimeout(500)
+      await expect(page.locator('.el-select-dropdown')).toBeVisible({ timeout: 3000 })
 
       // 检查选项
       const options = page.locator('option, .el-select-dropdown__item')

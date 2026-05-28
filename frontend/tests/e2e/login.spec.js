@@ -59,7 +59,7 @@ test.describe('登录流程 E2E 测试', () => {
     await page.getByRole('button', { name: '登录' }).click()
 
     // 等待错误消息
-    await page.waitForTimeout(1000)
+    await expect(page).toHaveURL(/\/login/, { timeout: 5000 })
 
     // 应仍然在登录页
     await expect(page).toHaveURL(/\/login/)
@@ -77,7 +77,7 @@ test.describe('登录流程 E2E 测试', () => {
     await page.getByRole('button', { name: '登录' }).click()
 
     // 等待登录成功（可能跳转到首页或其他页面）
-    await page.waitForTimeout(2000)
+    await expect(page.locator('.user-info, .user-menu').first()).toBeVisible({ timeout: 5000 })
 
     // 检查是否登录成功（检查用户菜单是否出现）
     const userMenu = page.locator('.user-info, .user-menu').first()

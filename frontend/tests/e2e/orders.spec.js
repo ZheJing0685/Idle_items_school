@@ -93,7 +93,7 @@ test.describe('订单操作流程测试', () => {
     // 访问物品详情页
     await page.goto('/item/1')
     await page.waitForLoadState('networkidle')
-    await page.waitForTimeout(1000)
+    await expect(page.locator('.order-status, .success-message')).toBeVisible({ timeout: 5000 })
 
     // 查找购买按钮
     const buyBtn = page.locator('button:has-text("购买"), button:has-text("立即购买"), .buy-btn').first()

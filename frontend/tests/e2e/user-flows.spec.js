@@ -199,7 +199,7 @@ test.describe('404 页面测试', () => {
 
     // 应该显示 404 页面
     const body = await page.textContent('body')
-    expect(body).toContainTruthy()
+    expect(body).toContain('404')
   })
 
   test('404 页面应有返回首页链接', async ({ page }) => {
