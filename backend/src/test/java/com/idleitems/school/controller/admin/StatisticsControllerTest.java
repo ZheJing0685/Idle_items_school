@@ -74,6 +74,7 @@ class StatisticsControllerTest {
         when(orderRepository.sumCompletedOrderAmount()).thenReturn(BigDecimal.valueOf(10000));
         when(orderRepository.countOrdersAndAmountGroupedByDate(any(LocalDateTime.class), any(LocalDateTime.class)))
                 .thenReturn(List.of());
+        when(userRepository.findAllById(any())).thenReturn(List.of());
 
         mockMvc.perform(get("/api/admin/statistics/dashboard")
                         .param("timeRange", "today"))
@@ -118,6 +119,7 @@ class StatisticsControllerTest {
     @DisplayName("testGetCategoryStatistics")
     void testGetCategoryStatistics() throws Exception {
         when(categoryRepository.findAll()).thenReturn(List.of());
+        when(itemRepository.countByCategoryIdsGrouped(any())).thenReturn(List.of());
 
         mockMvc.perform(get("/api/admin/statistics/categories"))
                 .andExpect(status().isOk())

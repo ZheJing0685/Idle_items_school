@@ -16,6 +16,7 @@ import com.idleitems.school.repository.UserRepository;
 import com.idleitems.school.config.ApiPaths;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
@@ -26,6 +27,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 @RestController
@@ -42,6 +44,7 @@ public class StatisticsController {
 
     @GetMapping("/dashboard")
     @Operation(summary = "获取仪表盘数据", description = "获取管理后台仪表盘的整体数据概览")
+    @Cacheable(value = "statistics", key = "'dashboard-' + #timeRange + '-' + #startDate + '-' + #endDate", unless = "#result == null")
     public Result<DashboardResponse> getDashboard(
             @RequestParam(defaultValue = "today") String timeRange,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
@@ -84,14 +87,25 @@ public class StatisticsController {
                 .sorted(Comparator.comparing(Order::getCreatedAt).reversed())
                 .limit(10)
                 .collect(Collectors.toList());
+
+        Set<Long> recentOrderUserIds = recentOrders.stream()
+                .flatMap(o -> Stream.of(o.getBuyerId(), o.getSellerId()))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        Map<Long, User> recentUserMap = userRepository.findAllById(recentOrderUserIds)
+                .stream()
+                .collect(Collectors.toMap(User::getId, u -> u));
+
         List<DashboardResponse.RecentOrder> recentOrderItems = recentOrders.stream()
                 .map(order -> {
-                    String buyerName = userRepository.findById(order.getBuyerId())
-                            .map(u -> u.getNickname() != null ? u.getNickname() : u.getUsername())
-                            .orElse("未知");
-                    String sellerName = userRepository.findById(order.getSellerId())
-                            .map(u -> u.getNickname() != null ? u.getNickname() : u.getUsername())
-                            .orElse("未知");
+                    User buyer = recentUserMap.get(order.getBuyerId());
+                    User seller = recentUserMap.get(order.getSellerId());
+                    String buyerName = buyer != null
+                            ? (buyer.getNickname() != null ? buyer.getNickname() : buyer.getUsername())
+                            : "未知";
+                    String sellerName = seller != null
+                            ? (seller.getNickname() != null ? seller.getNickname() : seller.getUsername())
+                            : "未知";
                     return DashboardResponse.RecentOrder.builder()
                             .id(order.getId())
                             .orderNo(order.getOrderNo())
@@ -172,10 +186,17 @@ public class StatisticsController {
     @Operation(summary = "获取分类统计", description = "获取各分类下的物品数量统计")
     public Result<List<Map<String, Object>>> getCategoryStatistics() {
         List<Category> categories = categoryRepository.findAll();
-        List<Map<String, Object>> categoryStats = new ArrayList<>();
 
+        List<Long> categoryIds = categories.stream()
+                .map(Category::getId)
+                .collect(Collectors.toList());
+        List<Object[]> groupedCounts = itemRepository.countByCategoryIdsGrouped(categoryIds);
+        Map<Long, Long> countMap = groupedCounts.stream()
+                .collect(Collectors.toMap(row -> (Long) row[0], row -> (Long) row[1]));
+
+        List<Map<String, Object>> categoryStats = new ArrayList<>();
         for (Category category : categories) {
-            Long count = itemRepository.countByCategoryId(category.getId());
+            Long count = countMap.getOrDefault(category.getId(), 0L);
             Map<String, Object> catStat = new HashMap<>();
             catStat.put("categoryId", category.getId());
             catStat.put("categoryName", category.getName());
