@@ -69,6 +69,7 @@ jobs:
           SPRING_DATASOURCE_URL: jdbc:h2:mem:testdb
           SPRING_DATASOURCE_USERNAME: sa
           SPRING_DATASOURCE_PASSWORD:
+          SPRING_FLYWAY_ENABLED: false
       
       - name: Generate coverage report
         run: mvn jacoco:report
@@ -131,6 +132,7 @@ jobs:
       SPRING_REDIS_HOST: localhost
       SPRING_REDIS_PORT: 6380
       JWT_SECRET: dGVzdHNlY3JldGtleWZvcnRlc3RpbmdwdXJwb3Nlc29ubHk=
+      SPRING_FLYWAY_ENABLED: true
     defaults:
       run:
         working-directory: backend

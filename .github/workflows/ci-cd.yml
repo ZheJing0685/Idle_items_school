@@ -88,8 +88,12 @@ jobs:
           cache: maven
       - name: Run unit tests
         run: mvn test -Dtest="!*IntegrationTest"
+        env:
+          SPRING_FLYWAY_ENABLED: false
       - name: Run integration tests
         run: mvn test -Dtest="*IntegrationTest"
+        env:
+          SPRING_FLYWAY_ENABLED: true
       - name: Generate coverage report
         run: mvn jacoco:report
       - name: Upload coverage to Codecov
