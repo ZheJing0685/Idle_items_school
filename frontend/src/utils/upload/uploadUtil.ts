@@ -37,17 +37,19 @@ class UploadUtil {
     return { valid: true, message: '' };
   }
 
-  static generateFileHash(file: File): Promise<string> {
+  static async generateFileHash(file: File): Promise<string> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.onload = function (event: ProgressEvent<FileReader>) {
-        const arrayBuffer = event.target?.result as ArrayBuffer;
-        const hash = UploadUtil.calculateHash(arrayBuffer);
-        resolve(hash);
+      reader.onload = async (e) => {
+        const arrayBuffer = e.target?.result as ArrayBuffer;
+        if (arrayBuffer) {
+          const hash = await UploadUtil.calculateHashAsync(arrayBuffer);
+          resolve(hash);
+        } else {
+          reject(new Error('无法读取文件'));
+        }
       };
-      reader.onerror = function () {
-        reject(new Error('文件读取失败'));
-      };
+      reader.onerror = () => reject(new Error('文件读取失败'));
       reader.readAsArrayBuffer(file);
     });
   }
@@ -60,6 +62,46 @@ class UploadUtil {
       hash |= 0;
     }
     return Math.abs(hash).toString(16);
+  }
+
+  static async calculateHashAsync(arrayBuffer: ArrayBuffer): Promise<string> {
+    const chunkSize = 1024 * 1024;
+    const chunks = Math.ceil(arrayBuffer.byteLength / chunkSize);
+    let hash = 0;
+
+    for (let i = 0; i < chunks; i++) {
+      const start = i * chunkSize;
+      const end = Math.min(start + chunkSize, arrayBuffer.byteLength);
+      const chunk = arrayBuffer.slice(start, end);
+
+      await new Promise<void>(resolve => {
+        if (typeof requestIdleCallback !== 'undefined') {
+          requestIdleCallback(() => resolve(), { timeout: 100 });
+        } else {
+          setTimeout(() => resolve(), 0);
+        }
+      });
+
+      const uint8Array = new Uint8Array(chunk);
+      for (let j = 0; j < uint8Array.length; j++) {
+        hash = (hash << 5) - hash + uint8Array[j];
+        hash |= 0;
+      }
+    }
+
+    return Math.abs(hash).toString(16);
+  }
+
+  static async calculateHashWithTimeout(
+    arrayBuffer: ArrayBuffer,
+    timeoutMs: number = 5000,
+  ): Promise<string> {
+    return Promise.race([
+      UploadUtil.calculateHashAsync(arrayBuffer),
+      new Promise<string>((_, reject) =>
+        setTimeout(() => reject(new Error('哈希计算超时')), timeoutMs),
+      ),
+    ]);
   }
 
   static sliceFile(file: File, chunkSize: number = 1024 * 1024): Blob[] {
