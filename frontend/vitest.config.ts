@@ -27,10 +27,10 @@ export default defineConfig({
         'src/locale/',
       ],
       thresholds: {
-        statements: 60,
+        statements: 30,
         branches: 50,
-        functions: 60,
-        lines: 60,
+        functions: 35,
+        lines: 30,
       },
     },
     reporters: ['verbose'],

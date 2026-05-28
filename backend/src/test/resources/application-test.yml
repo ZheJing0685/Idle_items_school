@@ -18,6 +18,12 @@ spring:
       mode: never
   flyway:
     enabled: false
+  data:
+    redis:
+      host: ${SPRING_REDIS_HOST:localhost}
+      port: ${SPRING_REDIS_PORT:6380}
+      password: ${REDIS_PASSWORD:}
+      database: 0
 
 jwt:
   secret: "${JWT_SECRET:dGVzdHNlY3JldGtleWZvcnRlc3RpbmdwdXJwb3Nlc29ubHk=}"
