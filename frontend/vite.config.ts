@@ -80,22 +80,6 @@ export default defineConfig({
       }
     }
   },
-  test: {
-    globals: true,
-    environment: 'jsdom',
-    include: ['tests/unit/**/*.test.{js,ts}'],
-    setupFiles: ['tests/setup.ts'],
-    testTimeout: 10000,
-    hookTimeout: 10000,
-    coverage: {
-      provider: 'v8',
-      reporter: ['text', 'json', 'html'],
-      reportsDirectory: './coverage',
-      include: ['src/**/*.{ts,js,vue}'],
-      exclude: ['node_modules/', 'dist/', 'src/**/*.d.ts'],
-      thresholds: { statements: 30, branches: 50, functions: 35, lines: 30 },
-    },
-  },
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src')

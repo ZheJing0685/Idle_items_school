@@ -156,6 +156,33 @@ const routes: RouteRecordRaw[] = [
           title: '修改密码',
         },
       },
+      {
+        path: 'order/:id',
+        name: 'OrderDetail',
+        component: () => import('../views/user/OrderDetail.vue'),
+        meta: {
+          requiresAuth: true,
+          title: '订单详情',
+        },
+      },
+      {
+        path: 'disputes',
+        name: 'MyDisputes',
+        component: () => import('../views/user/MyDisputes.vue'),
+        meta: {
+          requiresAuth: true,
+          title: '我的纠纷',
+        },
+      },
+      {
+        path: 'create-dispute/:orderId',
+        name: 'CreateDispute',
+        component: () => import('../views/user/CreateDispute.vue'),
+        meta: {
+          requiresAuth: true,
+          title: '创建纠纷',
+        },
+      },
     ],
   },
   {
