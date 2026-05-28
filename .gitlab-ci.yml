@@ -1,0 +1,230 @@
+# GitLab CI/CD 配置文件
+# 闲置物品校园交易平台 - 完整测试流水线
+
+stages:
+  - test
+  - integration
+  - e2e
+  - build
+  - deploy
+
+# 全局变量
+variables:
+  MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
+  NODE_OPTIONS: "--max-old-space-size=4096"
+
+# 缓存配置
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - frontend/node_modules/
+    - .m2/repository/
+
+# 前端单元测试
+frontend-unit-tests:
+  stage: test
+  image: node:20-slim
+  before_script:
+    - cd frontend
+    - npm ci --cache .npm
+  script:
+    - npm run test:unit
+    - npm run test:coverage
+  coverage: '/All files\s*\|\s*([\d\.]+)/'
+  artifacts:
+    when: always
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: frontend/coverage/cobertura-coverage.xml
+    paths:
+      - frontend/coverage/
+    expire_in: 7 days
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+
+# 后端单元测试
+backend-unit-tests:
+  stage: test
+  image: maven:3.9-eclipse-temurin-17
+  before_script:
+    - cd backend
+  script:
+    - mvn test -Dtest="!*IntegrationTest"
+    - mvn jacoco:report
+  coverage: '/Total.*?(\d+\.\d+)%/'
+  artifacts:
+    when: always
+    reports:
+      junit: backend/target/surefire-reports/TEST-*.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: backend/target/site/jacoco/jacoco.xml
+    paths:
+      - backend/target/surefire-reports/
+      - backend/target/site/jacoco/
+    expire_in: 7 days
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+
+# 后端集成测试
+backend-integration-tests:
+  stage: integration
+  image: maven:3.9-eclipse-temurin-17
+  services:
+    - name: mysql:8.0
+      alias: test-db
+      variables:
+        MYSQL_ROOT_PASSWORD: testroot
+        MYSQL_DATABASE: testdb
+        MYSQL_USER: testuser
+        MYSQL_PASSWORD: testpass
+    - name: redis:7-alpine
+      alias: test-redis
+  variables:
+    SPRING_DATASOURCE_URL: "jdbc:mysql://test-db:3306/testdb?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
+    SPRING_DATASOURCE_USERNAME: "testuser"
+    SPRING_DATASOURCE_PASSWORD: "testpass"
+    SPRING_REDIS_HOST: "test-redis"
+    SPRING_REDIS_PORT: "6379"
+    SPRING_PROFILES_ACTIVE: "test"
+  before_script:
+    - cd backend
+  script:
+    - mvn test -Dtest="*IntegrationTest"
+  artifacts:
+    when: always
+    reports:
+      junit: backend/target/surefire-reports/TEST-*IntegrationTest.xml
+    paths:
+      - backend/target/surefire-reports/
+    expire_in: 7 days
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+  needs:
+    - job: backend-unit-tests
+      optional: true
+
+# 前端E2E测试
+e2e-tests:
+  stage: e2e
+  image: mcr.microsoft.com/playwright:v1.59.0-jammy
+  variables:
+    PLAYWRIGHT_BROWSERS_PATH: "/ms-playwright"
+  before_script:
+    - cd frontend
+    - npm ci --cache .npm
+  script:
+    - npx playwright install --with-deps
+    - npm run test:e2e
+  artifacts:
+    when: always
+    paths:
+      - frontend/tests/reports/playwright/
+      - frontend/tests/reports/playwright/**/*.png
+      - frontend/tests/reports/playwright/**/*.html
+    expire_in: 7 days
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+  needs:
+    - job: frontend-unit-tests
+      optional: true
+    - job: backend-unit-tests
+      optional: true
+
+# 构建前端
+build-frontend:
+  stage: build
+  image: node:20-slim
+  before_script:
+    - cd frontend
+    - npm ci --cache .npm
+  script:
+    - npm run build
+  artifacts:
+    paths:
+      - frontend/dist/
+    expire_in: 7 days
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+  needs:
+    - job: e2e-tests
+      optional: true
+
+# 构建后端
+build-backend:
+  stage: build
+  image: maven:3.9-eclipse-temurin-17
+  before_script:
+    - cd backend
+  script:
+    - mvn -B package --file pom.xml -DskipTests
+  artifacts:
+    paths:
+      - backend/target/school-1.0.0.jar
+    expire_in: 7 days
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+  needs:
+    - job: backend-integration-tests
+      optional: true
+
+# 部署Docker镜像（仅main分支）
+deploy-docker:
+  stage: deploy
+  image: docker:24-dind
+  services:
+    - docker:24-dind
+  variables:
+    DOCKER_TLS_CERTDIR: "/certs"
+    DOCKER_HOST: "tcp://docker:2376"
+    DOCKER_DRIVER: overlay2
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    # 构建后端镜像
+    - docker build -t $CI_REGISTRY_IMAGE/backend:$CI_COMMIT_SHA -t $CI_REGISTRY_IMAGE/backend:latest ./backend
+    - docker push $CI_REGISTRY_IMAGE/backend:$CI_COMMIT_SHA
+    - docker push $CI_REGISTRY_IMAGE/backend:latest
+    
+    # 构建前端镜像
+    - docker build -t $CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHA -t $CI_REGISTRY_IMAGE/frontend:latest ./frontend
+    - docker push $CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHA
+    - docker push $CI_REGISTRY_IMAGE/frontend:latest
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+  needs:
+    - job: build-frontend
+    - job: build-backend
+
+# 测试报告汇总
+test-report:
+  stage: test
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache curl jq
+  script:
+    - echo "Generating test summary..."
+  artifacts:
+    reports:
+      junit:
+        - backend/target/surefire-reports/TEST-*.xml
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+  needs:
+    - job: frontend-unit-tests
+      optional: true
+    - job: backend-unit-tests
+      optional: true

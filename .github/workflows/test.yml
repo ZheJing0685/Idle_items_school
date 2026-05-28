@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+name: Tests
 
 on:
   push:
@@ -7,73 +7,83 @@ on:
     branches: [main, develop]
 
 jobs:
-  frontend-tests:
-    name: Frontend Tests
+  frontend-unit-tests:
+    name: Frontend Unit Tests
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: frontend
     steps:
       - uses: actions/checkout@v4
+      
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
+      
       - name: Install dependencies
         run: npm ci
+      
       - name: Run unit tests
         run: npm run test:unit
+      
       - name: Run unit tests with coverage
         run: npm run test:coverage
+      
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
           files: frontend/coverage/lcov.info
           flags: frontend
           fail_ci_if_error: false
+      
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: frontend-coverage
+          name: frontend-test-results
           path: frontend/coverage/
           retention-days: 7
 
-  backend-tests:
-    name: Backend Tests
+  backend-unit-tests:
+    name: Backend Unit Tests
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: backend
     steps:
       - uses: actions/checkout@v4
-      - name: Set up JDK 17
+      
+      - name: Setup JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
           cache: maven
+      
       - name: Run unit tests
         run: mvn test -Dtest="!*IntegrationTest"
-      - name: Run integration tests
-        run: mvn test -Dtest="*IntegrationTest"
+      
       - name: Generate coverage report
         run: mvn jacoco:report
+      
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
           files: backend/target/site/jacoco/jacoco.xml
           flags: backend
           fail_ci_if_error: false
+      
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: backend-test-results
+          name: backend-unit-test-results
           path: backend/target/surefire-reports/
           retention-days: 7
+      
       - name: Upload coverage report
         if: always()
         uses: actions/upload-artifact@v4
@@ -82,27 +92,60 @@ jobs:
           path: backend/target/site/jacoco/
           retention-days: 7
 
+  backend-integration-tests:
+    name: Backend Integration Tests
+    runs-on: ubuntu-latest
+    needs: [backend-unit-tests]
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+      
+      - name: Run integration tests
+        run: mvn test -Dtest="*IntegrationTest"
+      
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-integration-test-results
+          path: backend/target/surefire-reports/
+          retention-days: 7
+
   e2e-tests:
     name: E2E Tests
     runs-on: ubuntu-latest
-    needs: [frontend-tests, backend-tests]
+    needs: [frontend-unit-tests, backend-unit-tests]
     defaults:
       run:
         working-directory: frontend
     steps:
       - uses: actions/checkout@v4
+      
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
+      
       - name: Install dependencies
         run: npm ci
+      
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
+      
       - name: Run E2E tests
         run: npm run test:e2e
+      
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
@@ -110,88 +153,51 @@ jobs:
           name: playwright-report
           path: frontend/tests/reports/playwright/
           retention-days: 7
-
-  build:
-    name: Build
-    runs-on: ubuntu-latest
-    needs: [frontend-tests, backend-tests, e2e-tests]
-    steps:
-      - uses: actions/checkout@v4
       
-      # Build frontend
-      - name: Build Frontend
-        working-directory: frontend
-        run: |
-          npm ci
-          npm run build
-      
-      # Build backend
-      - name: Build Backend
-        working-directory: backend
-        run: |
-          mvn -B package --file pom.xml -DskipTests
-      
-      - name: Upload frontend build
+      - name: Upload screenshots
+        if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: frontend-build
-          path: frontend/dist
-          retention-days: 7
-      
-      - name: Upload backend build
-        uses: actions/upload-artifact@v4
-        with:
-          name: backend-build
-          path: backend/target/school-1.0.0.jar
+          name: playwright-screenshots
+          path: frontend/tests/reports/playwright/**/*.png
           retention-days: 7
 
-  deploy:
-    name: Build and Deploy Docker Images
+  test-summary:
+    name: Test Summary
     runs-on: ubuntu-latest
-    needs: [build]
-    if: github.ref == 'refs/heads/main'
+    needs: [frontend-unit-tests, backend-unit-tests, backend-integration-tests, e2e-tests]
+    if: always()
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Download backend build
+      - name: Download frontend test results
         uses: actions/download-artifact@v4
         with:
-          name: backend-build
-          path: backend/target/
-
-      - name: Download frontend build
+          name: frontend-test-results
+          path: frontend-coverage
+      
+      - name: Download backend test results
         uses: actions/download-artifact@v4
         with:
-          name: frontend-build
-          path: frontend/dist/
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
+          name: backend-coverage-report
+          path: backend-coverage
+      
+      - name: Download E2E test results
+        uses: actions/download-artifact@v4
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and push backend image
-        uses: docker/build-push-action@v6
-        with:
-          context: ./backend
-          file: ./backend/Dockerfile
-          push: true
-          tags: ghcr.io/${{ github.repository }}/backend:latest,ghcr.io/${{ github.repository }}/backend:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Build and push frontend image
-        uses: docker/build-push-action@v6
-        with:
-          context: ./frontend
-          file: ./frontend/Dockerfile
-          push: true
-          tags: ghcr.io/${{ github.repository }}/frontend:latest,ghcr.io/${{ github.repository }}/frontend:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          name: playwright-report
+          path: e2e-report
+      
+      - name: Generate test summary
+        run: |
+          echo "## Test Results Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Frontend Unit Tests" >> $GITHUB_STEP_SUMMARY
+          echo "- Status: ${{ needs.frontend-unit-tests.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Backend Unit Tests" >> $GITHUB_STEP_SUMMARY
+          echo "- Status: ${{ needs.backend-unit-tests.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Backend Integration Tests" >> $GITHUB_STEP_SUMMARY
+          echo "- Status: ${{ needs.backend-integration-tests.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### E2E Tests" >> $GITHUB_STEP_SUMMARY
+          echo "- Status: ${{ needs.e2e-tests.result }}" >> $GITHUB_STEP_SUMMARY

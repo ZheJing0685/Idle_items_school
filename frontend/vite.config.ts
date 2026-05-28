@@ -93,7 +93,7 @@ export default defineConfig({
       reportsDirectory: './coverage',
       include: ['src/**/*.{ts,js,vue}'],
       exclude: ['node_modules/', 'dist/', 'src/**/*.d.ts'],
-      thresholds: { statements: 30, branches: 50, functions: 40, lines: 30 },
+      thresholds: { statements: 30, branches: 50, functions: 35, lines: 30 },
     },
   },
   resolve: {

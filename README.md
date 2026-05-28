@@ -327,6 +327,19 @@ npm run dev
 
 ## 测试
 
+项目采用分层测试策略，包含单元测试、集成测试和E2E测试。详细文档请参考：
+- [测试体系文档](docs/TESTING.md)
+- [测试用例说明](docs/TEST_CASES.md)
+
+### 测试概览
+
+| 测试类型 | 技术栈 | 覆盖范围 |
+|---------|--------|---------|
+| 前端单元测试 | Vitest + Vue Test Utils | 组件、Hook、Store、工具函数 |
+| 后端单元测试 | JUnit 5 + Mockito | Service、Controller、工具类 |
+| 后端集成测试 | MockMvc + Spring Boot Test | 全接口API测试 |
+| E2E测试 | Playwright | 核心页面流程、跨页面交互 |
+
 ### 前端测试
 
 ```bash
@@ -344,8 +357,32 @@ npm run test:e2e
 # E2E 测试（带浏览器界面）
 npm run test:e2e:headed
 
+# E2E 测试（UI模式）
+npm run test:e2e:ui
+
 # 全部测试
 npm run test:all
+
+# 监听模式
+npm run test:watch
+```
+
+**测试目录结构：**
+```
+frontend/tests/
+├── unit/                      # 单元测试
+│   ├── api/                   # API服务测试
+│   ├── components/            # 组件测试
+│   ├── composables/           # Hook测试
+│   ├── store/                 # Store测试
+│   ├── utils/                 # 工具函数测试
+│   └── views/                 # 页面视图测试
+├── e2e/                       # E2E测试
+│   ├── login.spec.js          # 登录流程
+│   ├── user-flows.spec.js     # 用户交互流程
+│   ├── items.spec.js          # 物品流程
+│   └── orders.spec.js         # 订单流程
+└── utils/                     # 测试工具
 ```
 
 ### 后端测试
@@ -356,9 +393,42 @@ cd backend
 # 运行全部测试
 mvn test
 
+# 运行特定测试类
+mvn test -Dtest=AuthServiceTest
+
+# 运行集成测试
+mvn test -Dtest=AuthIntegrationTest
+
+# 运行测试并生成覆盖率报告
+mvn test jacoco:report
+
 # 打包（跳过测试）
 mvn package -DskipTests
 ```
+
+**测试目录结构：**
+```
+backend/src/test/
+├── java/com/idleitems/school/
+│   ├── service/               # Service单元测试
+│   ├── controller/            # Controller单元测试
+│   ├── integration/           # 集成测试
+│   ├── util/                  # 工具类测试
+│   └── config/                # 配置类测试
+└── resources/
+    └── application-test.yml   # 测试配置
+```
+
+### 测试覆盖率目标
+
+| 模块 | 目标覆盖率 |
+|------|-----------|
+| 前端Store | ≥ 80% |
+| 前端组件 | ≥ 70% |
+| 前端工具函数 | ≥ 90% |
+| 后端Service | ≥ 80% |
+| 后端Controller | ≥ 90% |
+| 集成测试 | 100% API |
 
 ### 代码质量检查
 
