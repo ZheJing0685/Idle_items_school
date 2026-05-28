@@ -7,18 +7,20 @@ vi.mock('axios', () => {
     response: { use: vi.fn() }
   }
   
+  const instance = {
+    interceptors,
+    get: vi.fn(),
+    post: vi.fn(),
+    put: vi.fn(),
+    delete: vi.fn(),
+    patch: vi.fn(),
+    head: vi.fn(),
+    options: vi.fn()
+  }
+  
   return {
     default: {
-      create: vi.fn(() => ({
-        interceptors,
-        get: vi.fn(),
-        post: vi.fn(),
-        put: vi.fn(),
-        delete: vi.fn(),
-        patch: vi.fn(),
-        head: vi.fn(),
-        options: vi.fn()
-      })),
+      create: vi.fn(() => instance),
       defaults: {
         headers: {
           common: {}
@@ -64,11 +66,25 @@ describe('Axios配置', () => {
   })
 
   it('应该创建axios实例', async () => {
-    const { default: axios } = await import('axios')
-    const instance = axios.create()
-    expect(axios.create).toHaveBeenCalled()
-    // 验证实例被创建
+    const axiosModule = await import('@/api/config/axios')
+    const instance = axiosModule.default
+    
     expect(instance).toBeDefined()
+    expect(instance.interceptors).toBeDefined()
+    expect(instance.interceptors.request.use).toHaveBeenCalled()
+    expect(instance.interceptors.response.use).toHaveBeenCalled()
+  })
+
+  it('应该正确设置请求拦截器', async () => {
+    const axiosModule = await import('@/api/config/axios')
+    const instance = axiosModule.default
+    
+    expect(instance).toBeDefined()
+    expect(instance.interceptors).toBeDefined()
+    expect(instance.interceptors.request).toBeDefined()
+    expect(instance.interceptors.request.use).toBeDefined()
+    expect(instance.interceptors.response).toBeDefined()
+    expect(instance.interceptors.response.use).toBeDefined()
   })
 
   describe('Token管理', () => {
