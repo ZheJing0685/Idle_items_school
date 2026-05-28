@@ -1,6 +1,7 @@
 package com.idleitems.school.controller.admin;
 
 import com.idleitems.school.annotation.RequireRole;
+import com.idleitems.school.annotation.Timeout;
 import com.idleitems.school.common.Result;
 import com.idleitems.school.dto.statistics.DashboardResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -45,6 +46,7 @@ public class StatisticsController {
     @GetMapping("/dashboard")
     @Operation(summary = "获取仪表盘数据", description = "获取管理后台仪表盘的整体数据概览")
     @Cacheable(value = "statistics", key = "'dashboard-' + #timeRange + '-' + #startDate + '-' + #endDate", unless = "#result == null")
+    @Timeout(5000)
     public Result<DashboardResponse> getDashboard(
             @RequestParam(defaultValue = "today") String timeRange,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
