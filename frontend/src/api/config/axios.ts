@@ -14,7 +14,10 @@ const instance: AxiosInstance = axios.create({
 let memoryToken = '';
 let unauthorizedHandler: (() => void) | null = null;
 let refreshSubscribers: Array<(token: string) => void> = [];
+let refreshTimeout: ReturnType<typeof setTimeout> | null = null;
 let isRefreshing = false;
+const MAX_SUBSCRIBERS = 100;
+const REFRESH_TIMEOUT_MS = 10000;
 
 export const setUnauthorizedHandler = (handler: () => void): void => {
   unauthorizedHandler = handler;
@@ -51,19 +54,52 @@ const refreshAccessToken = async (): Promise<string | null> => {
       return response.data.token;
     }
     throw new Error('refresh failed');
-  } catch {
-    clearToken();
+  } catch (error) {
+    handleRefreshError(error);
     return null;
   }
 };
 
+const addRefreshSubscriber = (cb: (token: string) => void): void => {
+  if (refreshSubscribers.length >= MAX_SUBSCRIBERS) {
+    console.warn('Token刷新队列已满，拒绝新的订阅者');
+    return;
+  }
+
+  refreshSubscribers.push(cb);
+
+  if (!refreshTimeout) {
+    refreshTimeout = setTimeout(() => {
+      console.error('Token刷新超时，通知所有订阅者');
+      refreshSubscribers.forEach((callback) => callback(''));
+      refreshSubscribers = [];
+      refreshTimeout = null;
+    }, REFRESH_TIMEOUT_MS);
+  }
+};
+
 const onRefreshed = (token: string): void => {
+  if (refreshTimeout) {
+    clearTimeout(refreshTimeout);
+    refreshTimeout = null;
+  }
+
   refreshSubscribers.forEach((cb) => cb(token));
   refreshSubscribers = [];
 };
 
-const addRefreshSubscriber = (cb: (token: string) => void): void => {
-  if (refreshSubscribers.length < 100) refreshSubscribers.push(cb);
+const handleRefreshError = (error: unknown): void => {
+  console.error('Token刷新失败:', error);
+
+  if (refreshTimeout) {
+    clearTimeout(refreshTimeout);
+    refreshTimeout = null;
+  }
+
+  refreshSubscribers.forEach((cb) => cb(''));
+  refreshSubscribers = [];
+
+  clearToken();
 };
 
 instance.interceptors.response.use(
@@ -76,8 +112,12 @@ instance.interceptors.response.use(
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
-        return new Promise((resolve) => {
+        return new Promise((resolve, reject) => {
           addRefreshSubscriber((token: string) => {
+            if (!token) {
+              reject(error);
+              return;
+            }
             if (originalRequest.headers) {
               originalRequest.headers.Authorization = `Bearer ${token}`;
             }
