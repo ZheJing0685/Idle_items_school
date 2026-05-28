@@ -57,7 +57,7 @@ public class AuthController {
             throw new BusinessException(ErrorCode.UNAUTHORIZED, "登录已过期，请重新登录");
         }
         User user = authService.getCurrentUser(userId.toString());
-        return Result.success(UserDTO.fromEntity(user));
+        return Result.success(UserDTO.fromEntityWithoutMask(user));
     }
 
     @Operation(summary = "刷新Token", description = "使用刷新令牌获取新的JWT Token")

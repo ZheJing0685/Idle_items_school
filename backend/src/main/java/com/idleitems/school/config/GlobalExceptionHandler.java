@@ -6,6 +6,7 @@ import com.idleitems.school.common.Result;
 import io.jsonwebtoken.JwtException;
 import jakarta.persistence.PessimisticLockException;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -44,6 +45,20 @@ public class GlobalExceptionHandler {
     public Result<Void> handleIllegalArgumentException(IllegalArgumentException e) {
         log.warn("参数异常: {}", e.getMessage());
         return Result.error(ErrorCode.BAD_REQUEST.getCode(), e.getMessage());
+    }
+
+    // 约束校验异常处理（@Validated 触发的参数校验失败）
+    @ExceptionHandler(ConstraintViolationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Result<Map<String, String>> handleConstraintViolationException(ConstraintViolationException e) {
+        Map<String, String> errors = new HashMap<>();
+        e.getConstraintViolations().forEach(violation -> {
+            String propertyPath = violation.getPropertyPath().toString();
+            String message = violation.getMessage();
+            errors.put(propertyPath, message);
+        });
+        log.warn("参数校验失败: {}", errors);
+        return Result.error("参数校验失败", errors);
     }
 
     // 安全异常处理

@@ -14,6 +14,7 @@ import com.idleitems.school.service.OrderService;
 import com.idleitems.school.service.UserService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import org.springframework.validation.annotation.Validated;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -28,6 +29,7 @@ import java.util.Map;
 @Tag(name = "物品管理", description = "闲置物品发布、浏览、搜索等接口")
 @Slf4j
 @RestController
+@Validated
 @RequestMapping(ApiPaths.Item.BASE)
 @RequiredArgsConstructor
 public class ItemController {
