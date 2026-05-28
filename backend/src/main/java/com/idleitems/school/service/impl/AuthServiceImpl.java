@@ -94,18 +94,22 @@ public class AuthServiceImpl implements AuthService {
      * 记录登录失败
      */
     private void recordLoginFailure(String username) {
-        String failKey = LOGIN_FAIL_PREFIX + username;
-        String countStr = redisTemplate.opsForValue().get(failKey);
-        int count = (countStr != null) ? Integer.parseInt(countStr) + 1 : 1;
-        redisTemplate.opsForValue().set(failKey, String.valueOf(count), FAIL_COUNT_EXPIRE_MINUTES, TimeUnit.MINUTES);
+        try {
+            String failKey = LOGIN_FAIL_PREFIX + username;
+            String countStr = redisTemplate.opsForValue().get(failKey);
+            int count = (countStr != null) ? Integer.parseInt(countStr) + 1 : 1;
+            redisTemplate.opsForValue().set(failKey, String.valueOf(count), FAIL_COUNT_EXPIRE_MINUTES, TimeUnit.MINUTES);
 
-        if (count >= MAX_LOGIN_FAILURES) {
-            // 锁定账号
-            String lockKey = LOGIN_LOCK_PREFIX + username;
-            redisTemplate.opsForValue().set(lockKey, "1", LOCK_DURATION_MINUTES, TimeUnit.MINUTES);
-            log.warn("账号{}连续登录失败{}次，已锁定{}分钟", username, count, LOCK_DURATION_MINUTES);
-        } else {
-            log.info("账号{}登录失败，当前失败次数: {}/{}", username, count, MAX_LOGIN_FAILURES);
+            if (count >= MAX_LOGIN_FAILURES) {
+                // 锁定账号
+                String lockKey = LOGIN_LOCK_PREFIX + username;
+                redisTemplate.opsForValue().set(lockKey, "1", LOCK_DURATION_MINUTES, TimeUnit.MINUTES);
+                log.warn("账号{}连续登录失败{}次，已锁定{}分钟", username, count, LOCK_DURATION_MINUTES);
+            } else {
+                log.info("账号{}登录失败，当前失败次数: {}/{}", username, count, MAX_LOGIN_FAILURES);
+            }
+        } catch (Exception e) {
+            log.warn("Redis不可用，跳过登录失败记录: {}", e.getMessage());
         }
     }
 
@@ -113,27 +117,41 @@ public class AuthServiceImpl implements AuthService {
      * 清除登录失败记录
      */
     private void clearLoginFailure(String username) {
-        String failKey = LOGIN_FAIL_PREFIX + username;
-        String lockKey = LOGIN_LOCK_PREFIX + username;
-        redisTemplate.delete(failKey);
-        redisTemplate.delete(lockKey);
+        try {
+            String failKey = LOGIN_FAIL_PREFIX + username;
+            String lockKey = LOGIN_LOCK_PREFIX + username;
+            redisTemplate.delete(failKey);
+            redisTemplate.delete(lockKey);
+        } catch (Exception e) {
+            log.warn("Redis不可用，跳过清除登录失败记录: {}", e.getMessage());
+        }
     }
 
     /**
      * 检查账号是否被锁定
      */
     private boolean isAccountLocked(String username) {
-        String lockKey = LOGIN_LOCK_PREFIX + username;
-        return Boolean.TRUE.equals(redisTemplate.hasKey(lockKey));
+        try {
+            String lockKey = LOGIN_LOCK_PREFIX + username;
+            return Boolean.TRUE.equals(redisTemplate.hasKey(lockKey));
+        } catch (Exception e) {
+            log.warn("Redis不可用，跳过账号锁定检查: {}", e.getMessage());
+            return false;
+        }
     }
 
     /**
      * 获取剩余锁定时间（分钟）
      */
     private long getRemainingLockTime(String username) {
-        String lockKey = LOGIN_LOCK_PREFIX + username;
-        Long ttl = redisTemplate.getExpire(lockKey, TimeUnit.MINUTES);
-        return (ttl != null && ttl > 0) ? ttl : LOCK_DURATION_MINUTES;
+        try {
+            String lockKey = LOGIN_LOCK_PREFIX + username;
+            Long ttl = redisTemplate.getExpire(lockKey, TimeUnit.MINUTES);
+            return (ttl != null && ttl > 0) ? ttl : LOCK_DURATION_MINUTES;
+        } catch (Exception e) {
+            log.warn("Redis不可用，返回默认锁定时间: {}", e.getMessage());
+            return LOCK_DURATION_MINUTES;
+        }
     }
 
     @Override

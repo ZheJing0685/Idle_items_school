@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 import java.util.HashMap;
@@ -79,6 +80,32 @@ public class GlobalExceptionHandler {
             String errorMessage = error.getDefaultMessage();
             errors.put(fieldName, errorMessage);
         });
+        log.warn("参数校验失败: {}", errors);
+        return Result.error("参数校验失败", errors);
+    }
+
+    // Spring Boot 3.x 参数校验异常处理
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Result<Map<String, String>> handleHandlerMethodValidationException(HandlerMethodValidationException e) {
+        Map<String, String> errors = new HashMap<>();
+        // 提取参数校验错误信息
+        String message = e.getMessage();
+        if (message != null && message.contains("=")) {
+            // 尝试解析类似 {rating=评分不能为空} 的格式
+            String[] parts = message.split("[{}]");
+            for (String part : parts) {
+                if (part.contains("=")) {
+                    String[] keyValue = part.split("=", 2);
+                    if (keyValue.length == 2) {
+                        errors.put(keyValue[0].trim(), keyValue[1].trim());
+                    }
+                }
+            }
+        }
+        if (errors.isEmpty()) {
+            errors.put("error", message != null ? message : "参数校验失败");
+        }
         log.warn("参数校验失败: {}", errors);
         return Result.error("参数校验失败", errors);
     }

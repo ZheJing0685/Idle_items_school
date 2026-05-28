@@ -165,7 +165,7 @@ class OrderIntegrationTest extends BaseIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.data.orderNo").exists())
-                .andExpect(jsonPath("$.data.orderStatus").value("PENDING"))
+                .andExpect(jsonPath("$.data.orderStatus").value("PENDING_PAYMENT"))
                 .andReturn()
                 .getResponse()
                 .getContentAsString();

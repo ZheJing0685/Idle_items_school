@@ -32,3 +32,10 @@ jwt:
 
 file:
   upload-path: ./test-uploads/
+
+# 测试环境限流配置 - 提高阈值避免测试被限流
+rate-limit:
+  default-limit: 10000
+  default-window: 60
+  login-limit: 1000
+  login-window: 60
