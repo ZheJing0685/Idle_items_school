@@ -10,9 +10,12 @@ spring:
     hibernate:
       ddl-auto: create-drop
     show-sql: true
+    defer-datasource-initialization: true
     properties:
       hibernate:
         format_sql: true
+        hbm2ddl:
+          auto: create-drop
   sql:
     init:
       mode: never
@@ -39,3 +42,8 @@ rate-limit:
   default-window: 60
   login-limit: 1000
   login-window: 60
+
+# 加密配置
+app:
+  encryption:
+    secret-key: "${ENCRYPTION_SECRET_KEY:testSecretKeyForEncryptionOnly12345678}"
