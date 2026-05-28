@@ -33,10 +33,7 @@ export default defineConfig({
         lines: 60,
       },
     },
-    reporters: ['verbose', 'html'],
-    outputFile: {
-      html: './tests/reports/vitest/index.html',
-    },
+    reporters: ['verbose'],
   },
   resolve: {
     alias: {
