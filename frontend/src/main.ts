@@ -8,6 +8,9 @@ import i18n from './locale';
 import './style.css';
 import './styles/dark-mode.css';
 import App from './App.vue';
+import { setupGlobalErrorHandler } from '@/utils/error/errorHandler';
+
+setupGlobalErrorHandler();
 
 const app = createApp(App);
 setupElementPlus(app);
