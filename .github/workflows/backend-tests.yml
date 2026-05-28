@@ -30,6 +30,10 @@ jobs:
       
       - name: Run unit tests
         run: mvn test -Dtest="!*IntegrationTest"
+        env:
+          SPRING_DATASOURCE_URL: jdbc:h2:mem:testdb
+          SPRING_DATASOURCE_USERNAME: sa
+          SPRING_DATASOURCE_PASSWORD:
       
       - name: Generate coverage report
         run: mvn jacoco:report
@@ -61,6 +65,37 @@ jobs:
     name: Integration Tests
     runs-on: ubuntu-latest
     needs: [unit-tests]
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: testdb
+          MYSQL_USER: testuser
+          MYSQL_PASSWORD: testpass
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6380:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    env:
+      SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/testdb?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: testuser
+      SPRING_DATASOURCE_PASSWORD: testpass
+      SPRING_REDIS_HOST: localhost
+      SPRING_REDIS_PORT: 6380
+      JWT_SECRET: dGVzdHNlY3JldGtleWZvcnRlc3RpbmdwdXJwb3Nlc29ubHk=
     defaults:
       run:
         working-directory: backend
@@ -91,18 +126,6 @@ jobs:
     needs: [unit-tests, integration-tests]
     if: always()
     steps:
-      - name: Download test results
-        uses: actions/download-artifact@v4
-        with:
-          name: backend-unit-test-results
-          path: unit-test-results
-      
-      - name: Download coverage report
-        uses: actions/download-artifact@v4
-        with:
-          name: backend-coverage-report
-          path: coverage-report
-      
       - name: Generate test summary
         run: |
           echo "## Backend Test Results" >> $GITHUB_STEP_SUMMARY
@@ -112,6 +135,3 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Integration Tests" >> $GITHUB_STEP_SUMMARY
           echo "- Status: ${{ needs.integration-tests.result }}" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Coverage Report" >> $GITHUB_STEP_SUMMARY
-          echo "- Available in artifacts" >> $GITHUB_STEP_SUMMARY
