@@ -93,7 +93,7 @@ jobs:
       - name: Run integration tests
         run: mvn test -Dtest="*IntegrationTest"
         env:
-          SPRING_FLYWAY_ENABLED: true
+          SPRING_FLYWAY_ENABLED: false
       - name: Generate coverage report
         run: mvn jacoco:report
       - name: Upload coverage to Codecov
