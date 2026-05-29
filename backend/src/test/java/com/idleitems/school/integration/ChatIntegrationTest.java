@@ -70,8 +70,8 @@ class ChatIntegrationTest extends BaseIntegrationTest {
     void testCreateChat() throws Exception {
         mockMvc.perform(post("/api/chats")
                         .header("Authorization", bearerToken(buyerToken))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"sellerId\": " + sellerId + ", \"itemId\": 1}"))
+                        .param("sellerId", sellerId.toString())
+                        .param("itemId", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.data.id").exists());
@@ -84,8 +84,8 @@ class ChatIntegrationTest extends BaseIntegrationTest {
         // 先创建聊天
         String chatResponse = mockMvc.perform(post("/api/chats")
                         .header("Authorization", bearerToken(buyerToken))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"sellerId\": " + sellerId + ", \"itemId\": 1}"))
+                        .param("sellerId", sellerId.toString())
+                        .param("itemId", "1"))
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
@@ -95,8 +95,8 @@ class ChatIntegrationTest extends BaseIntegrationTest {
         // 发送消息
         mockMvc.perform(post("/api/chats/" + chatId + "/messages")
                         .header("Authorization", bearerToken(buyerToken))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"content\": \"你好，请问这个物品还在吗？\"}"))
+                        .param("receiverId", sellerId.toString())
+                        .param("content", "你好，请问这个物品还在吗？"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.data.content").value("你好，请问这个物品还在吗？"));
@@ -109,8 +109,8 @@ class ChatIntegrationTest extends BaseIntegrationTest {
         // 先创建聊天并发送消息
         String chatResponse = mockMvc.perform(post("/api/chats")
                         .header("Authorization", bearerToken(buyerToken))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"sellerId\": " + sellerId + ", \"itemId\": 1}"))
+                        .param("sellerId", sellerId.toString())
+                        .param("itemId", "1"))
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
@@ -119,8 +119,8 @@ class ChatIntegrationTest extends BaseIntegrationTest {
 
         mockMvc.perform(post("/api/chats/" + chatId + "/messages")
                         .header("Authorization", bearerToken(buyerToken))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"content\": \"测试消息\"}"));
+                        .param("receiverId", sellerId.toString())
+                        .param("content", "测试消息"));
 
         // 获取消息列表
         mockMvc.perform(get("/api/chats/" + chatId + "/messages")
