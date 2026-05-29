@@ -131,7 +131,7 @@ export class ApiMock {
 export async function createLoggedInPage(page, userData = {}) {
   const mock = new ApiMock(page);
   await mock.mockLogin(userData);
-  
+
   // 设置localStorage模拟登录状态
   await page.evaluate((user) => {
     localStorage.setItem('idle_items_token', 'mock-jwt-token');

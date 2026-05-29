@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { setActivePinia, createPinia } from 'pinia'
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { setActivePinia, createPinia } from 'pinia';
 
 // Mock API
 const { mockLogin, mockRegister, mockLogout, mockGetCurrentUser, mockUpdateProfile } = vi.hoisted(() => ({
@@ -7,8 +7,8 @@ const { mockLogin, mockRegister, mockLogout, mockGetCurrentUser, mockUpdateProfi
   mockRegister: vi.fn(),
   mockLogout: vi.fn(),
   mockGetCurrentUser: vi.fn(),
-  mockUpdateProfile: vi.fn()
-}))
+  mockUpdateProfile: vi.fn(),
+}));
 
 vi.mock('@/api', () => ({
   default: {
@@ -16,210 +16,210 @@ vi.mock('@/api', () => ({
       login: mockLogin,
       register: mockRegister,
       logout: mockLogout,
-      getCurrentUser: mockGetCurrentUser
+      getCurrentUser: mockGetCurrentUser,
     },
     user: {
-      updateProfile: mockUpdateProfile
-    }
-  }
-}))
+      updateProfile: mockUpdateProfile,
+    },
+  },
+}));
 
 // Mock token functions
 vi.mock('@/api/config/axios', () => ({
   setToken: vi.fn(),
   clearToken: vi.fn(),
-  getToken: vi.fn().mockReturnValue('test-token')
-}))
+  getToken: vi.fn().mockReturnValue('test-token'),
+}));
 
 // Mock ErrorHandler
 vi.mock('@/utils/error', () => ({
   ErrorHandler: {
-    handle: vi.fn()
-  }
-}))
+    handle: vi.fn(),
+  },
+}));
 
 describe('User Store', () => {
   beforeEach(() => {
-    setActivePinia(createPinia())
-    vi.clearAllMocks()
-  })
+    setActivePinia(createPinia());
+    vi.clearAllMocks();
+  });
 
   describe('初始状态', () => {
     it('should export useUserStore', async () => {
-      const { useUserStore } = await import('@/store/modules/user')
-      expect(typeof useUserStore).toBe('function')
-    })
+      const { useUserStore } = await import('@/store/modules/user');
+      expect(typeof useUserStore).toBe('function');
+    });
 
     it('should have initial state', async () => {
-      const { useUserStore } = await import('@/store/modules/user')
-      const store = useUserStore()
-      expect(store.user).toBeNull()
-      expect(store.loading).toBe(false)
-      expect(store.isLoggedIn).toBeDefined()
-    })
+      const { useUserStore } = await import('@/store/modules/user');
+      const store = useUserStore();
+      expect(store.user).toBeNull();
+      expect(store.loading).toBe(false);
+      expect(store.isLoggedIn).toBeDefined();
+    });
 
     it('should have computed properties', async () => {
-      const { useUserStore } = await import('@/store/modules/user')
-      const store = useUserStore()
-      expect(store.isAdmin).toBeDefined()
-      expect(store.isVerified).toBeDefined()
-    })
-  })
+      const { useUserStore } = await import('@/store/modules/user');
+      const store = useUserStore();
+      expect(store.isAdmin).toBeDefined();
+      expect(store.isVerified).toBeDefined();
+    });
+  });
 
   describe('login', () => {
     it('should have login method', async () => {
-      const { useUserStore } = await import('@/store/modules/user')
-      const store = useUserStore()
-      expect(typeof store.login).toBe('function')
-    })
+      const { useUserStore } = await import('@/store/modules/user');
+      const store = useUserStore();
+      expect(typeof store.login).toBe('function');
+    });
 
     it('should call API login', async () => {
       mockLogin.mockResolvedValue({
         code: 200,
-        data: { token: 'test-token', refreshToken: 'refresh-token', user: { id: 1 } }
-      })
+        data: { token: 'test-token', refreshToken: 'refresh-token', user: { id: 1 } },
+      });
 
-      const { useUserStore } = await import('@/store/modules/user')
-      const store = useUserStore()
-      await store.login('testuser', 'password123')
+      const { useUserStore } = await import('@/store/modules/user');
+      const store = useUserStore();
+      await store.login('testuser', 'password123');
 
-      expect(mockLogin).toHaveBeenCalledWith({ username: 'testuser', password: 'password123' })
-    })
+      expect(mockLogin).toHaveBeenCalledWith({ username: 'testuser', password: 'password123' });
+    });
 
     it('should set user after login', async () => {
       mockLogin.mockResolvedValue({
         code: 200,
-        data: { token: 'test-token', refreshToken: 'refresh-token', user: { id: 1, username: 'testuser' } }
-      })
+        data: { token: 'test-token', refreshToken: 'refresh-token', user: { id: 1, username: 'testuser' } },
+      });
 
-      const { useUserStore } = await import('@/store/modules/user')
-      const store = useUserStore()
-      await store.login('testuser', 'password123')
+      const { useUserStore } = await import('@/store/modules/user');
+      const store = useUserStore();
+      await store.login('testuser', 'password123');
 
-      expect(store.user).toEqual({ id: 1, username: 'testuser' })
-      expect(store.isLoggedIn).toBe(true)
-    })
+      expect(store.user).toEqual({ id: 1, username: 'testuser' });
+      expect(store.isLoggedIn).toBe(true);
+    });
 
     it('should throw error on login failure', async () => {
-      mockLogin.mockRejectedValue(new Error('登录失败'))
+      mockLogin.mockRejectedValue(new Error('登录失败'));
 
-      const { useUserStore } = await import('@/store/modules/user')
-      const store = useUserStore()
+      const { useUserStore } = await import('@/store/modules/user');
+      const store = useUserStore();
 
-      await expect(store.login('testuser', 'wrongpassword')).rejects.toThrow('登录失败')
-    })
-  })
+      await expect(store.login('testuser', 'wrongpassword')).rejects.toThrow('登录失败');
+    });
+  });
 
   describe('register', () => {
     it('should have register method', async () => {
-      const { useUserStore } = await import('@/store/modules/user')
-      const store = useUserStore()
-      expect(typeof store.register).toBe('function')
-    })
+      const { useUserStore } = await import('@/store/modules/user');
+      const store = useUserStore();
+      expect(typeof store.register).toBe('function');
+    });
 
     it('should call API register', async () => {
       mockRegister.mockResolvedValue({
         code: 200,
-        data: { token: 'test-token', refreshToken: 'refresh-token', user: { id: 1 } }
-      })
+        data: { token: 'test-token', refreshToken: 'refresh-token', user: { id: 1 } },
+      });
 
-      const { useUserStore } = await import('@/store/modules/user')
-      const store = useUserStore()
-      const userData = { username: 'newuser', password: 'Password@123', email: 'test@test.com', phone: '13800138000' }
-      await store.register(userData)
+      const { useUserStore } = await import('@/store/modules/user');
+      const store = useUserStore();
+      const userData = { username: 'newuser', password: 'Password@123', email: 'test@test.com', phone: '13800138000' };
+      await store.register(userData);
 
-      expect(mockRegister).toHaveBeenCalledWith(userData)
-    })
-  })
+      expect(mockRegister).toHaveBeenCalledWith(userData);
+    });
+  });
 
   describe('logout', () => {
     it('should have logout method', async () => {
-      const { useUserStore } = await import('@/store/modules/user')
-      const store = useUserStore()
-      expect(typeof store.logout).toBe('function')
-    })
+      const { useUserStore } = await import('@/store/modules/user');
+      const store = useUserStore();
+      expect(typeof store.logout).toBe('function');
+    });
 
     it('should clear user state on logout', async () => {
-      mockLogout.mockResolvedValue(null)
+      mockLogout.mockResolvedValue(null);
 
-      const { useUserStore } = await import('@/store/modules/user')
-      const store = useUserStore()
-      store.user = { id: 1, username: 'testuser' } as any
-      store.isLoggedIn = true
+      const { useUserStore } = await import('@/store/modules/user');
+      const store = useUserStore();
+      store.user = { id: 1, username: 'testuser' } as any;
+      store.isLoggedIn = true;
 
-      await store.logout()
+      await store.logout();
 
-      expect(store.user).toBeNull()
-      expect(store.isLoggedIn).toBe(false)
-    })
-  })
+      expect(store.user).toBeNull();
+      expect(store.isLoggedIn).toBe(false);
+    });
+  });
 
   describe('getCurrentUser', () => {
     it('should have getCurrentUser method', async () => {
-      const { useUserStore } = await import('@/store/modules/user')
-      const store = useUserStore()
-      expect(typeof store.getCurrentUser).toBe('function')
-    })
+      const { useUserStore } = await import('@/store/modules/user');
+      const store = useUserStore();
+      expect(typeof store.getCurrentUser).toBe('function');
+    });
 
     it('should fetch current user', async () => {
       mockGetCurrentUser.mockResolvedValue({
         code: 200,
-        data: { id: 1, username: 'testuser' }
-      })
+        data: { id: 1, username: 'testuser' },
+      });
 
-      const { useUserStore } = await import('@/store/modules/user')
-      const store = useUserStore()
-      const result = await store.getCurrentUser()
+      const { useUserStore } = await import('@/store/modules/user');
+      const store = useUserStore();
+      const result = await store.getCurrentUser();
 
-      expect(result).toEqual({ id: 1, username: 'testuser' })
-      expect(store.user).toEqual({ id: 1, username: 'testuser' })
-    })
+      expect(result).toEqual({ id: 1, username: 'testuser' });
+      expect(store.user).toEqual({ id: 1, username: 'testuser' });
+    });
 
     it('should have getCurrentUser method', async () => {
-      const { useUserStore } = await import('@/store/modules/user')
-      const store = useUserStore()
-      expect(typeof store.getCurrentUser).toBe('function')
-    })
-  })
+      const { useUserStore } = await import('@/store/modules/user');
+      const store = useUserStore();
+      expect(typeof store.getCurrentUser).toBe('function');
+    });
+  });
 
   describe('updateProfile', () => {
     it('should have updateProfile method', async () => {
-      const { useUserStore } = await import('@/store/modules/user')
-      const store = useUserStore()
-      expect(typeof store.updateProfile).toBe('function')
-    })
+      const { useUserStore } = await import('@/store/modules/user');
+      const store = useUserStore();
+      expect(typeof store.updateProfile).toBe('function');
+    });
 
     it('should update user profile', async () => {
       mockUpdateProfile.mockResolvedValue({
         code: 200,
-        data: { nickname: '新昵称' }
-      })
+        data: { nickname: '新昵称' },
+      });
 
-      const { useUserStore } = await import('@/store/modules/user')
-      const store = useUserStore()
-      store.user = { id: 1, username: 'testuser', nickname: '旧昵称' } as any
+      const { useUserStore } = await import('@/store/modules/user');
+      const store = useUserStore();
+      store.user = { id: 1, username: 'testuser', nickname: '旧昵称' } as any;
 
-      await store.updateProfile({ nickname: '新昵称' })
+      await store.updateProfile({ nickname: '新昵称' });
 
-      expect(mockUpdateProfile).toHaveBeenCalledWith({ nickname: '新昵称' })
-    })
-  })
+      expect(mockUpdateProfile).toHaveBeenCalledWith({ nickname: '新昵称' });
+    });
+  });
 
   describe('loading state', () => {
     it('should set loading during login', async () => {
-      let resolveLogin: any
-      mockLogin.mockImplementation(() => new Promise(resolve => { resolveLogin = resolve }))
+      let resolveLogin: any;
+      mockLogin.mockImplementation(() => new Promise(resolve => { resolveLogin = resolve; }));
 
-      const { useUserStore } = await import('@/store/modules/user')
-      const store = useUserStore()
+      const { useUserStore } = await import('@/store/modules/user');
+      const store = useUserStore();
 
-      const loginPromise = store.login('testuser', 'password123')
-      expect(store.loading).toBe(true)
+      const loginPromise = store.login('testuser', 'password123');
+      expect(store.loading).toBe(true);
 
-      resolveLogin({ code: 200, data: { token: 'test', refreshToken: 'refresh', user: {} } })
-      await loginPromise
+      resolveLogin({ code: 200, data: { token: 'test', refreshToken: 'refresh', user: {} } });
+      await loginPromise;
 
-      expect(store.loading).toBe(false)
-    })
-  })
-})
+      expect(store.loading).toBe(false);
+    });
+  });
+});

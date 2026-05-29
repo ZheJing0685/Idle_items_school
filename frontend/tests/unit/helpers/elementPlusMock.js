@@ -1,4 +1,4 @@
-import { vi } from 'vitest'
+import { vi } from 'vitest';
 
 // 通用 Element Plus 组件 mock
 export const elementPlusStubs = {
@@ -50,7 +50,7 @@ export const elementPlusStubs = {
   'el-result': { template: '<div class="el-result"><slot /></div>' },
   'el-backtop': { template: '<div class="el-backtop" />' },
   'el-config-provider': { template: '<div class="el-config-provider"><slot /></div>' },
-}
+};
 
 // 通用 lucide 图标 stub
 export const lucideIconsStub = {
@@ -126,13 +126,13 @@ export const lucideIconsStub = {
   'Scissors': { template: '<div class="icon" />' },
   'Paperclip': { template: '<div class="icon" />' },
   'Send': { template: '<div class="icon" />' },
-}
+};
 
 // 获取所有 mock
 export const getAllStubs = () => ({
   ...elementPlusStubs,
   ...lucideIconsStub,
-})
+});
 
 // 创建 router mock
 export const routerMock = {
@@ -141,7 +141,7 @@ export const routerMock = {
   back: vi.fn(),
   forward: vi.fn(),
   currentRoute: { value: { path: '/', name: 'Home', params: {} } },
-}
+};
 
 // 创建 route mock
 export const routeMock = {
@@ -150,4 +150,4 @@ export const routeMock = {
   params: {},
   query: {},
   meta: {},
-}
+};

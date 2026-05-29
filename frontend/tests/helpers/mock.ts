@@ -1,4 +1,4 @@
-import { vi } from 'vitest'
+import { vi } from 'vitest';
 
 /**
  * 创建 Axios Mock
@@ -12,10 +12,10 @@ export const createAxiosMock = () => {
     patch: vi.fn(),
     interceptors: {
       request: { use: vi.fn() },
-      response: { use: vi.fn() }
-    }
-  }
-}
+      response: { use: vi.fn() },
+    },
+  };
+};
 
 /**
  * 创建 Vue Router Mock
@@ -27,9 +27,9 @@ export const createRouterMock = () => {
     go: vi.fn(),
     back: vi.fn(),
     forward: vi.fn(),
-    currentRoute: { value: { path: '/', params: {}, query: {} } }
-  }
-}
+    currentRoute: { value: { path: '/', params: {}, query: {} } },
+  };
+};
 
 /**
  * 创建 Pinia Store Mock
@@ -39,9 +39,9 @@ export const createStoreMock = (storeName: string, initialState: any = {}) => {
     ...initialState,
     $reset: vi.fn(),
     $patch: vi.fn(),
-    $subscribe: vi.fn()
-  }
-}
+    $subscribe: vi.fn(),
+  };
+};
 
 /**
  * 创建 Element Plus Mock
@@ -50,39 +50,39 @@ export const createElMessageMock = () => ({
   success: vi.fn(),
   error: vi.fn(),
   warning: vi.fn(),
-  info: vi.fn()
-})
+  info: vi.fn(),
+});
 
 export const createElMessageBoxMock = () => ({
   confirm: vi.fn().mockResolvedValue(true),
   alert: vi.fn(),
-  prompt: vi.fn()
-})
+  prompt: vi.fn(),
+});
 
 /**
  * 创建 localStorage Mock
  */
 export const createLocalStorageMock = () => {
-  const store: Record<string, string> = {}
+  const store: Record<string, string> = {};
   return {
     getItem: vi.fn((key: string) => store[key] || null),
     setItem: vi.fn((key: string, value: string) => {
-      store[key] = value
+      store[key] = value;
     }),
     removeItem: vi.fn((key: string) => {
-      delete store[key]
+      delete store[key];
     }),
     clear: vi.fn(() => {
-      Object.keys(store).forEach(key => delete store[key])
+      Object.keys(store).forEach(key => delete store[key]);
     }),
     get length() {
-      return Object.keys(store).length
+      return Object.keys(store).length;
     },
-    key: vi.fn((index: number) => Object.keys(store)[index] || null)
-  }
-}
+    key: vi.fn((index: number) => Object.keys(store)[index] || null),
+  };
+};
 
 /**
  * 创建 sessionStorage Mock
  */
-export const createSessionStorageMock = () => createLocalStorageMock()
+export const createSessionStorageMock = () => createLocalStorageMock();
