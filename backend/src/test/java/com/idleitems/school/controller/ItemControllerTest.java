@@ -10,8 +10,9 @@ import com.idleitems.school.dto.UpdateItemRequest;
 import com.idleitems.school.entity.Item;
 import com.idleitems.school.entity.Order;
 import com.idleitems.school.service.FileService;
-import com.idleitems.school.service.ItemService;
-import com.idleitems.school.service.OrderService;
+import com.idleitems.school.service.ItemCommandService;
+import com.idleitems.school.service.ItemQueryService;
+import com.idleitems.school.service.OrderQueryService;
 import com.idleitems.school.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -50,7 +51,10 @@ class ItemControllerTest {
     private ObjectMapper objectMapper;
 
     @MockitoBean
-    private ItemService itemService;
+    private ItemQueryService itemQueryService;
+
+    @MockitoBean
+    private ItemCommandService itemCommandService;
 
     @MockitoBean
     private UserService userService;
@@ -59,7 +63,7 @@ class ItemControllerTest {
     private FileService fileService;
 
     @MockitoBean
-    private OrderService orderService;
+    private OrderQueryService orderQueryService;
 
     private Item testItem;
     private CreateItemRequest createRequest;
@@ -92,7 +96,7 @@ class ItemControllerTest {
     @DisplayName("获取物品列表 - 成功")
     void testGetItemsSuccess() throws Exception {
         Page<ItemSummaryDTO> emptyPage = new PageImpl<>(Collections.emptyList(), PageRequest.of(0, 20), 0);
-        when(itemService.getItems(eq(1), eq(20), eq(null), eq("createdAt"), eq(null), eq(null)))
+        when(itemQueryService.getItems(eq(1), eq(20), eq(null), eq("createdAt"), eq(null), eq(null)))
                 .thenReturn(emptyPage);
 
         mockMvc.perform(get("/api/items")
@@ -106,7 +110,7 @@ class ItemControllerTest {
     @DisplayName("搜索物品 - 成功")
     void testSearchItemsSuccess() throws Exception {
         Page<ItemSummaryDTO> emptyPage = new PageImpl<>(Collections.emptyList(), PageRequest.of(0, 20), 0);
-        when(itemService.searchItems(eq("手机"), eq(1), eq(20), eq("createdAt")))
+        when(itemQueryService.searchItems(eq("手机"), eq(1), eq(20), eq("createdAt")))
                 .thenReturn(emptyPage);
 
         mockMvc.perform(get("/api/items/search")
@@ -121,7 +125,7 @@ class ItemControllerTest {
     @DisplayName("搜索物品 - 无结果")
     void testSearchItemsNoResults() throws Exception {
         Page<ItemSummaryDTO> emptyPage = new PageImpl<>(Collections.emptyList(), PageRequest.of(0, 20), 0);
-        when(itemService.searchItems(eq("不存在的东西"), eq(1), eq(20), eq("createdAt")))
+        when(itemQueryService.searchItems(eq("不存在的东西"), eq(1), eq(20), eq("createdAt")))
                 .thenReturn(emptyPage);
 
         mockMvc.perform(get("/api/items/search")
@@ -135,7 +139,7 @@ class ItemControllerTest {
     @Test
     @DisplayName("获取热门物品 - 成功")
     void testGetHotItemsSuccess() throws Exception {
-        when(itemService.getHotItems()).thenReturn(Collections.emptyList());
+        when(itemQueryService.getHotItems()).thenReturn(Collections.emptyList());
 
         mockMvc.perform(get("/api/items/hot"))
                 .andExpect(status().isOk())
@@ -145,7 +149,7 @@ class ItemControllerTest {
     @Test
     @DisplayName("获取物品详情 - 成功")
     void testGetItemSuccess() throws Exception {
-        when(itemService.getItemById(1L)).thenReturn(testItem);
+        when(itemQueryService.getItemById(1L)).thenReturn(testItem);
 
         mockMvc.perform(get("/api/items/1"))
                 .andExpect(status().isOk())
@@ -156,7 +160,7 @@ class ItemControllerTest {
     @Test
     @DisplayName("获取物品详情 - 物品不存在")
     void testGetItemNotFound() throws Exception {
-        when(itemService.getItemById(999L))
+        when(itemQueryService.getItemById(999L))
                 .thenThrow(new BusinessException(ErrorCode.ITEM_NOT_FOUND, "物品不存在"));
 
         mockMvc.perform(get("/api/items/999"))
@@ -167,8 +171,8 @@ class ItemControllerTest {
     @Test
     @DisplayName("发布物品 - 成功")
     void testCreateItemSuccess() throws Exception {
-        when(itemService.createItem(eq(1L), any(CreateItemRequest.class))).thenReturn(testItem);
-        when(itemService.getSellerItemCount(1L)).thenReturn(5);
+        when(itemCommandService.createItem(eq(1L), any(CreateItemRequest.class))).thenReturn(testItem);
+        when(itemQueryService.getSellerItemCount(1L)).thenReturn(5);
 
         mockMvc.perform(post("/api/items")
                         .requestAttr("userId", 1L)
@@ -215,8 +219,8 @@ class ItemControllerTest {
     @Test
     @DisplayName("更新物品 - 成功")
     void testUpdateItemSuccess() throws Exception {
-        when(itemService.updateItem(eq(1L), eq(1L), any(UpdateItemRequest.class))).thenReturn(testItem);
-        when(itemService.getSellerItemCount(1L)).thenReturn(5);
+        when(itemCommandService.updateItem(eq(1L), eq(1L), any(UpdateItemRequest.class))).thenReturn(testItem);
+        when(itemQueryService.getSellerItemCount(1L)).thenReturn(5);
 
         mockMvc.perform(put("/api/items/1")
                         .requestAttr("userId", 1L)
@@ -230,7 +234,7 @@ class ItemControllerTest {
     @Test
     @DisplayName("更新物品 - 物品不存在")
     void testUpdateItemNotFound() throws Exception {
-        when(itemService.updateItem(eq(1L), eq(999L), any(UpdateItemRequest.class)))
+        when(itemCommandService.updateItem(eq(1L), eq(999L), any(UpdateItemRequest.class)))
                 .thenThrow(new BusinessException(ErrorCode.ITEM_NOT_FOUND, "物品不存在"));
 
         mockMvc.perform(put("/api/items/999")
@@ -244,7 +248,7 @@ class ItemControllerTest {
     @Test
     @DisplayName("下架物品 - 成功")
     void testOffShelfItemSuccess() throws Exception {
-        when(itemService.offShelfItem(1L, 1L)).thenReturn(testItem);
+        when(itemCommandService.offShelfItem(1L, 1L)).thenReturn(testItem);
 
         mockMvc.perform(post("/api/items/1/off-shelf")
                         .requestAttr("userId", 1L))
@@ -256,7 +260,7 @@ class ItemControllerTest {
     @Test
     @DisplayName("删除物品 - 成功")
     void testDeleteItemSuccess() throws Exception {
-        doNothing().when(itemService).deleteItemByUser(1L, 1L);
+        doNothing().when(itemCommandService).deleteItemByUser(1L, 1L);
 
         mockMvc.perform(delete("/api/items/1")
                         .requestAttr("userId", 1L))
@@ -269,7 +273,7 @@ class ItemControllerTest {
     @DisplayName("获取用户物品列表 - 成功")
     void testGetUserItemsSuccess() throws Exception {
         Page<Item> emptyPage = new PageImpl<>(Collections.emptyList(), PageRequest.of(0, 20), 0);
-        when(itemService.getUserItems(eq(1L), eq(null), eq(1), eq(20))).thenReturn(emptyPage);
+        when(itemQueryService.getUserItems(eq(1L), eq(null), eq(1), eq(20))).thenReturn(emptyPage);
 
         mockMvc.perform(get("/api/items/user")
                         .requestAttr("userId", 1L)
@@ -282,7 +286,7 @@ class ItemControllerTest {
     @Test
     @DisplayName("获取物品订单 - 成功")
     void testGetItemOrdersSuccess() throws Exception {
-        when(orderService.getOrdersByItemId(1L, 1L)).thenReturn(Collections.emptyList());
+        when(orderQueryService.getOrdersByItemId(1L, 1L)).thenReturn(Collections.emptyList());
 
         mockMvc.perform(get("/api/items/1/orders")
                         .requestAttr("userId", 1L))

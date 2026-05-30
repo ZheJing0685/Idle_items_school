@@ -35,23 +35,21 @@
           />
         </div>
         <div class="filter-selects">
-          <select v-model="operationType" class="filter-select">
-            <option value="">全部类型</option>
-            <option value="USER">用户操作</option>
-            <option value="ITEM">物品操作</option>
-            <option value="ORDER">订单操作</option>
-            <option value="CATEGORY">分类操作</option>
-            <option value="VERIFICATION">认证操作</option>
-            <option value="SYSTEM">系统操作</option>
-          </select>
-          <select v-model="logType" class="filter-select">
-            <option value="">全部日志</option>
-            <option value="ADMIN">管理员日志</option>
-            <option value="OPERATION">操作日志</option>
-          </select>
-          <button class="btn btn-ghost btn-sm" @click="handleReset">
-            重置
-          </button>
+          <el-select v-model="operationType" placeholder="全部类型" clearable @change="handleSearch">
+            <el-option value="USER" label="用户操作" />
+            <el-option value="ITEM" label="物品操作" />
+            <el-option value="ORDER" label="订单操作" />
+            <el-option value="CATEGORY" label="分类操作" />
+            <el-option value="VERIFICATION" label="认证操作" />
+            <el-option value="SYSTEM" label="系统操作" />
+          </el-select>
+          <el-select v-model="logType" placeholder="全部日志" clearable @change="handleSearch">
+            <el-option value="ADMIN" label="管理员日志" />
+            <el-option value="OPERATION" label="操作日志" />
+          </el-select>
+        </div>
+        <div class="filter-actions">
+          <button class="btn btn-ghost btn-sm" @click="handleReset">重置</button>
         </div>
       </div>
 
@@ -405,4 +403,5 @@ onMounted(() => {
 });
 </script>
 
+<style src="../../styles/components/admin-filters.css"></style>
 <style scoped src="../../styles/pages/admin-log-management.css"></style>

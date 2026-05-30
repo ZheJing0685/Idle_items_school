@@ -4,7 +4,9 @@ import com.idleitems.school.common.BusinessException;
 import com.idleitems.school.common.ErrorCode;
 import com.idleitems.school.dto.order.AdminOrderResponse;
 import com.idleitems.school.dto.order.OrderSummaryResponse;
+import com.idleitems.school.entity.Item;
 import com.idleitems.school.entity.Order;
+import com.idleitems.school.repository.ItemRepository;
 import com.idleitems.school.repository.OrderRepository;
 import com.idleitems.school.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +27,15 @@ import java.util.Set;
 public class OrderQueryService {
 
     private final OrderRepository orderRepository;
+    private final ItemRepository itemRepository;
     private final ReviewRepository reviewRepository;
+
+    public static final List<Order.OrderStatus> ACTIVE_STATUSES = List.of(
+            Order.OrderStatus.PENDING_PAYMENT,
+            Order.OrderStatus.PENDING_SHIPMENT,
+            Order.OrderStatus.SHIPPED,
+            Order.OrderStatus.REFUND_REQUESTED
+    );
 
     public Order getOrderById(Long orderId, Long userId) {
         Order order = orderRepository.findById(orderId)
@@ -70,11 +80,16 @@ public class OrderQueryService {
     }
 
     public List<Order> getOrdersByItemId(Long itemId, Long sellerId) {
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.ITEM_NOT_FOUND));
+        if (!item.getUserId().equals(sellerId)) {
+            throw new BusinessException(ErrorCode.FORBIDDEN, "No permission to view orders for this item");
+        }
         return orderRepository.findByItemIdAndSellerId(itemId, sellerId);
     }
 
     public List<Order> getActiveOrdersByItemId(Long itemId) {
-        return orderRepository.findByItemIdAndOrderStatusIn(itemId, OrderService.ACTIVE_STATUSES);
+        return orderRepository.findByItemIdAndOrderStatusIn(itemId, ACTIVE_STATUSES);
     }
 
     public Page<AdminOrderResponse> getAdminOrderSummaries(
@@ -85,6 +100,10 @@ public class OrderQueryService {
 
     public OrderSummaryResponse getOrderSummary(Long orderId, Long userId) {
         Order order = getOrderById(orderId, userId);
+        return toOrderSummary(order, userId);
+    }
+
+    public OrderSummaryResponse toOrderSummary(Order order, Long userId) {
         boolean reviewed = order.getBuyerId().equals(userId)
                 && reviewRepository.existsByOrderIdAndReviewerId(order.getId(), userId);
         return OrderSummaryResponse.from(order, reviewed);

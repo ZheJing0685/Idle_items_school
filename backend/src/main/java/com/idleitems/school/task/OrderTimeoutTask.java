@@ -1,7 +1,12 @@
 package com.idleitems.school.task;
 
 import com.idleitems.school.service.ConfigService;
-import com.idleitems.school.service.OrderService;
+import com.idleitems.school.service.OrderBuyerService;
+import com.idleitems.school.service.OrderSellerService;
+import com.idleitems.school.service.OrderQueryService;
+import com.idleitems.school.service.OrderRefundService;
+import com.idleitems.school.service.OrderAdminService;
+import com.idleitems.school.service.OrderTimeoutService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -12,7 +17,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class OrderTimeoutTask {
 
-    private final OrderService orderService;
+    private final OrderTimeoutService orderTimeoutService;
     private final ConfigService configService;
 
     private static final String CONFIG_TIMEOUT_MINUTES = "order_timeout_minutes";
@@ -25,7 +30,7 @@ public class OrderTimeoutTask {
             Integer timeoutMinutes = configService.getConfigInt(CONFIG_TIMEOUT_MINUTES);
             int actualTimeoutMinutes = timeoutMinutes != null ? timeoutMinutes : DEFAULT_TIMEOUT_MINUTES;
             
-            int cancelledCount = orderService.cancelTimeoutOrders(actualTimeoutMinutes);
+            int cancelledCount = orderTimeoutService.cancelTimeoutOrders(actualTimeoutMinutes);
             if (cancelledCount > 0) {
                 log.info("订单超时检查任务完成，取消 {} 个超时订单", cancelledCount);
             } else {

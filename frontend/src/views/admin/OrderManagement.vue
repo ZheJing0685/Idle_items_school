@@ -29,9 +29,9 @@
     </div>
 
     <div class="content-card">
-      <div class="toolbar">
-        <div class="search-wrapper">
-          <Search class="search-icon" :size="18" />
+      <div class="filters-bar">
+        <div class="filter-search">
+          <Search class="search-icon" :size="16" />
           <input
             v-model="searchKeyword"
             class="search-input"
@@ -40,24 +40,27 @@
             @keyup.enter="handleSearch"
           />
         </div>
-        <el-select v-model="orderStatus" placeholder="全部状态" clearable>
-          <el-option
-            v-for="option in ADMIN_ORDER_STATUS_OPTIONS"
-            :key="option.value || 'all-status'"
-            :value="option.value"
-            :label="option.label"
-          />
-        </el-select>
-        <el-select v-model="paymentMethod" placeholder="全部支付方式" clearable>
-          <el-option
-            v-for="option in ADMIN_ORDER_PAYMENT_OPTIONS"
-            :key="option.value || 'all-payment'"
-            :value="option.value"
-            :label="option.label"
-          />
-        </el-select>
-        <button class="btn" @click="handleSearch">查询</button>
-        <button class="btn btn-ghost" @click="handleReset">重置</button>
+        <div class="filter-selects">
+          <el-select v-model="orderStatus" placeholder="全部状态" clearable>
+            <el-option
+              v-for="option in ADMIN_ORDER_STATUS_OPTIONS"
+              :key="option.value || 'all-status'"
+              :value="option.value"
+              :label="option.label"
+            />
+          </el-select>
+          <el-select v-model="paymentMethod" placeholder="全部支付方式" clearable>
+            <el-option
+              v-for="option in ADMIN_ORDER_PAYMENT_OPTIONS"
+              :key="option.value || 'all-payment'"
+              :value="option.value"
+              :label="option.label"
+            />
+          </el-select>
+        </div>
+        <div class="filter-actions">
+          <button class="btn btn-ghost btn-sm" @click="handleReset">重置</button>
+        </div>
       </div>
 
       <div class="bulk-bar" v-if="selectedOrders.length">
@@ -479,4 +482,5 @@ onMounted(async () => {
 });
 </script>
 
+<style src="../../styles/components/admin-filters.css"></style>
 <style scoped src="../../styles/pages/admin-order-management.css"></style>

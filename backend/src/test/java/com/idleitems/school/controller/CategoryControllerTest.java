@@ -3,7 +3,8 @@ package com.idleitems.school.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.idleitems.school.dto.SubmitFeedbackRequest;
 import com.idleitems.school.entity.CategoryFeedback;
-import com.idleitems.school.service.CategoryService;
+import com.idleitems.school.service.CategoryFeedbackService;
+import com.idleitems.school.service.CategoryQueryService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -39,7 +40,10 @@ class CategoryControllerTest {
     private ObjectMapper objectMapper;
 
     @MockitoBean
-    private CategoryService categoryService;
+    private CategoryQueryService categoryQueryService;
+
+    @MockitoBean
+    private CategoryFeedbackService categoryFeedbackService;
 
     private SubmitFeedbackRequest feedbackRequest;
 
@@ -57,7 +61,7 @@ class CategoryControllerTest {
         List<Map<String, Object>> categories = List.of(
                 Map.of("id", 1, "name", "电子产品", "children", Collections.emptyList())
         );
-        when(categoryService.getAllCategories()).thenReturn(categories);
+        when(categoryQueryService.getAllCategories()).thenReturn(categories);
 
         mockMvc.perform(get("/api/categories"))
                 .andExpect(status().isOk())
@@ -70,7 +74,7 @@ class CategoryControllerTest {
         List<Map<String, Object>> tree = List.of(
                 Map.of("id", 1, "name", "电子产品", "children", Collections.emptyList())
         );
-        when(categoryService.getCategoryTree()).thenReturn(tree);
+        when(categoryQueryService.getCategoryTree()).thenReturn(tree);
 
         mockMvc.perform(get("/api/categories/tree"))
                 .andExpect(status().isOk())
@@ -83,7 +87,7 @@ class CategoryControllerTest {
         List<Map<String, Object>> results = List.of(
                 Map.of("id", 1, "name", "电子产品")
         );
-        when(categoryService.searchCategories("电子")).thenReturn(results);
+        when(categoryQueryService.searchCategories("电子")).thenReturn(results);
 
         mockMvc.perform(get("/api/categories/search")
                         .param("keyword", "电子"))
@@ -94,7 +98,7 @@ class CategoryControllerTest {
     @Test
     @DisplayName("提交分类反馈 - 成功")
     void testSubmitFeedbackSuccess() throws Exception {
-        doNothing().when(categoryService).submitFeedback(eq(1L), any(), eq(1L), anyString());
+        doNothing().when(categoryFeedbackService).submitFeedback(eq(1L), any(), eq(1L), anyString());
 
         mockMvc.perform(post("/api/categories/feedback")
                         .requestAttr("userId", 1L)
@@ -139,7 +143,7 @@ class CategoryControllerTest {
     @DisplayName("获取我的反馈 - 成功")
     void testGetMyFeedbacksSuccess() throws Exception {
         Page<CategoryFeedback> emptyPage = new PageImpl<>(Collections.emptyList(), PageRequest.of(0, 10), 0);
-        when(categoryService.getMyFeedbacks(eq(1L), any())).thenReturn(emptyPage);
+        when(categoryFeedbackService.getMyFeedbacks(eq(1L), any())).thenReturn(emptyPage);
 
         mockMvc.perform(get("/api/categories/feedback/my")
                         .requestAttr("userId", 1L)

@@ -18,7 +18,7 @@ const admin = {
       get<any>('/admin/users', { params }),
     getUser: (userId: number | string) =>
       get<UserInfo>(`/admin/users/${userId}`),
-    getUserStats: () => get<{ total: number; active: number; banned: number }>('/admin/users/stats'),
+    getUserStats: () => get<{ total: number; active: number; banned: number; verified: number; newThisWeek: number; todayNew?: number }>('/admin/users/stats'),
     createUser: (data: Partial<UserInfo>) => post<UserInfo>('/admin/users', data),
     updateUser: (userId: number | string, data: Partial<UserInfo>) =>
       put<UserInfo>(`/admin/users/${userId}`, data),

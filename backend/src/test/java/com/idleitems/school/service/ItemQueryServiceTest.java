@@ -21,7 +21,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class ItemServiceTest {
+class ItemQueryServiceTest {
 
     @Mock
     private ItemRepository itemRepository;
@@ -39,7 +39,7 @@ class ItemServiceTest {
     private ViewCountService viewCountService;
 
     @InjectMocks
-    private ItemService itemService;
+    private ItemQueryService itemQueryService;
 
     private Item testItem;
 
@@ -58,16 +58,13 @@ class ItemServiceTest {
 
     @Test
     void getItemById_WhenItemExists_ReturnsItem() {
-        // Arrange
         when(cacheService.get(anyString())).thenReturn(null);
         when(itemRepository.findById(1L)).thenReturn(Optional.of(testItem));
         when(itemRepository.countByUserId(anyLong())).thenReturn(1L);
         when(userRepository.findById(anyLong())).thenReturn(Optional.empty());
 
-        // Act
-        Item result = itemService.getItemById(1L);
+        Item result = itemQueryService.getItemById(1L);
 
-        // Assert
         assertNotNull(result);
         assertEquals("测试物品", result.getTitle());
         verify(itemRepository, times(1)).findById(1L);
@@ -75,25 +72,20 @@ class ItemServiceTest {
 
     @Test
     void getItemById_WhenItemNotExists_ThrowsException() {
-        // Arrange
         when(cacheService.get(anyString())).thenReturn(null);
         when(itemRepository.findById(999L)).thenReturn(Optional.empty());
 
-        // Act & Assert
         assertThrows(BusinessException.class, () -> {
-            itemService.getItemById(999L);
+            itemQueryService.getItemById(999L);
         });
     }
 
     @Test
     void getItemById_WhenCached_ReturnsCachedItem() {
-        // Arrange
         when(cacheService.get(anyString())).thenReturn(testItem);
 
-        // Act
-        Item result = itemService.getItemById(1L);
+        Item result = itemQueryService.getItemById(1L);
 
-        // Assert
         assertNotNull(result);
         assertEquals("测试物品", result.getTitle());
         verify(itemRepository, never()).findById(anyLong());
@@ -101,27 +93,21 @@ class ItemServiceTest {
 
     @Test
     void getSellerItemCount_WhenCached_ReturnsCachedCount() {
-        // Arrange
         when(cacheService.get(anyString())).thenReturn(5);
 
-        // Act
-        int result = itemService.getSellerItemCount(1L);
+        int result = itemQueryService.getSellerItemCount(1L);
 
-        // Assert
         assertEquals(5, result);
         verify(itemRepository, never()).countByUserId(anyLong());
     }
 
     @Test
     void getSellerItemCount_WhenNotCached_ReturnsFromRepository() {
-        // Arrange
         when(cacheService.get(anyString())).thenReturn(null);
         when(itemRepository.countByUserId(1L)).thenReturn(3L);
 
-        // Act
-        int result = itemService.getSellerItemCount(1L);
+        int result = itemQueryService.getSellerItemCount(1L);
 
-        // Assert
         assertEquals(3, result);
         verify(itemRepository, times(1)).countByUserId(1L);
         verify(cacheService, times(1)).set(anyString(), anyInt(), anyLong(), any());

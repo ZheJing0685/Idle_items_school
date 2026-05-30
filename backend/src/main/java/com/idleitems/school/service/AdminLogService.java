@@ -33,7 +33,11 @@ public class AdminLogService {
             log.setDetails("Error serializing details: " + e.getMessage());
         }
         
-        log.setIpAddress(request.getRemoteAddr());
+        String ip = request.getHeader("X-Real-IP");
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getRemoteAddr();
+        }
+        log.setIpAddress(ip);
         log.setUserAgent(request.getHeader("User-Agent"));
         
         adminLogRepository.save(log);

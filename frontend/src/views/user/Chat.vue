@@ -103,7 +103,7 @@ const loadChatList = async () => {
     console.log('Chat list response:', res);
 
     // 后端返回格式: {code: 200, data: [...]} 或 {code: 200, data: {content: [...]}}
-    let chatData = [];
+    let chatData: any[] = [];
 
     if (res && res.data) {
       if (Array.isArray(res.data)) {
@@ -145,7 +145,11 @@ const selectChat = async (chat: any) => {
 const loadMessages = async (chatId: string) => {
   try {
     const res = await chatApi.getMessages(chatId, { page: 0, size: 50 });
-    messages.value = res.data.content || [];
+    if (Array.isArray(res.data)) {
+      messages.value = res.data;
+    } else {
+      messages.value = res.data.content || [];
+    }
     scrollToBottom();
   } catch (error) {
     console.error('加载消息失败:', error);

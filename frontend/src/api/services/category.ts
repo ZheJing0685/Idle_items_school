@@ -31,7 +31,7 @@ const category = {
   submitFeedback: (data: { categoryName: string; reason: string }) =>
     post<null>(API_PATHS.CATEGORY.FEEDBACK, data),
   getMyFeedbacks: (params?: Record<string, any>) =>
-    get<any[]>(API_PATHS.CATEGORY.MY_FEEDBACK, { params }),
+    get<{ content: any[]; totalElements: number }>(API_PATHS.CATEGORY.MY_FEEDBACK, { params }),
 };
 
 export default category;

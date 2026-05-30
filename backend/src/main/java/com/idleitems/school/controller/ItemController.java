@@ -9,8 +9,15 @@ import com.idleitems.school.dto.UpdateItemRequest;
 import com.idleitems.school.entity.Item;
 import com.idleitems.school.entity.Order;
 import com.idleitems.school.service.FileService;
-import com.idleitems.school.service.ItemService;
-import com.idleitems.school.service.OrderService;
+import com.idleitems.school.service.ItemQueryService;
+import com.idleitems.school.service.ItemCommandService;
+import com.idleitems.school.service.ItemAdminService;
+import com.idleitems.school.service.OrderBuyerService;
+import com.idleitems.school.service.OrderSellerService;
+import com.idleitems.school.service.OrderQueryService;
+import com.idleitems.school.service.OrderRefundService;
+import com.idleitems.school.service.OrderAdminService;
+import com.idleitems.school.service.OrderTimeoutService;
 import com.idleitems.school.service.UserService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -34,19 +41,20 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class ItemController {
 
-    private final ItemService itemService;
+    private final ItemQueryService itemQueryService;
+    private final ItemCommandService itemCommandService;
     private final UserService userService;
     private final FileService fileService;
-    private final OrderService orderService;
+    private final OrderQueryService orderQueryService;
   
     @Operation(summary = "发布物品", description = "发布闲置物品，上传物品信息并等待审核")
     @PostMapping(ApiPaths.Item.CREATE_PATH)
     public Result<ItemDTO> createItem(
             @RequestAttribute("userId") Long userId,
             @Valid @RequestBody CreateItemRequest request) {
-        Item savedItem = itemService.createItem(userId, request);
+        Item savedItem = itemCommandService.createItem(userId, request);
 
-        int sellerItemCount = itemService.getSellerItemCount(savedItem.getUserId());
+        int sellerItemCount = itemQueryService.getSellerItemCount(savedItem.getUserId());
         userService.enrichItemWithSellerInfo(savedItem, sellerItemCount);
 
         return Result.success("发布成功，等待审核", ItemDTO.fromEntity(savedItem));
@@ -68,7 +76,7 @@ public class ItemController {
             @RequestParam(value = "sortBy", defaultValue = "createdAt") String sortBy,
             @RequestParam(value = "condition", required = false) String condition,
             @RequestParam(value = "deliveryMethod", required = false) String deliveryMethod) {
-        Page<ItemSummaryDTO> items = itemService.getItems(page, size, categoryIdStr, sortBy, condition, deliveryMethod);
+        Page<ItemSummaryDTO> items = itemQueryService.getItems(page, size, categoryIdStr, sortBy, condition, deliveryMethod);
         return Result.success(items);
     }
 
@@ -79,14 +87,14 @@ public class ItemController {
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "size", defaultValue = "20") int size,
             @RequestParam(value = "sortBy", defaultValue = "createdAt") String sortBy) {
-        Page<ItemSummaryDTO> items = itemService.searchItems(keyword, page, size, sortBy);
+        Page<ItemSummaryDTO> items = itemQueryService.searchItems(keyword, page, size, sortBy);
         return Result.success(items);
     }
 
     @Operation(summary = "获取热门物品", description = "获取热门闲置物品列表（浏览量+时间衰减综合排序）")
     @GetMapping(ApiPaths.Item.HOT_PATH)
     public Result<List<ItemSummaryDTO>> getHotItems() {
-        List<ItemSummaryDTO> items = itemService.getHotItems();
+        List<ItemSummaryDTO> items = itemQueryService.getHotItems();
         return Result.success(items);
     }
 
@@ -97,14 +105,14 @@ public class ItemController {
             @RequestParam(value = "status", required = false) Item.ItemStatus status,
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "size", defaultValue = "20") int size) {
-        Page<Item> items = itemService.getUserItems(userId, status, page, size);
+        Page<Item> items = itemQueryService.getUserItems(userId, status, page, size);
         return Result.success(items);
     }
 
     @Operation(summary = "获取物品详情", description = "根据物品ID获取闲置物品的详细信息")
     @GetMapping(ApiPaths.Item.DETAIL_PATH)
     public Result<Item> getItem(@PathVariable Long id) {
-        Item item = itemService.getItemById(id);
+        Item item = itemQueryService.getItemById(id);
         return Result.success(item);
     }
 
@@ -114,9 +122,9 @@ public class ItemController {
             @RequestAttribute("userId") Long userId,
             @PathVariable Long id,
             @Valid @RequestBody UpdateItemRequest request) {
-        Item updatedItem = itemService.updateItem(userId, id, request);
+        Item updatedItem = itemCommandService.updateItem(userId, id, request);
 
-        int sellerItemCount = itemService.getSellerItemCount(updatedItem.getUserId());
+        int sellerItemCount = itemQueryService.getSellerItemCount(updatedItem.getUserId());
         userService.enrichItemWithSellerInfo(updatedItem, sellerItemCount);
 
         return Result.success("更新成功，等待审核", ItemDTO.fromEntity(updatedItem));
@@ -127,7 +135,7 @@ public class ItemController {
     public Result<Item> offShelfItem(
             @RequestAttribute("userId") Long userId,
             @PathVariable Long id) {
-        Item updatedItem = itemService.offShelfItem(userId, id);
+        Item updatedItem = itemCommandService.offShelfItem(userId, id);
         return Result.success("下架成功", updatedItem);
     }
 
@@ -136,7 +144,7 @@ public class ItemController {
     public Result<Item> onShelfItem(
             @RequestAttribute("userId") Long userId,
             @PathVariable Long id) {
-        Item updatedItem = itemService.onShelfItem(userId, id);
+        Item updatedItem = itemCommandService.onShelfItem(userId, id);
         return Result.success("上架成功", updatedItem);
     }
 
@@ -145,7 +153,7 @@ public class ItemController {
     public Result<List<Order>> getItemOrders(
             @RequestAttribute("userId") Long userId,
             @PathVariable Long id) {
-        List<Order> orders = orderService.getOrdersByItemId(id, userId);
+        List<Order> orders = orderQueryService.getOrdersByItemId(id, userId);
         return Result.success(orders);
     }
 
@@ -154,14 +162,14 @@ public class ItemController {
     public Result<Void> deleteItem(
             @RequestAttribute("userId") Long userId,
             @PathVariable Long id) {
-        itemService.deleteItemByUser(userId, id);
+        itemCommandService.deleteItemByUser(userId, id);
         return Result.success("删除成功", null);
     }
 
     @Operation(summary = "获取物品活跃订单", description = "获取指定闲置物品的活跃订单列表")
     @GetMapping("/{id}/active-orders")
     public Result<List<Order>> getItemActiveOrders(@PathVariable Long id) {
-        List<Order> orders = orderService.getActiveOrdersByItemId(id);
+        List<Order> orders = orderQueryService.getActiveOrdersByItemId(id);
         return Result.success(orders);
     }
 }

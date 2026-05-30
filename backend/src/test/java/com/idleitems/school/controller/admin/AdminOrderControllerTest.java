@@ -6,7 +6,9 @@ import com.idleitems.school.dto.order.CancelOrderRequest;
 import com.idleitems.school.entity.Order;
 import com.idleitems.school.service.AdminLogService;
 import com.idleitems.school.service.DictService;
-import com.idleitems.school.service.OrderService;
+import com.idleitems.school.service.OrderAdminService;
+import com.idleitems.school.service.OrderQueryService;
+import com.idleitems.school.service.OrderRefundService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +44,13 @@ class AdminOrderControllerTest {
     private ObjectMapper objectMapper;
 
     @MockitoBean
-    private OrderService orderService;
+    private OrderAdminService orderAdminService;
+
+    @MockitoBean
+    private OrderRefundService orderRefundService;
+
+    @MockitoBean
+    private OrderQueryService orderQueryService;
 
     @MockitoBean
     private AdminLogService adminLogService;
@@ -53,7 +61,7 @@ class AdminOrderControllerTest {
     @Test
     @DisplayName("测试获取订单统计 - 返回统一统计结构")
     void testGetOrderStats() throws Exception {
-        when(orderService.getAdminOrderStats()).thenReturn(Map.of(
+        when(orderQueryService.getAdminOrderStats()).thenReturn(Map.of(
                 "total", 10L,
                 "pendingPayment", 1L,
                 "pendingShipment", 2L,
@@ -76,7 +84,7 @@ class AdminOrderControllerTest {
     @Test
     @DisplayName("测试获取订单列表 - 返回管理端 DTO")
     void testGetOrdersReturnsAdminOrderSummaryPage() throws Exception {
-        when(orderService.getAdminOrderSummaries(eq("desk"), eq(Order.OrderStatus.SHIPPED), eq("OFFLINE"), any()))
+        when(orderQueryService.getAdminOrderSummaries(eq("desk"), eq(Order.OrderStatus.SHIPPED), eq("OFFLINE"), any()))
                 .thenReturn(new PageImpl<>(List.of(buildResponse("SHIPPED"))));
 
         mockMvc.perform(get("/api/admin/orders")
@@ -101,7 +109,7 @@ class AdminOrderControllerTest {
         savedOrder.setOrderNo("ORD-1");
         savedOrder.setOrderStatus(Order.OrderStatus.CANCELLED);
 
-        when(orderService.adminCancelOrder(1L, 99L, "管理员介入取消")).thenReturn(savedOrder);
+        when(orderAdminService.adminCancelOrder(1L, 99L, "管理员介入取消")).thenReturn(savedOrder);
         when(dictService.getDictLabel("ORDER_STATUS", "CANCELLED")).thenReturn("已取消");
 
         mockMvc.perform(post("/api/admin/orders/1/cancel")
@@ -121,7 +129,7 @@ class AdminOrderControllerTest {
         refundedOrder.setOrderNo("ORD-1");
         refundedOrder.setOrderStatus(Order.OrderStatus.REFUNDED);
 
-        when(orderService.approveRefund(1L, 99L, "APPROVED")).thenReturn(refundedOrder);
+        when(orderRefundService.approveRefund(1L, 99L, "APPROVED")).thenReturn(refundedOrder);
         when(dictService.getDictLabel("ORDER_STATUS", "REFUNDED")).thenReturn("已退款");
 
         mockMvc.perform(post("/api/admin/orders/1/refund/approve")

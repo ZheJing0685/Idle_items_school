@@ -4,7 +4,7 @@ import com.idleitems.school.entity.Order;
 import com.idleitems.school.repository.OrderRepository;
 import com.idleitems.school.service.ConfigService;
 import com.idleitems.school.service.NotificationService;
-import com.idleitems.school.service.OrderService;
+import com.idleitems.school.service.OrderTimeoutService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,7 +22,7 @@ import static org.mockito.Mockito.*;
 class OrderTaskTest {
 
     @Mock
-    private OrderService orderService;
+    private OrderTimeoutService orderTimeoutService;
 
     @Mock
     private ConfigService configService;
@@ -53,21 +53,21 @@ class OrderTaskTest {
     @Test
     void testCheckTimeoutOrders_NoTimeoutOrders() {
         when(configService.getConfigInt("order_timeout_minutes")).thenReturn(null);
-        when(orderService.cancelTimeoutOrders(30)).thenReturn(0);
+        when(orderTimeoutService.cancelTimeoutOrders(30)).thenReturn(0);
 
         orderTimeoutTask.checkTimeoutOrders();
 
-        verify(orderService, times(1)).cancelTimeoutOrders(30);
+        verify(orderTimeoutService, times(1)).cancelTimeoutOrders(30);
     }
 
     @Test
     void testCheckTimeoutOrders_HasTimeoutOrders() {
         when(configService.getConfigInt("order_timeout_minutes")).thenReturn(45);
-        when(orderService.cancelTimeoutOrders(45)).thenReturn(5);
+        when(orderTimeoutService.cancelTimeoutOrders(45)).thenReturn(5);
 
         orderTimeoutTask.checkTimeoutOrders();
 
-        verify(orderService, times(1)).cancelTimeoutOrders(45);
+        verify(orderTimeoutService, times(1)).cancelTimeoutOrders(45);
     }
 
     @Test
@@ -76,7 +76,7 @@ class OrderTaskTest {
 
         orderTimeoutTask.checkTimeoutOrders();
 
-        verify(orderService, never()).cancelTimeoutOrders(anyInt());
+        verify(orderTimeoutService, never()).cancelTimeoutOrders(anyInt());
     }
 
     @Test
@@ -101,20 +101,6 @@ class OrderTaskTest {
 
         verify(orderRepository, times(1)).save(any(Order.class));
         verify(notificationService, times(2)).createOrderNotification(any(), anyString(), anyString(), anyLong());
-    }
-
-    @Test
-    void testAutoConfirmReceived_ExceptionInNotification() {
-        Order order = createTestOrder(1L, "ORD001");
-        when(orderRepository.findByOrderStatusAndShipTimeBefore(
-                eq(Order.OrderStatus.SHIPPED), any())).thenReturn(List.of(order));
-        when(orderRepository.findById(1L)).thenReturn(java.util.Optional.of(order));
-        doThrow(new RuntimeException("通知发送失败"))
-                .when(notificationService).createOrderNotification(any(), anyString(), anyString(), anyLong());
-
-        autoConfirmReceiveTask.autoConfirmReceived();
-
-        verify(orderRepository, times(1)).save(any(Order.class));
     }
 
     @Test

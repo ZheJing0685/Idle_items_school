@@ -6,7 +6,8 @@ import com.idleitems.school.dto.CreateDisputeRequest;
 import com.idleitems.school.dto.ReplyDisputeRequest;
 import com.idleitems.school.dto.SatisfactionRequest;
 import com.idleitems.school.entity.Dispute;
-import com.idleitems.school.service.DisputeService;
+import com.idleitems.school.service.DisputeQueryService;
+import com.idleitems.school.service.DisputeCommandService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -24,14 +25,15 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class DisputeController {
 
-    private final DisputeService disputeService;
+    private final DisputeCommandService disputeCommandService;
+    private final DisputeQueryService disputeQueryService;
 
     @Operation(summary = "创建纠纷", description = "买家或卖家提交交易纠纷申请")
     @PostMapping
     public Result<Dispute> createDispute(
             @RequestAttribute("userId") Long userId,
             @Valid @RequestBody CreateDisputeRequest request) {
-        Dispute dispute = disputeService.createDispute(
+        Dispute dispute = disputeCommandService.createDispute(
                 userId, request.getOrderId(), request.getDisputeType(),
                 request.getReason(), request.getDescription(), request.getEvidenceImages(),
                 request.getExpectResult(), request.getExpectRefundAmount());
@@ -46,7 +48,7 @@ public class DisputeController {
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "size", defaultValue = "10") int size) {
         PageRequest pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        return Result.success(disputeService.getMyDisputes(userId, status, pageable));
+        return Result.success(disputeQueryService.getMyDisputes(userId, status, pageable));
     }
 
     @Operation(summary = "获取纠纷详情", description = "根据纠纷ID获取纠纷详细信息")
@@ -54,7 +56,7 @@ public class DisputeController {
     public Result<Dispute> getDispute(
             @RequestAttribute("userId") Long userId,
             @PathVariable Long id) {
-        return Result.success(disputeService.getDisputeById(id, userId));
+        return Result.success(disputeQueryService.getDisputeById(id, userId));
     }
 
     @Operation(summary = "回复纠纷", description = "对指定纠纷进行回复")
@@ -63,7 +65,7 @@ public class DisputeController {
             @RequestAttribute("userId") Long userId,
             @PathVariable Long id,
             @Valid @RequestBody ReplyDisputeRequest request) {
-        Dispute dispute = disputeService.replyDispute(id, userId, request.getContent());
+        Dispute dispute = disputeCommandService.replyDispute(id, userId, request.getContent());
         return Result.success("回复成功", dispute);
     }
 
@@ -73,7 +75,7 @@ public class DisputeController {
             @RequestAttribute("userId") Long userId,
             @PathVariable Long id,
             @Valid @RequestBody SatisfactionRequest request) {
-        Dispute dispute = disputeService.submitSatisfaction(id, userId, request.getScore(), request.getRemark());
+        Dispute dispute = disputeCommandService.submitSatisfaction(id, userId, request.getScore(), request.getRemark());
         return Result.success("评价提交成功", dispute);
     }
 
@@ -81,7 +83,7 @@ public class DisputeController {
     @GetMapping("/stats")
     public Result<Map<String, Object>> getDisputeStats(
             @RequestAttribute("userId") Long userId) {
-        return Result.success(disputeService.getDisputeStats());
+        return Result.success(disputeQueryService.getDisputeStats());
     }
 
     @Operation(summary = "检查是否可以发起纠纷", description = "检查指定订单是否满足发起纠纷的条件")
@@ -89,7 +91,7 @@ public class DisputeController {
     public Result<Map<String, Object>> canCreateDispute(
             @RequestAttribute("userId") Long userId,
             @PathVariable Long orderId) {
-        return Result.success(disputeService.canCreateDispute(orderId, userId));
+        return Result.success(disputeQueryService.canCreateDispute(orderId, userId));
     }
 
     @Operation(summary = "获取订单活跃纠纷", description = "获取指定订单的当前活跃纠纷信息")
@@ -97,7 +99,7 @@ public class DisputeController {
     public Result<Dispute> getActiveDispute(
             @RequestAttribute("userId") Long userId,
             @PathVariable Long orderId) {
-        Dispute dispute = disputeService.getActiveDisputeByOrder(orderId, userId);
+        Dispute dispute = disputeQueryService.getActiveDisputeByOrder(orderId, userId);
         return Result.success(dispute);
     }
 }

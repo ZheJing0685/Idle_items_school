@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
@@ -138,7 +139,7 @@ describe('UserManagement.vue', () => {
 
   it('应该包含筛选器', () => {
     const wrapper = mountUserManagement()
-    const filterSelects = wrapper.findAll('.filter-select')
+    const filterSelects = wrapper.findAll('.filter-selects .el-select')
     expect(filterSelects.length).toBeGreaterThanOrEqual(3)
   })
 

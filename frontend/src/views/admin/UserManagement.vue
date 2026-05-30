@@ -74,24 +74,24 @@
           />
         </div>
         <div class="filter-selects">
-          <el-select v-model="userRole" placeholder="全部角色" @change="handleSearch" class="filter-select">
+          <el-select v-model="userRole" placeholder="全部角色" clearable @change="handleSearch">
             <el-option label="全部角色" value="" />
             <el-option label="学生" value="STUDENT" />
             <el-option label="管理员" value="ADMIN" />
           </el-select>
-          <el-select v-model="userStatus" placeholder="全部状态" @change="handleSearch" class="filter-select">
+          <el-select v-model="userStatus" placeholder="全部状态" clearable @change="handleSearch">
             <el-option label="全部状态" value="" />
             <el-option label="活跃" value="ACTIVE" />
             <el-option label="禁用" value="DISABLED" />
           </el-select>
-          <el-select v-model="userVerified" placeholder="认证状态" @change="handleSearch" class="filter-select">
+          <el-select v-model="userVerified" placeholder="认证状态" clearable @change="handleSearch">
             <el-option label="认证状态" value="" />
             <el-option label="已认证" value="true" />
             <el-option label="未认证" value="false" />
           </el-select>
-          <button class="btn btn-ghost btn-sm" @click="handleReset">
-            重置
-          </button>
+        </div>
+        <div class="filter-actions">
+          <button class="btn btn-ghost btn-sm" @click="handleReset">重置</button>
         </div>
       </div>
 
@@ -876,4 +876,5 @@ onMounted(() => {
 });
 </script>
 
+<style src="../../styles/components/admin-filters.css"></style>
 <style scoped src="../../styles/pages/admin-user-management.css"></style>

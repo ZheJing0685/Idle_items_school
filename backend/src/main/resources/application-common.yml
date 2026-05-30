@@ -1,0 +1,77 @@
+# =========================================
+# 公共配置（所有环境共享）
+# 各环境配置文件通过 spring.config.import 引入此文件
+# =========================================
+
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: false
+        session:
+          events:
+            log:
+              LOG_QUERIES_SLOWER_THAN_MS: 200
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    validate-on-migrate: true
+    clean-disabled: true
+    repair-on-migrate: true
+
+# 文件上传默认配置
+file:
+  max-size: 5MB
+  allowed-types: jpg,jpeg,png,webp
+  allowed-content-types: image/jpeg,image/png,image/webp
+
+# 安全配置
+security:
+  login:
+    max-failures: 5
+    lock-duration-minutes: 15
+    fail-count-expire-minutes: 30
+  password-reset:
+    max-send-per-hour: 3
+    code-expire-minutes: 5
+    code-length: 8
+
+# 限流配置
+rate-limit:
+  default-limit: 60
+  default-window: 60
+  login-limit: 5
+  login-window: 60
+
+# Actuator监控配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when_authorized
+    metrics:
+      enabled: true
+    prometheus:
+      enabled: true
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
+# WebSocket配置
+websocket:
+  max-message-size: 131072
+  max-buffer-size: 524288
+
+# 日志配置
+logging:
+  charset:
+    console: UTF-8
+    file: UTF-8

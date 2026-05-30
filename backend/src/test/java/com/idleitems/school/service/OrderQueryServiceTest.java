@@ -3,7 +3,9 @@ package com.idleitems.school.service;
 import com.idleitems.school.common.BusinessException;
 import com.idleitems.school.dto.order.AdminOrderResponse;
 import com.idleitems.school.dto.order.OrderSummaryResponse;
+import com.idleitems.school.entity.Item;
 import com.idleitems.school.entity.Order;
+import com.idleitems.school.repository.ItemRepository;
 import com.idleitems.school.repository.OrderRepository;
 import com.idleitems.school.repository.ReviewRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,6 +32,9 @@ class OrderQueryServiceTest {
 
     @Mock
     private OrderRepository orderRepository;
+
+    @Mock
+    private ItemRepository itemRepository;
 
     @Mock
     private ReviewRepository reviewRepository;
@@ -172,6 +177,10 @@ class OrderQueryServiceTest {
 
     @Test
     void getOrdersByItemId_ReturnsOrders() {
+        Item item = new Item();
+        item.setId(10L);
+        item.setUserId(2L);
+        when(itemRepository.findById(10L)).thenReturn(Optional.of(item));
         when(orderRepository.findByItemIdAndSellerId(10L, 2L)).thenReturn(List.of(testOrder));
 
         List<Order> result = orderQueryService.getOrdersByItemId(10L, 2L);

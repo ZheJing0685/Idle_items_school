@@ -102,7 +102,7 @@ describe('Item API (TypeScript)', () => {
       const mockResponse = { code: 200, data: { id: 1, title: 'New Item' } };
       mockPost.mockResolvedValue(mockResponse);
 
-      const itemData = { title: 'New Item', price: 99.9, categoryId: 1 };
+      const itemData = { title: 'New Item', description: 'test desc', price: 99.9, categoryId: 1, condition: 'NEW', deliveryMethod: 1 };
       const result = await itemApi.createItem(itemData);
 
       expect(mockPost).toHaveBeenCalledWith('/items', itemData);
@@ -185,7 +185,7 @@ describe('Item API (TypeScript)', () => {
       const error = new Error('Server error');
       mockPost.mockRejectedValue(error);
 
-      await expect(itemApi.createItem({})).rejects.toThrow('Server error');
+      await expect(itemApi.createItem({ title: 'Test', description: 'test', price: 10, categoryId: 1, condition: 'NEW', deliveryMethod: 1 })).rejects.toThrow('Server error');
     });
   });
 });

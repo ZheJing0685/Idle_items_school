@@ -1,24 +1,15 @@
 # =========================================
-# 生产环境配置 (Production Environment)
+# 生产环境配置
 # =========================================
-server:
-  port: 7000
-  servlet:
-    multipart:
-      max-file-size: 5MB
-      max-request-size: 20MB
-  tomcat:
-    max-http-form-post-size: 20MB
-    max-swallow-size: 20MB
-    connection-timeout: 30000
-    uri-encoding: UTF-8
-
 spring:
+  config:
+    import: application-common.yml
+
   application:
     name: idle-items-school-prod
 
   datasource:
-    url: "${DB_URL:jdbc:mysql://localhost:3306/idle_items_school?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=true&allowPublicKeyRetrieval=true}"
+    url: "${DB_URL}"
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -32,48 +23,31 @@ spring:
       connection-timeout: 10000
       connection-test-query: SELECT 1
       leak-detection-threshold: 30000
-      slow-query-threshold-millis: 200
 
   jpa:
-    hibernate:
-      ddl-auto: none
     show-sql: false
-    properties:
-      hibernate:
-        format_sql: false
-        dialect: org.hibernate.dialect.MySQLDialect
-        session:
-          events:
-            log:
-              LOG_QUERIES_SLOWER_THAN_MS: 200
 
   flyway:
-    enabled: true
-    baseline-on-migrate: true
     validate-on-migrate: true
-    clean-disabled: true
-    repair-on-migrate: true
-
-  servlet:
-    multipart:
-      max-file-size: 5MB
-      max-request-size: 20MB
 
   data:
     redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6380}
-      password: ${REDIS_PASSWORD:}
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD}
       database: 0
 
+# JWT配置
 jwt:
   secret: "${JWT_SECRET}"
   expiration: "${JWT_EXPIRATION:3600000}"
   refresh-expiration: "${JWT_REFRESH_EXPIRATION:604800000}"
 
+# 文件上传路径
 file:
   upload-path: /var/data/uploads/
 
+# 禁用Swagger/Knife4j
 springdoc:
   swagger-ui:
     enabled: false
@@ -83,28 +57,30 @@ springdoc:
 knife4j:
   enable: false
 
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,metrics,prometheus
-  endpoint:
-    health:
-      show-details: when_authorized
-    metrics:
-      enabled: true
-    prometheus:
-      enabled: true
-  prometheus:
-    metrics:
-      export:
-        enabled: true
-
+# CORS配置
 cors:
   allowed-origins: ${CORS_ALLOWED_ORIGINS}
 
-rate-limit:
-  default-limit: 60
-  default-window: 60
-  login-limit: 5
-  login-window: 60
+# WebSocket配置
+websocket:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS}
+
+# 服务器配置
+server:
+  port: 7000
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 20MB
+  tomcat:
+    max-http-form-post-size: 20MB
+    max-swallow-size: 20MB
+    connection-timeout: 30000
+    uri-encoding: UTF-8
+
+# 日志级别
+logging:
+  level:
+    com.idleitems.school: WARN
+    org.hibernate.SQL: WARN
+    root: WARN

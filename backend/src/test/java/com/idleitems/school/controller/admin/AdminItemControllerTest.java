@@ -5,7 +5,8 @@ import com.idleitems.school.entity.Item;
 import com.idleitems.school.entity.User;
 import com.idleitems.school.service.AdminLogService;
 import com.idleitems.school.service.DictService;
-import com.idleitems.school.service.ItemService;
+import com.idleitems.school.service.ItemAdminService;
+import com.idleitems.school.service.ItemQueryService;
 import com.idleitems.school.cache.CacheService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -53,7 +54,10 @@ class AdminItemControllerTest {
     private CacheService cacheService;
 
     @MockitoBean
-    private ItemService itemService;
+    private ItemAdminService itemAdminService;
+
+    @MockitoBean
+    private ItemQueryService itemQueryService;
 
     @MockitoBean
     private com.idleitems.school.service.UserService userService;
@@ -70,9 +74,9 @@ class AdminItemControllerTest {
     @DisplayName("测试获取物品列表")
     void testGetItems() throws Exception {
         Item item = buildItem();
-        when(itemService.getAdminItems(any(Pageable.class), any()))
+        when(itemAdminService.getAdminItems(any(Pageable.class), any()))
                 .thenReturn(new PageImpl<>(List.of(item), PageRequest.of(0, 10), 1));
-        when(itemService.getSellerItemCount(anyLong())).thenReturn(0);
+        when(itemQueryService.getSellerItemCount(anyLong())).thenReturn(0);
 
         mockMvc.perform(get("/api/admin/items")
                         .param("status", "ON_SALE"))
@@ -83,8 +87,8 @@ class AdminItemControllerTest {
     @Test
     @DisplayName("测试获取物品统计")
     void testGetItemStats() throws Exception {
-        when(itemService.countItems()).thenReturn(100L);
-        when(itemService.countItemsByStatus(any())).thenReturn(50L);
+        when(itemAdminService.countItems()).thenReturn(100L);
+        when(itemAdminService.countItemsByStatus(any())).thenReturn(50L);
 
         mockMvc.perform(get("/api/admin/items/stats"))
                 .andExpect(status().isOk())
@@ -96,8 +100,8 @@ class AdminItemControllerTest {
     @DisplayName("测试审核通过物品")
     void testApproveItem() throws Exception {
         Item item = buildItem();
-        when(itemService.getItemById(1L)).thenReturn(item);
-        when(itemService.approveItem(1L)).thenReturn(item);
+        when(itemQueryService.getItemById(1L)).thenReturn(item);
+        when(itemAdminService.approveItem(1L)).thenReturn(item);
 
         mockMvc.perform(post("/api/admin/items/1/approve")
                         .requestAttr("userId", 99L))
@@ -109,8 +113,8 @@ class AdminItemControllerTest {
     @DisplayName("测试驳回物品")
     void testRejectItem() throws Exception {
         Item item = buildItem();
-        when(itemService.getItemById(1L)).thenReturn(item);
-        when(itemService.rejectItem(1L, "违规内容")).thenReturn(item);
+        when(itemQueryService.getItemById(1L)).thenReturn(item);
+        when(itemAdminService.rejectItem(1L, "违规内容")).thenReturn(item);
 
         mockMvc.perform(post("/api/admin/items/1/reject")
                         .requestAttr("userId", 99L)
@@ -123,8 +127,8 @@ class AdminItemControllerTest {
     @DisplayName("测试强制下架物品")
     void testForceOffShelfItem() throws Exception {
         Item item = buildItem();
-        when(itemService.getItemById(1L)).thenReturn(item);
-        when(itemService.forceOffShelfItem(1L, "违规操作")).thenReturn(item);
+        when(itemQueryService.getItemById(1L)).thenReturn(item);
+        when(itemAdminService.forceOffShelfItem(1L, "违规操作")).thenReturn(item);
 
         mockMvc.perform(post("/api/admin/items/1/off-shelf")
                         .requestAttr("userId", 99L)
@@ -137,8 +141,8 @@ class AdminItemControllerTest {
     @DisplayName("测试删除物品")
     void testDeleteItem() throws Exception {
         Item item = buildItem();
-        when(itemService.getItemById(1L)).thenReturn(item);
-        when(itemService.existsOrderByItemId(1L)).thenReturn(false);
+        when(itemQueryService.getItemById(1L)).thenReturn(item);
+        when(itemAdminService.existsOrderByItemId(1L)).thenReturn(false);
 
         mockMvc.perform(delete("/api/admin/items/1")
                         .requestAttr("userId", 99L))
@@ -150,8 +154,8 @@ class AdminItemControllerTest {
     @DisplayName("测试删除有关联订单的物品 - 应失败")
     void testDeleteItemWithOrders() throws Exception {
         Item item = buildItem();
-        when(itemService.getItemById(1L)).thenReturn(item);
-        when(itemService.existsOrderByItemId(1L)).thenReturn(true);
+        when(itemQueryService.getItemById(1L)).thenReturn(item);
+        when(itemAdminService.existsOrderByItemId(1L)).thenReturn(true);
 
         mockMvc.perform(delete("/api/admin/items/1")
                         .requestAttr("userId", 99L))

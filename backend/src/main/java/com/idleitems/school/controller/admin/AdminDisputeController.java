@@ -6,7 +6,8 @@ import com.idleitems.school.entity.Dispute;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import com.idleitems.school.entity.User;
-import com.idleitems.school.service.DisputeService;
+import com.idleitems.school.service.DisputeQueryService;
+import com.idleitems.school.service.DisputeCommandService;
 import com.idleitems.school.config.ApiPaths;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -28,7 +29,8 @@ import java.util.Map;
 @Tag(name = "管理员-纠纷管理", description = "管理员纠纷处理相关接口")
 public class AdminDisputeController {
 
-    private final DisputeService disputeService;
+    private final DisputeCommandService disputeCommandService;
+    private final DisputeQueryService disputeQueryService;
 
     @GetMapping
     @Operation(summary = "获取纠纷列表", description = "分页查询所有纠纷，支持按状态筛选")
@@ -37,13 +39,13 @@ public class AdminDisputeController {
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "size", defaultValue = "10") int size) {
         PageRequest pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "priority", "createdAt"));
-        return Result.success(disputeService.getAllDisputes(status, pageable));
+        return Result.success(disputeQueryService.getAllDisputes(status, pageable));
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "获取纠纷详情", description = "根据ID获取指定纠纷的详细信息")
     public Result<Dispute> getDispute(@PathVariable Long id) {
-        return Result.success(disputeService.getDisputeById(id, 0L));
+        return Result.success(disputeQueryService.getDisputeById(id, 0L));
     }
 
     @PostMapping
@@ -52,7 +54,7 @@ public class AdminDisputeController {
     public Result<Dispute> createDisputeForAdmin(
             @RequestAttribute("userId") Long adminId,
             @Valid @RequestBody CreateDisputeRequest request) {
-        Dispute dispute = disputeService.createDispute(
+        Dispute dispute = disputeCommandService.createDispute(
                 request.getApplicantId(),
                 request.getOrderId(),
                 request.getDisputeType(),
@@ -71,7 +73,7 @@ public class AdminDisputeController {
             @RequestAttribute("userId") Long adminId,
             @PathVariable Long id,
             @Valid @RequestBody AssignDisputeRequest request) {
-        Dispute dispute = disputeService.assignDispute(id, request.getHandlerId(), request.getPriority());
+        Dispute dispute = disputeCommandService.assignDispute(id, request.getHandlerId(), request.getPriority());
         return Result.success("纠纷已分配", dispute);
     }
 
@@ -80,7 +82,7 @@ public class AdminDisputeController {
     public Result<Dispute> startProcess(
             @RequestAttribute("userId") Long adminId,
             @PathVariable Long id) {
-        Dispute dispute = disputeService.startProcess(id, adminId);
+        Dispute dispute = disputeCommandService.startProcess(id, adminId);
         return Result.success("开始处理", dispute);
     }
 
@@ -90,7 +92,7 @@ public class AdminDisputeController {
             @RequestAttribute("userId") Long adminId,
             @PathVariable Long id,
             @Valid @RequestBody HandleDisputeRequest request) {
-        Dispute dispute = disputeService.handleDispute(
+        Dispute dispute = disputeCommandService.handleDispute(
                 id, adminId, request.getResult(), request.getAction(),
                 request.getActualRefundAmount(), request.getProcessRemark()
         );
@@ -103,7 +105,7 @@ public class AdminDisputeController {
             @RequestAttribute("userId") Long adminId,
             @PathVariable Long id,
             @Valid @RequestBody EscalateDisputeRequest request) {
-        Dispute dispute = disputeService.escalateDispute(id, request.getEscalatedTo(), request.getReason());
+        Dispute dispute = disputeCommandService.escalateDispute(id, request.getEscalatedTo(), request.getReason());
         return Result.success("纠纷已升级", dispute);
     }
 
@@ -113,7 +115,7 @@ public class AdminDisputeController {
             @RequestAttribute("userId") Long adminId,
             @PathVariable Long id,
             @RequestParam boolean urgent) {
-        Dispute dispute = disputeService.markAsUrgent(id, urgent);
+        Dispute dispute = disputeCommandService.markAsUrgent(id, urgent);
         return Result.success(urgent ? "已标记为紧急" : "已取消紧急标记", dispute);
     }
 
@@ -123,14 +125,14 @@ public class AdminDisputeController {
             @RequestAttribute("userId") Long adminId,
             @PathVariable Long id,
             @Valid @RequestBody CloseDisputeRequest request) {
-        Dispute dispute = disputeService.closeDispute(id, adminId, request.getCloseType(), request.getReason());
+        Dispute dispute = disputeCommandService.closeDispute(id, adminId, request.getCloseType(), request.getReason());
         return Result.success("纠纷已关闭", dispute);
     }
 
     @GetMapping("/stats")
     @Operation(summary = "获取纠纷统计", description = "获取纠纷的统计数据")
     public Result<Map<String, Object>> getDisputeStats() {
-        return Result.success(disputeService.getDisputeStats());
+        return Result.success(disputeQueryService.getDisputeStats());
     }
 
     @Data

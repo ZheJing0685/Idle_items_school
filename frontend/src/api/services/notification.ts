@@ -3,7 +3,7 @@ import type { NotificationInfo } from '../../types/api';
 
 const notification = {
   getNotifications: (params?: Record<string, any>) =>
-    get<NotificationInfo[]>('/notifications', { params }),
+    get<{ content: NotificationInfo[]; totalElements: number }>('/notifications', { params }),
 
   getUnreadCount: () =>
     get<{ count: number }>('/notifications/unread-count'),

@@ -61,7 +61,7 @@ class AdminLogServiceTest {
     @Test
     @DisplayName("记录操作日志 - 成功")
     void logOperation_WhenValidInput_SavesLog() throws Exception {
-        when(request.getRemoteAddr()).thenReturn("192.168.1.1");
+        when(request.getHeader("X-Real-IP")).thenReturn("192.168.1.1");
         when(request.getHeader("User-Agent")).thenReturn("TestAgent");
         when(objectMapper.writeValueAsString(anyMap())).thenReturn("{\"key\":\"value\"}");
 
@@ -75,7 +75,7 @@ class AdminLogServiceTest {
     @Test
     @DisplayName("记录操作日志 - 序列化失败时记录错误信息")
     void logOperation_WhenSerializationFails_RecordsError() throws Exception {
-        when(request.getRemoteAddr()).thenReturn("192.168.1.1");
+        when(request.getHeader("X-Real-IP")).thenReturn("192.168.1.1");
         when(request.getHeader("User-Agent")).thenReturn("TestAgent");
         when(objectMapper.writeValueAsString(anyMap())).thenThrow(new RuntimeException("Serialization error"));
 

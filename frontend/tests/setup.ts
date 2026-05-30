@@ -1,3 +1,9 @@
+declare const process: {
+  listeners(event: string): Function[];
+  removeAllListeners(event: string): void;
+  on(event: string, handler: (...args: any[]) => void): void;
+};
+
 import { config } from '@vue/test-utils';
 import { createPinia, setActivePinia } from 'pinia';
 import { beforeAll, afterAll, afterEach, vi } from 'vitest';

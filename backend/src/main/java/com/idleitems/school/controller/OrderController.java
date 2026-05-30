@@ -7,7 +7,12 @@ import com.idleitems.school.dto.order.CreateOrderRequest;
 import com.idleitems.school.dto.order.OrderSummaryResponse;
 import com.idleitems.school.dto.order.RefundRequest;
 import com.idleitems.school.entity.Order;
-import com.idleitems.school.service.OrderService;
+import com.idleitems.school.service.OrderBuyerService;
+import com.idleitems.school.service.OrderSellerService;
+import com.idleitems.school.service.OrderQueryService;
+import com.idleitems.school.service.OrderRefundService;
+import com.idleitems.school.service.OrderAdminService;
+import com.idleitems.school.service.OrderTimeoutService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -24,15 +29,18 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class OrderController {
 
-    private final OrderService orderService;
+    private final OrderBuyerService orderBuyerService;
+    private final OrderSellerService orderSellerService;
+    private final OrderQueryService orderQueryService;
+    private final OrderRefundService orderRefundService;
 
     @Operation(summary = "创建订单", description = "买家创建新订单")
     @PostMapping
     public Result<OrderSummaryResponse> createOrder(
             @RequestAttribute("userId") Long userId,
             @Valid @RequestBody CreateOrderRequest request) {
-        Order order = orderService.createOrder(userId, request);
-        return Result.success("订单创建成功", orderService.toOrderSummary(order, userId));
+        Order order = orderBuyerService.createOrder(userId, request);
+        return Result.success("订单创建成功", orderQueryService.toOrderSummary(order, userId));
     }
 
     @Operation(summary = "获取买家订单列表", description = "分页查询买家订单，可按订单状态筛选")
@@ -43,7 +51,7 @@ public class OrderController {
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "size", defaultValue = "10") int size) {
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        return Result.success(orderService.getBuyerOrderSummaries(userId, status, pageable));
+        return Result.success(orderQueryService.getBuyerOrderSummaries(userId, status, pageable));
     }
 
     @Operation(summary = "获取卖家订单列表", description = "分页查询卖家订单，可按订单状态筛选")
@@ -54,7 +62,7 @@ public class OrderController {
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "size", defaultValue = "10") int size) {
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        return Result.success(orderService.getSellerOrderSummaries(userId, status, pageable));
+        return Result.success(orderQueryService.getSellerOrderSummaries(userId, status, pageable));
     }
 
     @Operation(summary = "获取订单详情", description = "根据订单ID获取订单详细信息")
@@ -62,7 +70,7 @@ public class OrderController {
     public Result<OrderSummaryResponse> getOrder(
             @RequestAttribute("userId") Long userId,
             @PathVariable Long id) {
-        return Result.success(orderService.getOrderSummary(id, userId));
+        return Result.success(orderQueryService.getOrderSummary(id, userId));
     }
 
     @Operation(summary = "支付订单", description = "买家对指定订单进行支付")
@@ -71,8 +79,8 @@ public class OrderController {
             @RequestAttribute("userId") Long userId,
             @PathVariable Long id,
             @RequestParam(value = "paymentMethod", defaultValue = "OFFLINE") String paymentMethod) {
-        Order order = orderService.payOrder(id, userId, paymentMethod);
-        return Result.success("支付成功", orderService.toOrderSummary(order, userId));
+        Order order = orderBuyerService.payOrder(id, userId, paymentMethod);
+        return Result.success("支付成功", orderQueryService.toOrderSummary(order, userId));
     }
 
     @Operation(summary = "取消订单", description = "取消指定订单并填写取消原因")
@@ -81,8 +89,8 @@ public class OrderController {
             @RequestAttribute("userId") Long userId,
             @PathVariable Long id,
             @Valid @RequestBody CancelOrderRequest request) {
-        Order order = orderService.cancelOrder(id, userId, request);
-        return Result.success("订单已取消", orderService.toOrderSummary(order, userId));
+        Order order = orderBuyerService.cancelOrder(id, userId, request);
+        return Result.success("订单已取消", orderQueryService.toOrderSummary(order, userId));
     }
 
     @Operation(summary = "发货", description = "卖家对订单进行发货操作")
@@ -90,8 +98,8 @@ public class OrderController {
     public Result<OrderSummaryResponse> shipOrder(
             @RequestAttribute("userId") Long userId,
             @PathVariable Long id) {
-        Order order = orderService.shipOrder(id, userId);
-        return Result.success("发货成功", orderService.toOrderSummary(order, userId));
+        Order order = orderSellerService.shipOrder(id, userId);
+        return Result.success("发货成功", orderQueryService.toOrderSummary(order, userId));
     }
 
     @Operation(summary = "更新物流信息", description = "卖家更新订单的物流单号和物流公司")
@@ -101,8 +109,8 @@ public class OrderController {
             @PathVariable Long id,
             @RequestParam String trackingNumber,
             @RequestParam String shippingCompany) {
-        Order order = orderService.updateShippingInfo(id, userId, trackingNumber, shippingCompany);
-        return Result.success("物流信息更新成功", orderService.toOrderSummary(order, userId));
+        Order order = orderSellerService.updateShippingInfo(id, userId, trackingNumber, shippingCompany);
+        return Result.success("物流信息更新成功", orderQueryService.toOrderSummary(order, userId));
     }
 
     @Operation(summary = "确认收货", description = "买家确认收货完成交易")
@@ -110,8 +118,8 @@ public class OrderController {
     public Result<OrderSummaryResponse> confirmReceive(
             @RequestAttribute("userId") Long userId,
             @PathVariable Long id) {
-        Order order = orderService.confirmReceive(id, userId);
-        return Result.success("确认收货成功", orderService.toOrderSummary(order, userId));
+        Order order = orderBuyerService.confirmReceive(id, userId);
+        return Result.success("确认收货成功", orderQueryService.toOrderSummary(order, userId));
     }
 
     @Operation(summary = "申请退款", description = "买家提交退款申请")
@@ -120,7 +128,7 @@ public class OrderController {
             @RequestAttribute("userId") Long userId,
             @PathVariable Long id,
             @Valid @RequestBody RefundRequest request) {
-        Order order = orderService.applyRefund(id, userId, request);
-        return Result.success("退款申请已提交", orderService.toOrderSummary(order, userId));
+        Order order = orderRefundService.applyRefund(id, userId, request);
+        return Result.success("退款申请已提交", orderQueryService.toOrderSummary(order, userId));
     }
 }

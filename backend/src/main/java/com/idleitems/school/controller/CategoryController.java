@@ -4,7 +4,9 @@ import com.idleitems.school.common.Result;
 import com.idleitems.school.config.ApiPaths;
 import com.idleitems.school.dto.SubmitFeedbackRequest;
 import com.idleitems.school.entity.CategoryFeedback;
-import com.idleitems.school.service.CategoryService;
+import com.idleitems.school.service.CategoryQueryService;
+import com.idleitems.school.service.CategoryCommandService;
+import com.idleitems.school.service.CategoryFeedbackService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -24,24 +26,25 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class CategoryController {
 
-    private final CategoryService categoryService;
+    private final CategoryQueryService categoryQueryService;
+    private final CategoryFeedbackService categoryFeedbackService;
 
     @Operation(summary = "获取分类列表", description = "获取所有物品分类列表")
     @GetMapping(ApiPaths.Category.LIST_PATH)
     public Result<List<Map<String, Object>>> getCategories() {
-        return Result.success(categoryService.getAllCategories());
+        return Result.success(categoryQueryService.getAllCategories());
     }
 
     @Operation(summary = "获取分类树", description = "获取物品分类的树形结构数据")
     @GetMapping(ApiPaths.Category.TREE_PATH)
     public Result<List<Map<String, Object>>> getCategoryTree() {
-        return Result.success(categoryService.getCategoryTree());
+        return Result.success(categoryQueryService.getCategoryTree());
     }
 
     @Operation(summary = "搜索分类", description = "根据关键字搜索物品分类")
     @GetMapping("/search")
     public Result<List<Map<String, Object>>> searchCategories(@RequestParam String keyword) {
-        return Result.success(categoryService.searchCategories(keyword));
+        return Result.success(categoryQueryService.searchCategories(keyword));
     }
 
     @Operation(summary = "提交分类反馈", description = "用户提交分类相关的反馈建议")
@@ -49,7 +52,7 @@ public class CategoryController {
     public Result<Void> submitFeedback(
             @RequestAttribute("userId") Long userId,
             @Valid @RequestBody SubmitFeedbackRequest request) {
-        categoryService.submitFeedback(userId, request.getFeedbackType(), request.getCategoryId(), request.getDescription());
+        categoryFeedbackService.submitFeedback(userId, request.getFeedbackType(), request.getCategoryId(), request.getDescription());
         return Result.success("反馈提交成功", null);
     }
 
@@ -60,6 +63,6 @@ public class CategoryController {
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "size", defaultValue = "10") int size) {
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        return Result.success(categoryService.getMyFeedbacks(userId, pageable));
+        return Result.success(categoryFeedbackService.getMyFeedbacks(userId, pageable));
     }
 }

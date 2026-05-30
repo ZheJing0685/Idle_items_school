@@ -11,7 +11,9 @@ import com.idleitems.school.entity.Item;
 import com.idleitems.school.entity.User;
 import com.idleitems.school.service.AdminLogService;
 import com.idleitems.school.service.DictService;
-import com.idleitems.school.service.ItemService;
+import com.idleitems.school.service.ItemQueryService;
+import com.idleitems.school.service.ItemCommandService;
+import com.idleitems.school.service.ItemAdminService;
 import com.idleitems.school.service.UserService;
 import com.idleitems.school.config.ApiPaths;
 import jakarta.servlet.http.HttpServletResponse;
@@ -41,7 +43,8 @@ public class AdminItemController {
 
     private final AdminLogService adminLogService;
     private final DictService dictService;
-    private final ItemService itemService;
+    private final ItemAdminService itemAdminService;
+    private final ItemQueryService itemQueryService;
     private final UserService userService;
 
     @GetMapping
@@ -77,11 +80,11 @@ public class AdminItemController {
         }
         
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by(direction, sortField));
-        Page<Item> items = itemService.getAdminItems(pageable, status);
+        Page<Item> items = itemAdminService.getAdminItems(pageable, status);
 
         java.util.Set<Long> userIds = items.getContent().stream()
                 .map(Item::getUserId).collect(java.util.stream.Collectors.toSet());
-        java.util.Map<Long, Integer> sellerCounts = itemService.getSellerItemCounts(new java.util.ArrayList<>(userIds));
+        java.util.Map<Long, Integer> sellerCounts = itemQueryService.getSellerItemCounts(new java.util.ArrayList<>(userIds));
 
         items.getContent().forEach(item -> {
             int count = sellerCounts.getOrDefault(item.getUserId(), 0);
@@ -95,10 +98,10 @@ public class AdminItemController {
     @Operation(summary = "获取物品统计", description = "获取物品总数及各状态数量统计")
     public Result<Map<String, Long>> getItemStats() {
         Map<String, Long> stats = new HashMap<>();
-        stats.put("total", itemService.countItems());
-        stats.put("onSale", itemService.countItemsByStatus(Item.ItemStatus.ON_SALE));
-        stats.put("pending", itemService.countItemsByStatus(Item.ItemStatus.PENDING));
-        stats.put("sold", itemService.countItemsByStatus(Item.ItemStatus.SOLD));
+        stats.put("total", itemAdminService.countItems());
+        stats.put("onSale", itemAdminService.countItemsByStatus(Item.ItemStatus.ON_SALE));
+        stats.put("pending", itemAdminService.countItemsByStatus(Item.ItemStatus.PENDING));
+        stats.put("sold", itemAdminService.countItemsByStatus(Item.ItemStatus.SOLD));
         
         return Result.success(stats);
     }
@@ -109,7 +112,7 @@ public class AdminItemController {
             @RequestAttribute("userId") Long adminId,
             @PathVariable Long id,
             HttpServletRequest request) {
-        Item savedItem = itemService.approveItem(id);
+        Item savedItem = itemAdminService.approveItem(id);
         
         Map<String, Object> details = new HashMap<>();
         details.put("itemId", id);
@@ -128,7 +131,7 @@ public class AdminItemController {
             @PathVariable Long id,
             @RequestParam String reason,
             HttpServletRequest request) {
-        Item savedItem = itemService.rejectItem(id, reason);
+        Item savedItem = itemAdminService.rejectItem(id, reason);
         
         Map<String, Object> details = new HashMap<>();
         details.put("itemId", id);
@@ -148,7 +151,7 @@ public class AdminItemController {
             @PathVariable Long id,
             @RequestParam(required = false) String reason,
             HttpServletRequest request) {
-        Item savedItem = itemService.forceOffShelfItem(id, reason);
+        Item savedItem = itemAdminService.forceOffShelfItem(id, reason);
         
         Map<String, Object> details = new HashMap<>();
         details.put("itemId", id);
@@ -167,9 +170,9 @@ public class AdminItemController {
             @RequestAttribute("userId") Long adminId,
             @PathVariable Long id,
             HttpServletRequest request) {
-        Item item = itemService.getItemById(id);
+        Item item = itemQueryService.getItemById(id);
         
-        if (itemService.existsOrderByItemId(id)) {
+        if (itemAdminService.existsOrderByItemId(id)) {
             throw new BusinessException(ErrorCode.OPERATION_NOT_ALLOWED, "该物品存在关联订单，无法删除");
         }
         
@@ -178,7 +181,7 @@ public class AdminItemController {
         details.put("itemTitle", item.getTitle());
         adminLogService.logOperation(adminId, "删除物品", "ITEM", id, details, request);
         
-        itemService.deleteItemById(id);
+        itemAdminService.deleteItemById(id);
         
         return Result.success("物品已删除");
     }
@@ -192,7 +195,7 @@ public class AdminItemController {
             HttpServletResponse response) throws IOException {
         Item.ItemStatus itemStatus = status != null ? Item.ItemStatus.valueOf(status) : null;
 
-        List<Item> items = itemService.getItemsForExport(keyword, itemStatus, categoryId);
+        List<Item> items = itemAdminService.getItemsForExport(keyword, itemStatus, categoryId);
         if (items.size() > 5000) {
             items = items.subList(0, 5000);
         }

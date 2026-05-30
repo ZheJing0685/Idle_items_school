@@ -70,9 +70,11 @@
           />
         </div>
         <div class="filter-selects">
-          <el-select v-model="filterStatus" placeholder="全部状态" clearable size="default" style="width:140px" @change="handleSearch">
+          <el-select v-model="filterStatus" placeholder="全部状态" clearable @change="handleSearch">
             <el-option v-for="opt in disputeStatusOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
           </el-select>
+        </div>
+        <div class="filter-actions">
           <button class="btn btn-ghost btn-sm" @click="handleReset">重置</button>
         </div>
       </div>
@@ -478,4 +480,5 @@ onMounted(() => {
 });
 </script>
 
+<style src="../../styles/components/admin-filters.css"></style>
 <style scoped src="../../styles/pages/admin-dispute-management.css"></style>

@@ -23,8 +23,6 @@
         <jjwt.version>0.12.6</jjwt.version>
         <knife4j.version>4.4.0</knife4j.version>
         <thumbnailator.version>0.4.19</thumbnailator.version>
-        <swagger-core.version>2.2.21</swagger-core.version>
-        <netty.version>4.1.133.Final</netty.version>
     </properties>
 
     <dependencies>
@@ -69,18 +67,6 @@
             <artifactId>jjwt-jackson</artifactId>
             <version>${jjwt.version}</version>
             <scope>runtime</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>io.swagger.core.v3</groupId>
-            <artifactId>swagger-annotations</artifactId>
-            <version>${swagger-core.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.swagger.core.v3</groupId>
-            <artifactId>swagger-models</artifactId>
-            <version>${swagger-core.version}</version>
         </dependency>
 
         <dependency>
@@ -141,12 +127,6 @@
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-mysql</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>javax.annotation</groupId>
-            <artifactId>javax.annotation-api</artifactId>
-            <version>1.3.2</version>
         </dependency>
 
         <dependency>

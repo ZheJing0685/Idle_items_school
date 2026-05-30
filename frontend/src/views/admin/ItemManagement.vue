@@ -92,9 +92,9 @@
             <el-option value="true" label="可议价" />
             <el-option value="false" label="一口价" />
           </el-select>
-          <button class="btn btn-ghost btn-sm" @click="handleReset">
-            重置
-          </button>
+        </div>
+        <div class="filter-actions">
+          <button class="btn btn-ghost btn-sm" @click="handleReset">重置</button>
         </div>
       </div>
 
@@ -727,4 +727,5 @@ onMounted(async () => {
 });
 </script>
 
+<style src="../../styles/components/admin-filters.css"></style>
 <style scoped src="../../styles/pages/admin-item-management.css"></style>

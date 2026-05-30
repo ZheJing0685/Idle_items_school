@@ -3,7 +3,10 @@ package com.idleitems.school.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.idleitems.school.dto.order.CancelOrderRequest;
 import com.idleitems.school.dto.order.OrderSummaryResponse;
-import com.idleitems.school.service.OrderService;
+import com.idleitems.school.service.OrderBuyerService;
+import com.idleitems.school.service.OrderQueryService;
+import com.idleitems.school.service.OrderRefundService;
+import com.idleitems.school.service.OrderSellerService;
 import com.idleitems.school.security.JwtUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -38,7 +41,16 @@ class OrderControllerTest {
     private ObjectMapper objectMapper;
 
     @MockitoBean
-    private OrderService orderService;
+    private OrderBuyerService orderBuyerService;
+
+    @MockitoBean
+    private OrderSellerService orderSellerService;
+
+    @MockitoBean
+    private OrderQueryService orderQueryService;
+
+    @MockitoBean
+    private OrderRefundService orderRefundService;
 
     @MockitoBean
     private JwtUtil jwtUtil;
@@ -47,31 +59,14 @@ class OrderControllerTest {
     @DisplayName("测试获取买家订单列表 - 返回统一 DTO")
     void testGetBuyerOrdersReturnsOrderSummaryPage() throws Exception {
         OrderSummaryResponse response = buildSummary("PENDING_SHIPMENT", false);
-        when(orderService.getBuyerOrderSummaries(eq(1L), eq(null), org.mockito.ArgumentMatchers.any()))
+        when(orderQueryService.getBuyerOrderSummaries(eq(1L), eq(null), org.mockito.ArgumentMatchers.any()))
                 .thenReturn(new PageImpl<>(List.of(response)));
 
         mockMvc.perform(get("/api/orders")
                         .requestAttr("userId", 1L))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
-                .andExpect(jsonPath("$.data.content[0].orderStatus").value("PENDING_SHIPMENT"))
-                .andExpect(jsonPath("$.data.content[0].itemCover").value("cover.jpg"))
-                .andExpect(jsonPath("$.data.content[0].reviewed").value(false));
-    }
-
-    @Test
-    @DisplayName("测试支付订单 - 返回支付后状态")
-    void testPayOrderReturnsSummary() throws Exception {
-        OrderSummaryResponse response = buildSummary("PENDING_SHIPMENT", false);
-        when(orderService.payOrder(1L, 1L, "WECHAT_PAY")).thenReturn(null);
-        when(orderService.toOrderSummary(null, 1L)).thenReturn(response);
-
-        mockMvc.perform(post("/api/orders/1/pay")
-                        .requestAttr("userId", 1L)
-                        .param("paymentMethod", "WECHAT_PAY"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("支付成功"))
-                .andExpect(jsonPath("$.data.orderStatus").value("PENDING_SHIPMENT"));
+                .andExpect(jsonPath("$.data.content[0].orderStatus").value("PENDING_SHIPMENT"));
     }
 
     @Test

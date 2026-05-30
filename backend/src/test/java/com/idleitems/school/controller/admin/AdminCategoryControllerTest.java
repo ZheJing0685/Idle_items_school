@@ -8,7 +8,9 @@ import com.idleitems.school.repository.CategoryRepository;
 import com.idleitems.school.repository.ItemRepository;
 import com.idleitems.school.repository.UserRepository;
 import com.idleitems.school.service.AdminLogService;
-import com.idleitems.school.service.CategoryService;
+import com.idleitems.school.service.CategoryCommandService;
+import com.idleitems.school.service.CategoryFeedbackService;
+import com.idleitems.school.service.CategoryQueryService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -53,7 +55,13 @@ class AdminCategoryControllerTest {
     private UserRepository userRepository;
 
     @MockitoBean
-    private CategoryService categoryService;
+    private CategoryCommandService categoryCommandService;
+
+    @MockitoBean
+    private CategoryFeedbackService categoryFeedbackService;
+
+    @MockitoBean
+    private CategoryQueryService categoryQueryService;
 
     @MockitoBean
     private AdminLogService adminLogService;
@@ -86,7 +94,7 @@ class AdminCategoryControllerTest {
     @Test
     @DisplayName("测试获取分类统计")
     void testGetCategoryStats() throws Exception {
-        when(categoryService.getCategoryStats()).thenReturn(Map.of(
+        when(categoryQueryService.getCategoryStats()).thenReturn(Map.of(
                 "total", 20L,
                 "active", 18L
         ));
@@ -101,7 +109,7 @@ class AdminCategoryControllerTest {
     @DisplayName("测试创建分类")
     void testCreateCategory() throws Exception {
         Category category = buildCategory();
-        when(categoryService.createCategory(any(Category.class), any(Long.class))).thenReturn(category);
+        when(categoryCommandService.createCategory(any(Category.class), any(Long.class))).thenReturn(category);
 
         mockMvc.perform(post("/api/admin/categories")
                         .requestAttr("userId", 99L)
@@ -115,7 +123,7 @@ class AdminCategoryControllerTest {
     @DisplayName("测试更新分类")
     void testUpdateCategory() throws Exception {
         Category category = buildCategory();
-        when(categoryService.updateCategory(any(Long.class), any(Category.class), any(Long.class)))
+        when(categoryCommandService.updateCategory(any(Long.class), any(Category.class), any(Long.class)))
                 .thenReturn(category);
 
         mockMvc.perform(put("/api/admin/categories/1")
@@ -138,7 +146,7 @@ class AdminCategoryControllerTest {
     @Test
     @DisplayName("测试获取分类反馈列表")
     void testGetCategoryFeedbacks() throws Exception {
-        when(categoryService.getAllFeedbacks(any(String.class), any(PageRequest.class)))
+        when(categoryFeedbackService.getAllFeedbacks(any(String.class), any(PageRequest.class)))
                 .thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 10), 0));
 
         mockMvc.perform(get("/api/admin/categories/feedback")

@@ -8,7 +8,7 @@ import com.idleitems.school.repository.ItemRepository;
 import com.idleitems.school.repository.UserRepository;
 import com.idleitems.school.service.AdminLogService;
 import com.idleitems.school.service.DictService;
-import com.idleitems.school.service.OrderService;
+import com.idleitems.school.service.OrderAdminService;
 import com.idleitems.school.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -47,7 +47,7 @@ class AdminBatchControllerTest {
     private UserRepository userRepository;
 
     @MockitoBean
-    private OrderService orderService;
+    private OrderAdminService orderAdminService;
 
     @MockitoBean
     private AdminLogService adminLogService;
@@ -131,7 +131,7 @@ class AdminBatchControllerTest {
         Order order = new Order();
         order.setId(1L);
         order.setOrderNo("ORD-1");
-        when(orderService.adminCancelOrder(1L, 99L, "管理员取消")).thenReturn(order);
+        when(orderAdminService.adminCancelOrder(1L, 99L, "管理员取消")).thenReturn(order);
         when(dictService.getDictLabel("ORDER_STATUS", "CANCELLED")).thenReturn("已取消");
 
         mockMvc.perform(post("/api/admin/batch/orders/cancel")

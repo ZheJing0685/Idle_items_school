@@ -10,7 +10,12 @@ import com.idleitems.school.entity.Order;
 import com.idleitems.school.entity.User;
 import com.idleitems.school.service.AdminLogService;
 import com.idleitems.school.service.DictService;
-import com.idleitems.school.service.OrderService;
+import com.idleitems.school.service.OrderBuyerService;
+import com.idleitems.school.service.OrderSellerService;
+import com.idleitems.school.service.OrderQueryService;
+import com.idleitems.school.service.OrderRefundService;
+import com.idleitems.school.service.OrderAdminService;
+import com.idleitems.school.service.OrderTimeoutService;
 import com.idleitems.school.config.ApiPaths;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -33,14 +38,16 @@ import java.util.Map;
 @Tag(name = "管理员-订单管理", description = "管理员订单管理相关接口")
 public class AdminOrderController {
 
-    private final OrderService orderService;
+    private final OrderAdminService orderAdminService;
+    private final OrderRefundService orderRefundService;
+    private final OrderQueryService orderQueryService;
     private final AdminLogService adminLogService;
     private final DictService dictService;
 
     @GetMapping("/stats")
     @Operation(summary = "获取订单统计", description = "获取订单总数、金额及各状态统计信息")
     public Result<Map<String, Object>> getOrderStats() {
-        return Result.success(orderService.getAdminOrderStats());
+        return Result.success(orderQueryService.getAdminOrderStats());
     }
 
     @GetMapping
@@ -52,13 +59,13 @@ public class AdminOrderController {
             @RequestParam(value = "keyword", required = false) String keyword,
             @RequestParam(value = "paymentMethod", required = false) String paymentMethod) {
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        return Result.success(orderService.getAdminOrderSummaries(keyword, status, paymentMethod, pageable));
+        return Result.success(orderQueryService.getAdminOrderSummaries(keyword, status, paymentMethod, pageable));
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "获取订单详情", description = "根据ID获取指定订单的详细信息")
     public Result<AdminOrderResponse> getOrder(@PathVariable Long id) {
-        return Result.success(orderService.getAdminOrderSummary(id));
+        return Result.success(orderQueryService.getAdminOrderSummary(id));
     }
 
     @PostMapping("/{id}/cancel")
@@ -68,7 +75,7 @@ public class AdminOrderController {
             @PathVariable Long id,
             @Valid @RequestBody CancelOrderRequest request,
             HttpServletRequest httpRequest) {
-        Order order = orderService.adminCancelOrder(id, adminId, request.getReason());
+        Order order = orderAdminService.adminCancelOrder(id, adminId, request.getReason());
 
         Map<String, Object> details = new HashMap<>();
         details.put("orderId", id);
@@ -87,7 +94,7 @@ public class AdminOrderController {
             @RequestAttribute("userId") Long adminId,
             @PathVariable Long id,
             HttpServletRequest request) {
-        Order savedOrder = orderService.approveRefund(id, adminId, "APPROVED");
+        Order savedOrder = orderRefundService.approveRefund(id, adminId, "APPROVED");
 
         Map<String, Object> details = new HashMap<>();
         details.put("orderId", savedOrder.getId());

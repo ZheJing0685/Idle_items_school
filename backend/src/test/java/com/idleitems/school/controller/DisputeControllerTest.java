@@ -7,7 +7,8 @@ import com.idleitems.school.dto.CreateDisputeRequest;
 import com.idleitems.school.dto.ReplyDisputeRequest;
 import com.idleitems.school.dto.SatisfactionRequest;
 import com.idleitems.school.entity.Dispute;
-import com.idleitems.school.service.DisputeService;
+import com.idleitems.school.service.DisputeCommandService;
+import com.idleitems.school.service.DisputeQueryService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -43,7 +44,10 @@ class DisputeControllerTest {
     private ObjectMapper objectMapper;
 
     @MockitoBean
-    private DisputeService disputeService;
+    private DisputeCommandService disputeCommandService;
+
+    @MockitoBean
+    private DisputeQueryService disputeQueryService;
 
     private Dispute testDispute;
     private CreateDisputeRequest createRequest;
@@ -77,7 +81,7 @@ class DisputeControllerTest {
     @Test
     @DisplayName("创建纠纷 - 成功")
     void testCreateDisputeSuccess() throws Exception {
-        when(disputeService.createDispute(eq(1L), eq(1L), any(), eq("商品与描述不符"),
+        when(disputeCommandService.createDispute(eq(1L), eq(1L), any(), eq("商品与描述不符"),
                 eq("收到的商品与卖家描述不一致"), any(), any(), any())).thenReturn(testDispute);
 
         mockMvc.perform(post("/api/disputes")
@@ -123,7 +127,7 @@ class DisputeControllerTest {
     @DisplayName("获取我的纠纷列表 - 成功")
     void testGetMyDisputesSuccess() throws Exception {
         Page<Dispute> emptyPage = new PageImpl<>(Collections.emptyList(), PageRequest.of(0, 10), 0);
-        when(disputeService.getMyDisputes(eq(1L), eq(null), any())).thenReturn(emptyPage);
+        when(disputeQueryService.getMyDisputes(eq(1L), eq(null), any())).thenReturn(emptyPage);
 
         mockMvc.perform(get("/api/disputes")
                         .requestAttr("userId", 1L)
@@ -136,7 +140,7 @@ class DisputeControllerTest {
     @Test
     @DisplayName("获取纠纷详情 - 成功")
     void testGetDisputeSuccess() throws Exception {
-        when(disputeService.getDisputeById(1L, 1L)).thenReturn(testDispute);
+        when(disputeQueryService.getDisputeById(1L, 1L)).thenReturn(testDispute);
 
         mockMvc.perform(get("/api/disputes/1")
                         .requestAttr("userId", 1L))
@@ -148,7 +152,7 @@ class DisputeControllerTest {
     @Test
     @DisplayName("获取纠纷详情 - 纠纷不存在")
     void testGetDisputeNotFound() throws Exception {
-        when(disputeService.getDisputeById(999L, 1L))
+        when(disputeQueryService.getDisputeById(999L, 1L))
                 .thenThrow(new BusinessException(ErrorCode.NOT_FOUND, "纠纷不存在"));
 
         mockMvc.perform(get("/api/disputes/999")
@@ -160,7 +164,7 @@ class DisputeControllerTest {
     @Test
     @DisplayName("回复纠纷 - 成功")
     void testReplyDisputeSuccess() throws Exception {
-        when(disputeService.replyDispute(eq(1L), eq(1L), anyString())).thenReturn(testDispute);
+        when(disputeCommandService.replyDispute(eq(1L), eq(1L), anyString())).thenReturn(testDispute);
 
         mockMvc.perform(post("/api/disputes/1/reply")
                         .requestAttr("userId", 1L)
@@ -188,7 +192,7 @@ class DisputeControllerTest {
     @Test
     @DisplayName("提交纠纷满意度评价 - 成功")
     void testSubmitSatisfactionSuccess() throws Exception {
-        when(disputeService.submitSatisfaction(eq(1L), eq(1L), eq(4), anyString())).thenReturn(testDispute);
+        when(disputeCommandService.submitSatisfaction(eq(1L), eq(1L), eq(4), anyString())).thenReturn(testDispute);
 
         mockMvc.perform(post("/api/disputes/1/satisfaction")
                         .requestAttr("userId", 1L)
@@ -230,7 +234,7 @@ class DisputeControllerTest {
     @Test
     @DisplayName("获取纠纷统计 - 成功")
     void testGetDisputeStatsSuccess() throws Exception {
-        when(disputeService.getDisputeStats()).thenReturn(Map.of("total", 10, "pending", 3));
+        when(disputeQueryService.getDisputeStats()).thenReturn(Map.of("total", 10, "pending", 3));
 
         mockMvc.perform(get("/api/disputes/stats")
                         .requestAttr("userId", 1L))
@@ -242,7 +246,7 @@ class DisputeControllerTest {
     @Test
     @DisplayName("检查是否可以发起纠纷 - 成功")
     void testCanCreateDisputeSuccess() throws Exception {
-        when(disputeService.canCreateDispute(1L, 1L)).thenReturn(Map.of("canDispute", true));
+        when(disputeQueryService.canCreateDispute(1L, 1L)).thenReturn(Map.of("canDispute", true));
 
         mockMvc.perform(get("/api/disputes/orders/1/can-dispute")
                         .requestAttr("userId", 1L))
@@ -254,7 +258,7 @@ class DisputeControllerTest {
     @Test
     @DisplayName("获取订单活跃纠纷 - 成功")
     void testGetActiveDisputeSuccess() throws Exception {
-        when(disputeService.getActiveDisputeByOrder(1L, 1L)).thenReturn(testDispute);
+        when(disputeQueryService.getActiveDisputeByOrder(1L, 1L)).thenReturn(testDispute);
 
         mockMvc.perform(get("/api/disputes/orders/1/dispute")
                         .requestAttr("userId", 1L))

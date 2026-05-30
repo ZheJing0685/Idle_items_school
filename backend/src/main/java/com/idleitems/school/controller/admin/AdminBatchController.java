@@ -11,7 +11,12 @@ import com.idleitems.school.repository.ItemRepository;
 import com.idleitems.school.repository.UserRepository;
 import com.idleitems.school.service.AdminLogService;
 import com.idleitems.school.service.DictService;
-import com.idleitems.school.service.OrderService;
+import com.idleitems.school.service.OrderBuyerService;
+import com.idleitems.school.service.OrderSellerService;
+import com.idleitems.school.service.OrderQueryService;
+import com.idleitems.school.service.OrderRefundService;
+import com.idleitems.school.service.OrderAdminService;
+import com.idleitems.school.service.OrderTimeoutService;
 import com.idleitems.school.service.UserService;
 import com.idleitems.school.config.ApiPaths;
 import jakarta.servlet.http.HttpServletRequest;
@@ -34,7 +39,7 @@ public class AdminBatchController {
 
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
-    private final OrderService orderService;
+    private final OrderAdminService orderAdminService;
     private final AdminLogService adminLogService;
     private final DictService dictService;
     private final UserService userService;
@@ -186,7 +191,7 @@ public class AdminBatchController {
                 .toList();
 
         for (Long id : orderIds) {
-            Order order = orderService.adminCancelOrder(id, adminId, reason);
+            Order order = orderAdminService.adminCancelOrder(id, adminId, reason);
             
             Map<String, Object> details = new HashMap<>();
             details.put("orderId", id);

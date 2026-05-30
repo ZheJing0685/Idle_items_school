@@ -39,7 +39,7 @@ const iconBg = computed(() => {
     3: 'var(--color-success-alpha-10)',
     4: 'var(--color-warning-alpha-10)'
   };
-  return map[props.type] || 'var(--color-info-alpha-10)';
+  return map[props.type ?? 0] || 'var(--color-info-alpha-10)';
 });
 
 </script>

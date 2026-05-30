@@ -165,7 +165,7 @@ export const normalizeAdminOrder = (order: OrderLike | null): NormalizedAdminOrd
 };
 
 export const canAdminCancelOrder = (status: string): boolean => {
-  return [OrderStatus.PENDING_PAYMENT, OrderStatus.PENDING_SHIPMENT, OrderStatus.SHIPPED].includes(status as AdminOrderStatusValue);
+  return ([OrderStatus.PENDING_PAYMENT, OrderStatus.PENDING_SHIPMENT, OrderStatus.SHIPPED] as string[]).includes(status);
 };
 
 export const getAdminOrderActions = (status: string, _order?: OrderLike | null): AdminAction[] => {

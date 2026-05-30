@@ -80,9 +80,9 @@
             <el-option value="2" label="学生证认证" />
             <el-option value="3" label="教师证认证" />
           </el-select>
-          <button class="btn btn-ghost btn-sm" @click="handleReset">
-            重置
-          </button>
+        </div>
+        <div class="filter-actions">
+          <button class="btn btn-ghost btn-sm" @click="handleReset">重置</button>
         </div>
       </div>
 
@@ -677,6 +677,7 @@ onMounted(async () => {
 });
 </script>
 
+<style src="../../styles/components/admin-filters.css"></style>
 <style
   scoped
   src="../../styles/pages/admin-verification-management.css"

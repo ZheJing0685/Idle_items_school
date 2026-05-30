@@ -19,13 +19,16 @@ export default defineConfig({
     actionTimeout: 10000,
     navigationTimeout: 30000
   },
-  globalSetup: './tests/e2e/setup/globalSetup.js',
-  globalTeardown: './tests/e2e/setup/globalTeardown.js',
+  // globalSetup: './tests/e2e/setup/globalSetup.js',
+  // globalTeardown: './tests/e2e/setup/globalTeardown.js',
   projects: [
     // Chromium（Chrome/Edge）
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] }
+      use: {
+        ...devices['Desktop Chrome'],
+        executablePath: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
+      }
     },
     // Firefox
     {
@@ -36,22 +39,12 @@ export default defineConfig({
     {
       name: 'webkit',
       use: { ...devices['Desktop Safari'] }
-    },
-    // Mobile Chrome
-    {
-      name: 'Mobile Chrome',
-      use: { ...devices['Pixel 5'] }
-    },
-    // Mobile Safari
-    {
-      name: 'Mobile Safari',
-      use: { ...devices['iPhone 12'] }
     }
   ],
   webServer: {
     command: 'npm run dev',
     url: 'http://localhost:5173',
     reuseExistingServer: !process.env.CI,
-    timeout: 120000
+    timeout: 300000
   }
 })

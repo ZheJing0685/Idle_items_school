@@ -2,7 +2,8 @@ package com.idleitems.school.controller.admin;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.idleitems.school.entity.Dispute;
-import com.idleitems.school.service.DisputeService;
+import com.idleitems.school.service.DisputeCommandService;
+import com.idleitems.school.service.DisputeQueryService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +40,10 @@ class AdminDisputeControllerTest {
     private ObjectMapper objectMapper;
 
     @MockitoBean
-    private DisputeService disputeService;
+    private DisputeCommandService disputeCommandService;
+
+    @MockitoBean
+    private DisputeQueryService disputeQueryService;
 
     private Dispute buildDispute() {
         Dispute dispute = new Dispute();
@@ -63,7 +67,7 @@ class AdminDisputeControllerTest {
     @DisplayName("测试获取纠纷列表 - 成功")
     void testGetDisputes() throws Exception {
         Dispute dispute = buildDispute();
-        when(disputeService.getAllDisputes(any(), any()))
+        when(disputeQueryService.getAllDisputes(any(), any()))
                 .thenReturn(new PageImpl<>(List.of(dispute), PageRequest.of(0, 10), 1));
 
         mockMvc.perform(get("/api/admin/disputes")
@@ -77,7 +81,7 @@ class AdminDisputeControllerTest {
     @Test
     @DisplayName("测试获取纠纷列表 - 按状态筛选")
     void testGetDisputesByStatus() throws Exception {
-        when(disputeService.getAllDisputes(eq(Dispute.DisputeStatus.PENDING), any()))
+        when(disputeQueryService.getAllDisputes(eq(Dispute.DisputeStatus.PENDING), any()))
                 .thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 10), 0));
 
         mockMvc.perform(get("/api/admin/disputes")
@@ -92,7 +96,7 @@ class AdminDisputeControllerTest {
     @DisplayName("测试获取纠纷详情 - 成功")
     void testGetDispute() throws Exception {
         Dispute dispute = buildDispute();
-        when(disputeService.getDisputeById(1L, 0L)).thenReturn(dispute);
+        when(disputeQueryService.getDisputeById(1L, 0L)).thenReturn(dispute);
 
         mockMvc.perform(get("/api/admin/disputes/1"))
                 .andExpect(status().isOk())
@@ -105,7 +109,7 @@ class AdminDisputeControllerTest {
     @DisplayName("测试创建纠纷 - 成功")
     void testCreateDispute() throws Exception {
         Dispute dispute = buildDispute();
-        when(disputeService.createDispute(
+        when(disputeCommandService.createDispute(
                 eq(2L), eq(10L), eq(1), eq("商品与描述不符"),
                 any(), any(), any(), any()))
                 .thenReturn(dispute);
@@ -127,7 +131,7 @@ class AdminDisputeControllerTest {
         dispute.setHandlerId(5L);
         dispute.setAssignTime(LocalDateTime.now());
 
-        when(disputeService.assignDispute(1L, 5L, 2)).thenReturn(dispute);
+        when(disputeCommandService.assignDispute(1L, 5L, 2)).thenReturn(dispute);
 
         mockMvc.perform(post("/api/admin/disputes/1/assign")
                         .requestAttr("userId", 99L)
@@ -144,7 +148,7 @@ class AdminDisputeControllerTest {
         dispute.setDisputeStatus(Dispute.DisputeStatus.PROCESSING);
         dispute.setStartProcessTime(LocalDateTime.now());
 
-        when(disputeService.startProcess(1L, 99L)).thenReturn(dispute);
+        when(disputeCommandService.startProcess(1L, 99L)).thenReturn(dispute);
 
         mockMvc.perform(post("/api/admin/disputes/1/start")
                         .requestAttr("userId", 99L))
@@ -160,7 +164,7 @@ class AdminDisputeControllerTest {
         dispute.setResult("同意退款");
         dispute.setActualRefundAmount(BigDecimal.valueOf(50));
 
-        when(disputeService.handleDispute(
+        when(disputeCommandService.handleDispute(
                 eq(1L), eq(99L), eq("同意退款"), eq("REFUND"),
                 any(BigDecimal.class), any()))
                 .thenReturn(dispute);
@@ -182,7 +186,7 @@ class AdminDisputeControllerTest {
         dispute.setEscalatedTo(10L);
         dispute.setEscalatedReason("需要高级管理员处理");
 
-        when(disputeService.escalateDispute(1L, 10L, "需要高级管理员处理")).thenReturn(dispute);
+        when(disputeCommandService.escalateDispute(1L, 10L, "需要高级管理员处理")).thenReturn(dispute);
 
         mockMvc.perform(post("/api/admin/disputes/1/escalate")
                         .requestAttr("userId", 99L)
@@ -198,7 +202,7 @@ class AdminDisputeControllerTest {
         Dispute dispute = buildDispute();
         dispute.setIsUrgent(true);
 
-        when(disputeService.markAsUrgent(1L, true)).thenReturn(dispute);
+        when(disputeCommandService.markAsUrgent(1L, true)).thenReturn(dispute);
 
         mockMvc.perform(post("/api/admin/disputes/1/urgent")
                         .requestAttr("userId", 99L)
@@ -215,7 +219,7 @@ class AdminDisputeControllerTest {
         dispute.setCloseType(2);
         dispute.setCloseTime(LocalDateTime.now());
 
-        when(disputeService.closeDispute(1L, 99L, 2, "管理员关闭")).thenReturn(dispute);
+        when(disputeCommandService.closeDispute(1L, 99L, 2, "管理员关闭")).thenReturn(dispute);
 
         mockMvc.perform(post("/api/admin/disputes/1/close")
                         .requestAttr("userId", 99L)
@@ -228,7 +232,7 @@ class AdminDisputeControllerTest {
     @Test
     @DisplayName("测试获取纠纷统计 - 成功")
     void testGetDisputeStats() throws Exception {
-        when(disputeService.getDisputeStats()).thenReturn(Map.of(
+        when(disputeQueryService.getDisputeStats()).thenReturn(Map.of(
                 "total", 50L,
                 "pending", 10L,
                 "processing", 15L,

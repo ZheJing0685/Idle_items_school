@@ -12,7 +12,9 @@ import com.idleitems.school.entity.User;
 import com.idleitems.school.repository.CategoryRepository;
 import com.idleitems.school.repository.ItemRepository;
 import com.idleitems.school.service.AdminLogService;
-import com.idleitems.school.service.CategoryService;
+import com.idleitems.school.service.CategoryQueryService;
+import com.idleitems.school.service.CategoryCommandService;
+import com.idleitems.school.service.CategoryFeedbackService;
 import com.idleitems.school.config.ApiPaths;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -44,7 +46,9 @@ public class AdminCategoryController {
 
     private final CategoryRepository categoryRepository;
     private final ItemRepository itemRepository;
-    private final CategoryService categoryService;
+    private final CategoryCommandService categoryCommandService;
+    private final CategoryFeedbackService categoryFeedbackService;
+    private final CategoryQueryService categoryQueryService;
     private final AdminLogService adminLogService;
 
     @GetMapping
@@ -84,7 +88,7 @@ public class AdminCategoryController {
     @GetMapping("/stats")
     @Operation(summary = "获取分类统计", description = "获取分类的统计数据")
     public Result<Map<String, Object>> getCategoryStats() {
-        return Result.success(categoryService.getCategoryStats());
+        return Result.success(categoryQueryService.getCategoryStats());
     }
 
     private void collectChildCategories(Long categoryId, List<Long> categoryIds) {
@@ -101,7 +105,7 @@ public class AdminCategoryController {
             @RequestAttribute("userId") Long adminId,
             @RequestBody Category category,
             HttpServletRequest request) {
-        Category saved = categoryService.createCategory(category, adminId);
+        Category saved = categoryCommandService.createCategory(category, adminId);
 
         Map<String, Object> details = new HashMap<>();
         details.put("categoryId", saved.getId());
@@ -118,7 +122,7 @@ public class AdminCategoryController {
             @PathVariable Long id,
             @RequestBody Category category,
             HttpServletRequest request) {
-        Category saved = categoryService.updateCategory(id, category, adminId);
+        Category saved = categoryCommandService.updateCategory(id, category, adminId);
 
         Map<String, Object> details = new HashMap<>();
         details.put("categoryId", id);
@@ -156,7 +160,7 @@ public class AdminCategoryController {
         }
 
         // 归一化排序值确保连续
-        categoryService.normalizeSortValues(category.getParentId());
+        categoryCommandService.normalizeSortValues(category.getParentId());
 
         Map<String, Object> details = new HashMap<>();
         details.put("categoryId", id);
@@ -196,7 +200,7 @@ public class AdminCategoryController {
         }
 
         // 归一化排序值确保连续
-        categoryService.normalizeSortValues(category.getParentId());
+        categoryCommandService.normalizeSortValues(category.getParentId());
 
         Map<String, Object> details = new HashMap<>();
         details.put("categoryId", id);
@@ -218,7 +222,7 @@ public class AdminCategoryController {
             throw new IllegalArgumentException("状态参数不能为空");
         }
 
-        Category saved = categoryService.toggleCategoryStatus(id, status, adminId);
+        Category saved = categoryCommandService.toggleCategoryStatus(id, status, adminId);
 
         Map<String, Object> details = new HashMap<>();
         details.put("categoryId", id);
@@ -234,7 +238,7 @@ public class AdminCategoryController {
             @RequestAttribute("userId") Long adminId,
             @PathVariable Long id,
             HttpServletRequest request) {
-        categoryService.deleteCategory(id, adminId);
+        categoryCommandService.deleteCategory(id, adminId);
 
         Map<String, Object> details = new HashMap<>();
         details.put("categoryId", id);
@@ -250,7 +254,7 @@ public class AdminCategoryController {
             @RequestParam(value = "size", defaultValue = "10") int size,
             @RequestParam(value = "status", required = false) String status) {
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        return Result.success(categoryService.getAllFeedbacks(status, pageable));
+        return Result.success(categoryFeedbackService.getAllFeedbacks(status, pageable));
     }
 
     @PostMapping("/feedback/{id}/review")
@@ -262,7 +266,7 @@ public class AdminCategoryController {
             HttpServletRequest request) {
         String action = (String) requestBody.get("action");
         String reply = (String) requestBody.get("reply");
-        CategoryFeedback feedback = categoryService.reviewFeedback(id, action, reply, adminId);
+        CategoryFeedback feedback = categoryFeedbackService.reviewFeedback(id, action, reply, adminId);
 
         Map<String, Object> details = new HashMap<>();
         details.put("feedbackId", id);
@@ -279,13 +283,13 @@ public class AdminCategoryController {
             @RequestParam(value = "size", defaultValue = "20") int size,
             @RequestParam(value = "categoryId", required = false) Long categoryId) {
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        return Result.success(categoryService.getCategoryChangeLogs(categoryId, pageable));
+        return Result.success(categoryQueryService.getCategoryChangeLogs(categoryId, pageable));
     }
 
     @GetMapping("/export")
     @Operation(summary = "导出分类", description = "导出分类列表为CSV文件")
     public ResponseEntity<byte[]> exportCategories() {
-        String csv = categoryService.exportCategories();
+        String csv = categoryQueryService.exportCategories();
         byte[] bytes = csv.getBytes(StandardCharsets.UTF_8);
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=categories.csv")
@@ -299,7 +303,7 @@ public class AdminCategoryController {
             @RequestAttribute("userId") Long adminId,
             @RequestParam("file") MultipartFile file,
             HttpServletRequest request) {
-        Map<String, Object> result = categoryService.importCategories(file, adminId);
+        Map<String, Object> result = categoryCommandService.importCategories(file, adminId);
 
         Map<String, Object> details = new HashMap<>();
         details.put("successCount", result.get("successCount"));
@@ -359,7 +363,7 @@ public class AdminCategoryController {
             @RequestAttribute("userId") Long adminId,
             @RequestBody List<Long> categoryIds,
             HttpServletRequest request) {
-        categoryService.batchDeleteCategories(categoryIds, adminId);
+        categoryCommandService.batchDeleteCategories(categoryIds, adminId);
 
         Map<String, Object> details = new HashMap<>();
         details.put("categoryIds", categoryIds);
