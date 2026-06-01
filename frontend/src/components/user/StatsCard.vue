@@ -76,6 +76,35 @@ defineProps({
 @media (max-width: 768px) {
   .stats-card {
     grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-2);
+    padding: var(--space-4);
+  }
+
+  .stat-item {
+    padding: var(--space-3);
+  }
+
+  .stat-value {
+    font-size: var(--text-xl);
+  }
+
+  .stat-label {
+    font-size: var(--text-xs);
+  }
+}
+
+@media (max-width: 375px) {
+  .stats-card {
+    gap: var(--space-2);
+    padding: var(--space-3);
+  }
+
+  .stat-item {
+    padding: var(--space-2);
+  }
+
+  .stat-value {
+    font-size: var(--text-lg);
   }
 }
 </style>

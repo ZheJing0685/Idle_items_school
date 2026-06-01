@@ -78,12 +78,14 @@ const isActive = (path: string) => {
   top: 0;
   width: 200px;
   height: 100vh;
+  min-height: 100vh;
   background: var(--bg-surface);
   border-right: 1px solid var(--border-subtle);
   display: flex;
   flex-direction: column;
   transition: width var(--duration-normal) var(--ease-out-quart);
   flex-shrink: 0;
+  z-index: 50;
 }
 
 .sidebar.collapsed {
@@ -95,6 +97,9 @@ const isActive = (path: string) => {
   justify-content: flex-end;
   padding: var(--space-4);
   border-bottom: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
 }
 
 .toggle-btn {
@@ -104,9 +109,14 @@ const isActive = (path: string) => {
   align-items: center;
   justify-content: center;
   background: transparent;
+  border: none;
   border-radius: var(--radius-md);
   color: var(--text-muted);
+  cursor: pointer;
   transition: all var(--duration-fast);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
 }
 
 .toggle-btn:hover {
@@ -118,6 +128,7 @@ const isActive = (path: string) => {
   flex: 1;
   padding: var(--space-4);
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .nav-item {
@@ -131,6 +142,7 @@ const isActive = (path: string) => {
   text-decoration: none;
   transition: all var(--duration-fast);
   position: relative;
+  white-space: nowrap;
 }
 
 .nav-item:hover {
@@ -173,6 +185,8 @@ const isActive = (path: string) => {
   font-size: var(--text-sm);
   font-weight: 500;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .nav-badge {
@@ -194,5 +208,12 @@ const isActive = (path: string) => {
   left: 0;
   width: 3px;
   height: 24px;
+}
+
+/* 移动端隐藏侧边栏 */
+@media (max-width: 768px) {
+  .sidebar {
+    display: none;
+  }
 }
 </style>

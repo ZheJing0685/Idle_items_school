@@ -23,7 +23,7 @@ export const validatePassword = (password: string): boolean => {
   const hasUpper = /[A-Z]/.test(password);
   const hasLower = /[a-z]/.test(password);
   const hasNumber = /\d/.test(password);
-  const hasSpecial = /[@$!%*?&]/.test(password);
+  const hasSpecial = /[^A-Za-z0-9]/.test(password);
   return hasUpper && hasLower && hasNumber && hasSpecial;
 };
 

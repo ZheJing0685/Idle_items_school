@@ -77,13 +77,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick } from 'vue';
+import { ref, reactive, onMounted, onUnmounted, nextTick } from 'vue';
 import { useRoute } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { MessageSquare } from 'lucide-vue-next';
 import { useUserStore } from '@/store';
 import { wsService } from '@/utils/websocket';
-import { getToken } from '@/api/config/axios';
+import { getCookieValue } from '@/api/config/axios';
 import chatApi from '@/api/services/chat';
 
 const route = useRoute();
@@ -95,6 +95,11 @@ const currentChat = ref<any>(null);
 const messages = ref<any[]>([]);
 const newMessage = ref('');
 const messageList = ref<HTMLDivElement | null>(null);
+
+// 消息缓存：chatId -> messages[]
+const messageCache = reactive<Map<string, any[]>>(new Map());
+// 已加载过的聊天ID集合
+const loadedChatIds = reactive<Set<string>>(new Set());
 
 const loadChatList = async () => {
   try {
@@ -138,18 +143,45 @@ const loadChatList = async () => {
 };
 
 const selectChat = async (chat: any) => {
+  // 如果点击的是当前已选中的聊天，不重复请求
+  if (currentChat.value && currentChat.value.id === chat.id) {
+    console.log('点击的是当前聊天，跳过请求');
+    return;
+  }
+
   currentChat.value = chat;
-  await loadMessages(chat.id);
+  const chatId = String(chat.id);
+
+  // 检查缓存中是否已有该聊天的消息
+  if (messageCache.has(chatId) && loadedChatIds.has(chatId)) {
+    console.log('从缓存加载消息:', chatId);
+    messages.value = messageCache.get(chatId) || [];
+    scrollToBottom();
+    return;
+  }
+
+  // 缓存中没有，加载消息
+  await loadMessages(chatId);
 };
 
 const loadMessages = async (chatId: string) => {
   try {
+    console.log('请求加载消息:', chatId);
     const res = await chatApi.getMessages(chatId, { page: 0, size: 50 });
+    let msgData: any[] = [];
+
     if (Array.isArray(res.data)) {
-      messages.value = res.data;
+      msgData = res.data;
     } else {
-      messages.value = res.data.content || [];
+      msgData = res.data.content || [];
     }
+
+    messages.value = msgData;
+
+    // 缓存消息
+    messageCache.set(chatId, msgData);
+    loadedChatIds.add(chatId);
+
     scrollToBottom();
   } catch (error) {
     console.error('加载消息失败:', error);
@@ -158,12 +190,36 @@ const loadMessages = async (chatId: string) => {
 
 const sendMessage = async () => {
   if (!newMessage.value.trim() || !currentChat.value) return;
-  const otherUser = getOtherUser(currentChat.value);
   const content = newMessage.value.trim();
   try {
-    await chatApi.sendMessage(currentChat.value.id, String(otherUser.id), content);
+    await chatApi.sendMessage(currentChat.value.id, String(currentChat.value.buyerId === currentUserId.value ? currentChat.value.sellerId : currentChat.value.buyerId), content);
     newMessage.value = '';
-    await loadMessages(currentChat.value.id);
+
+    // 发送成功后，将新消息添加到缓存
+    const chatId = String(currentChat.value.id);
+    const newMsg = {
+      id: Date.now().toString(),
+      chatId: chatId,
+      senderId: currentUserId.value,
+      content: content,
+      createdAt: new Date().toISOString()
+    };
+
+    // 添加到消息列表
+    messages.value.push(newMsg);
+
+    // 更新缓存
+    if (messageCache.has(chatId)) {
+      messageCache.get(chatId)!.push(newMsg);
+    }
+
+    // 更新聊天列表
+    const chatInList = chatList.value.find(c => c.id === currentChat.value.id);
+    if (chatInList) {
+      chatInList.lastMessage = content;
+      chatInList.lastMessageTime = new Date().toISOString();
+      chatInList.lastMessageSenderId = currentUserId.value;
+    }
   } catch (error) {
     ElMessage.error('发送消息失败');
   }
@@ -187,15 +243,26 @@ const getMessageAvatar = (msg: any) => {
 
 const formatTime = (time: any) => {
   if (!time) return '';
-  // 支持epoch毫秒(Long)和ISO字符串
   const date = typeof time === 'number' ? new Date(time) : new Date(time);
+  if (isNaN(date.getTime())) return '';
   const now = new Date();
   const diff = now.getTime() - date.getTime();
   if (diff < 0) return '刚刚';
   if (diff < 60000) return '刚刚';
   if (diff < 3600000) return Math.floor(diff / 60000) + '分钟前';
   if (diff < 86400000) return Math.floor(diff / 3600000) + '小时前';
-  return date.toLocaleDateString('zh-CN');
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const msgDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  if (today.getTime() === msgDay.getTime()) {
+    return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+  }
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  if (msgDay.getTime() === yesterday.getTime()) {
+    return '昨天 ' + date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+  }
+  return date.toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' }) + ' ' +
+         date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
 };
 
 const formatMessageTime = (time: string) => {
@@ -213,8 +280,33 @@ const scrollToBottom = () => {
 };
 
 const handleNewMessage = (msg: any) => {
+  // 更新左侧聊天列表的最后一条消息
+  const chatInList = chatList.value.find(c => c.id === msg.chatId);
+  if (chatInList) {
+    chatInList.lastMessage = msg.content;
+    chatInList.lastMessageTime = msg.createdAt;
+    chatInList.lastMessageSenderId = msg.senderId;
+    // 把该会话移到列表顶部
+    const idx = chatList.value.indexOf(chatInList);
+    if (idx > 0) {
+      chatList.value.splice(idx, 1);
+      chatList.value.unshift(chatInList);
+    }
+  }
+
+  // 更新消息缓存
+  const chatId = String(msg.chatId);
+  if (messageCache.has(chatId)) {
+    const cachedMessages = messageCache.get(chatId)!;
+    // 防止重复添加
+    const exists = cachedMessages.some(m => m.id === msg.id);
+    if (!exists) {
+      cachedMessages.push(msg);
+    }
+  }
+
+  // 如果是当前打开的会话，添加到消息列表
   if (currentChat.value && msg.chatId === currentChat.value.id) {
-    // 避免重复添加消息
     const exists = messages.value.some(m => m.id === msg.id);
     if (!exists) {
       messages.value.push(msg);
@@ -229,12 +321,11 @@ onMounted(() => {
 
   loadChatList();
   if (currentUserId.value) {
-    const token = getToken();
-    if (token) {
-      wsService.connect(token, String(currentUserId.value)).catch((err) => {
-        console.error('WebSocket连接失败:', err);
-      });
-    }
+    // WebSocket 使用 access_token cookie 认证
+    // 由于跨端口 cookie 无法自动携带，使用空 token 让后端尝试其他认证方式
+    wsService.connect('', String(currentUserId.value)).catch((err) => {
+      console.error('WebSocket连接失败:', err);
+    });
   }
 });
 

@@ -106,7 +106,6 @@ class ErrorHandler {
   }
 
   static clearAuthStorage(): void {
-    sessionStorage.removeItem('access_token');
     sessionStorage.removeItem('refresh_token');
   }
 
@@ -143,7 +142,7 @@ class ErrorHandler {
 
 function reportError(errorInfo: ErrorReportInfo): void {
   console.log('错误上报:', errorInfo);
-  
+
   fetch('/api/error/report', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -185,7 +184,7 @@ function showSuccessNotification(message: string): void {
 export function setupGlobalErrorHandler(): void {
   window.addEventListener('error', (event) => {
     console.error('未捕获的异常:', event.error);
-    
+
     reportError({
       type: 'uncaughtException',
       message: event.error?.message || '未知错误',
@@ -194,13 +193,13 @@ export function setupGlobalErrorHandler(): void {
       url: window.location.href,
       userAgent: navigator.userAgent,
     });
-    
+
     showErrorNotification('系统发生错误，请刷新页面重试');
   });
-  
+
   window.addEventListener('unhandledrejection', (event) => {
     console.error('未处理的Promise拒绝:', event.reason);
-    
+
     reportError({
       type: 'unhandledRejection',
       message: event.reason?.message || '操作失败',
@@ -208,14 +207,14 @@ export function setupGlobalErrorHandler(): void {
       url: window.location.href,
       userAgent: navigator.userAgent,
     });
-    
+
     event.preventDefault();
   });
-  
+
   window.addEventListener('offline', () => {
     showErrorNotification('网络连接已断开，请检查网络设置');
   });
-  
+
   window.addEventListener('online', () => {
     hideErrorNotification();
     showSuccessNotification('网络连接已恢复');

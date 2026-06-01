@@ -6,18 +6,25 @@
       <!-- 头像区域 -->
       <div class="section-card">
         <div class="avatar-upload-wrapper">
-          <el-avatar :size="100" :src="form.avatar" class="profile-avatar">
-            {{ form.nickname?.charAt(0) || form.username?.charAt(0) || '用' }}
-          </el-avatar>
-          <el-upload
-            action="/api/upload"
-            :headers="{ Authorization: `Bearer ${getToken()}` }"
-            :show-file-list="false"
-            :on-success="handleAvatarSuccess"
-            :before-upload="beforeAvatarUpload"
-          >
-            <el-button size="small" type="primary">更换头像</el-button>
-          </el-upload>
+          <div class="avatar-container">
+            <el-avatar :size="100" :src="form.avatar" class="profile-avatar">
+              {{ form.nickname?.charAt(0) || form.username?.charAt(0) || '用' }}
+            </el-avatar>
+            <el-upload
+              action="/api/upload"
+              :with-credentials="true"
+              :show-file-list="false"
+              :on-success="handleAvatarSuccess"
+              :before-upload="beforeAvatarUpload"
+              class="avatar-upload-trigger"
+            >
+              <div class="avatar-overlay">
+                <el-icon :size="20"><Edit /></el-icon>
+                <span>更换头像</span>
+              </div>
+            </el-upload>
+          </div>
+          <p class="avatar-hint">支持 JPG、PNG 格式，大小不超过 5MB</p>
         </div>
       </div>
 
@@ -149,9 +156,9 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { ElMessage } from 'element-plus';
+import { Edit } from '@element-plus/icons-vue';
 import { userStore } from '../../store';
 import api from '../../api';
-import { getToken } from '../../api/config/axios';
 import PageHeader from '../../components/user/PageHeader.vue';
 
 const store = userStore();

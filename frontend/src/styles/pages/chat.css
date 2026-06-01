@@ -183,10 +183,47 @@
 .message-input {
   padding: var(--space-4) var(--space-5);
   border-top: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
 }
 
 .message-input :deep(.el-input__wrapper) {
   border-radius: var(--radius-lg);
+  padding: 4px 4px 4px 16px;
+  box-shadow: 0 0 0 1px var(--border-subtle);
+  transition: box-shadow 0.2s;
+}
+
+.message-input :deep(.el-input__wrapper):hover {
+  box-shadow: 0 0 0 1px var(--primary-color);
+}
+
+.message-input :deep(.el-input__wrapper.is-focus) {
+  box-shadow: 0 0 0 2px oklch(62% 0.14 195 / 0.3);
+}
+
+.message-input :deep(.el-input-group__append) {
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 8px 20px;
+  font-weight: 500;
+  margin-left: 4px;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.message-input :deep(.el-input-group__append:hover) {
+  background: oklch(55% 0.14 195);
+}
+
+.message-input :deep(.el-input-group__append:active) {
+  transform: scale(0.97);
+}
+
+.message-input :deep(.el-input-group__append.is-disabled) {
+  background: var(--border-subtle);
+  color: var(--text-muted);
+  cursor: not-allowed;
 }
 
 .no-chat-selected {

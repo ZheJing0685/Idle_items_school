@@ -47,7 +47,6 @@ import { ElMessage } from 'element-plus';
 import { useRouter } from 'vue-router';
 import notificationApi from '@/api/services/notification';
 import { wsService } from '@/utils/websocket';
-import { getToken } from '@/api/config/axios';
 import { useUserStore } from '@/store';
 import PageHeader from '@/components/user/PageHeader.vue';
 import NotificationCard from '@/components/user/NotificationCard.vue';
@@ -126,10 +125,10 @@ onMounted(() => {
   loadNotifications();
   wsService.onMessage('notification', handleNewNotification);
 
-  const token = getToken();
   const userId = userStore.user?.id;
-  if (token && userId) {
-    wsService.connect(token, String(userId)).catch((err) => {
+  if (userId) {
+    // WebSocket 使用 access_token cookie 认证
+    wsService.connect('', String(userId)).catch((err) => {
       console.error('WebSocket连接失败:', err);
     });
   }

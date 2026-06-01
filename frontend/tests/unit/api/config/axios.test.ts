@@ -88,47 +88,27 @@ describe('Axios配置', () => {
   });
 
   describe('Token管理', () => {
-    it('应该正确设置和获取token', async () => {
+    it('setToken 和 getToken 现在是空实现（token 由 HttpOnly Cookie 管理）', async () => {
       const { setToken, getToken } = await import('@/api/config/axios');
 
       setToken('test-token-123');
-      expect(getToken()).toBe('test-token-123');
-      expect(sessionStorage.getItem('access_token')).toBe('test-token-123');
-    });
-
-    it('应该清除token', async () => {
-      const { setToken, clearToken, getToken } = await import('@/api/config/axios');
-
-      setToken('test-token-123');
-      clearToken();
-
       expect(getToken()).toBe('');
-      expect(sessionStorage.getItem('access_token')).toBeNull();
-      expect(sessionStorage.getItem('refresh_token')).toBeNull();
     });
 
-    it('应该从sessionStorage恢复token', async () => {
-      // 先设置sessionStorage，然后重新导入模块
+    it('clearToken 现在是空实现', async () => {
+      const { clearToken, getToken } = await import('@/api/config/axios');
+
+      clearToken();
+      expect(getToken()).toBe('');
+    });
+
+    it('getToken 始终返回空字符串', async () => {
       sessionStorage.setItem('access_token', 'stored-token');
 
-      // 重置模块缓存以重新执行initToken()
       vi.resetModules();
 
       const { getToken } = await import('@/api/config/axios');
-      expect(getToken()).toBe('stored-token');
-    });
-
-    it('应该多次设置token', async () => {
-      const { setToken, getToken } = await import('@/api/config/axios');
-
-      setToken('token1');
-      expect(getToken()).toBe('token1');
-
-      setToken('token2');
-      expect(getToken()).toBe('token2');
-
-      setToken('token3');
-      expect(getToken()).toBe('token3');
+      expect(getToken()).toBe('');
     });
   });
 

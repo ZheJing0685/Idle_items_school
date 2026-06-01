@@ -15,8 +15,8 @@ const auth = {
         useMerge: true,
       },
     ),
-  refreshToken: (data: string) =>
-    post<{ token: string; refreshToken?: string }>(API_PATHS.AUTH.REFRESH, { refreshToken: data }),
+  refreshToken: () =>
+    post<{ token: string; refreshToken?: string }>(API_PATHS.AUTH.REFRESH),
   forgotPassword: (email: string) =>
     post<void>(API_PATHS.AUTH.FORGOT_PASSWORD, { email }),
   verifyCode: (email: string, code: string) =>

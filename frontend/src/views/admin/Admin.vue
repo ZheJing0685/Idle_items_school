@@ -140,14 +140,10 @@
           <h1 class="page-title">{{ currentPageTitle }}</h1>
         </div>
         <div class="header-right">
-          <div class="header-search">
-            <Search :size="16" class="search-icon" />
-            <input type="text" placeholder="搜索功能..." class="search-input" />
-          </div>
-          <button class="header-action" aria-label="通知">
-            <Bell :size="18" />
-            <span class="notification-badge">3</span>
-          </button>
+          <router-link to="/" class="back-home-btn">
+            <Home :size="18" />
+            <span>返回首页</span>
+          </router-link>
         </div>
       </header>
 
@@ -167,7 +163,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { userStore } from '../../store';
-import { LayoutDashboard, Users, CheckCircle, Package, Menu, MessageSquare, ClipboardList, AlertTriangle, TrendingUp, FileText, LogOut, Search, Bell } from 'lucide-vue-next';
+import { LayoutDashboard, Users, CheckCircle, Package, Menu, MessageSquare, ClipboardList, AlertTriangle, TrendingUp, FileText, LogOut, Home } from 'lucide-vue-next';
 
 const route = useRoute();
 const router = useRouter();

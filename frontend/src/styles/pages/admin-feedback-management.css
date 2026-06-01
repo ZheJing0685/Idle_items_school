@@ -297,7 +297,9 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: var(--space-3);
+  padding: var(--space-16) var(--space-6);
   color: var(--content-tertiary);
 }
 
@@ -309,6 +311,18 @@
 
 .empty-state span {
   font-size: 14px;
+}
+
+:deep(.el-table__empty-block) {
+  width: 100%;
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+:deep(.el-table__empty-text) {
+  width: 100%;
 }
 
 .pagination-wrapper {

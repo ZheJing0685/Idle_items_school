@@ -17,6 +17,25 @@ vi.mock('vue-router', () => ({
   useRouter: () => ({
     push: mockPush,
   }),
+  createRouter: vi.fn(() => ({
+    beforeEach: vi.fn(),
+    afterEach: vi.fn(),
+  })),
+  createWebHistory: vi.fn(),
+}));
+
+vi.mock('@/api/config/axios', () => ({
+  default: {
+    interceptors: {
+      request: { use: vi.fn() },
+      response: { use: vi.fn() },
+    },
+  },
+  clearAuthState: vi.fn(),
+  setUnauthorizedHandler: vi.fn(),
+  setToken: vi.fn(),
+  getToken: vi.fn(() => ''),
+  clearToken: vi.fn(),
 }));
 
 // Mock Element Plus

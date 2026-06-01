@@ -164,6 +164,18 @@ defineProps({
     flex-direction: column;
     align-items: center;
     text-align: center;
+    padding: var(--space-4);
+    gap: var(--space-4);
+  }
+
+  .avatar {
+    width: 72px;
+    height: 72px;
+    font-size: var(--text-2xl);
+  }
+
+  .avatar-glow {
+    inset: -6px;
   }
 
   .info-header {
@@ -171,8 +183,22 @@ defineProps({
     gap: var(--space-2);
   }
 
+  .user-name {
+    font-size: var(--text-xl);
+  }
+
+  .edit-btn {
+    padding: var(--space-2) var(--space-3);
+    font-size: var(--text-xs);
+  }
+
   .user-meta {
     justify-content: center;
+    font-size: var(--text-xs);
+  }
+
+  .user-bio {
+    font-size: var(--text-xs);
   }
 }
 </style>

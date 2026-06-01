@@ -43,11 +43,17 @@ class WebSocketService {
           this.connected = true;
           this.connectionState = 'connected';
 
-          this.sendStompFrame('CONNECT', {
+          const connectHeaders: StompHeaders = {
             'accept-version': '1.1,1.0',
             'heart-beat': '4000,4000',
-            'Authorization': `Bearer ${token}`,
-          });
+          };
+          // 如果有 token（非空），添加 Authorization header
+          // 如果没有 token，依赖后端从其他方式验证（如同源 cookie）
+          if (token) {
+            connectHeaders['Authorization'] = `Bearer ${token}`;
+          }
+
+          this.sendStompFrame('CONNECT', connectHeaders);
         };
 
         this.ws.onmessage = (event: MessageEvent) => {

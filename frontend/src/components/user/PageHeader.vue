@@ -39,6 +39,7 @@ defineProps({
 
 .header-left {
   flex: 1;
+  min-width: 0;
 }
 
 .header-title {
@@ -49,6 +50,7 @@ defineProps({
   margin: 0;
   position: relative;
   padding-left: var(--space-4);
+  line-height: 1.3;
 }
 
 .header-title::before {
@@ -68,9 +70,48 @@ defineProps({
   color: var(--text-muted);
   margin: var(--space-2) 0 0;
   padding-left: var(--space-4);
+  line-height: 1.5;
 }
 
 .header-right {
   flex-shrink: 0;
+}
+
+/* 移动端响应式 */
+@media (max-width: 768px) {
+  .page-header {
+    margin-bottom: var(--space-4);
+  }
+
+  .header-content {
+    gap: var(--space-3);
+  }
+
+  .header-title {
+    font-size: var(--text-xl);
+    padding-left: var(--space-3);
+  }
+
+  .header-title::before {
+    height: 20px;
+    width: 3px;
+  }
+
+  .header-subtitle {
+    font-size: var(--text-xs);
+    margin-top: var(--space-1);
+    padding-left: var(--space-3);
+  }
+}
+
+/* 小屏幕优化 */
+@media (max-width: 375px) {
+  .header-title {
+    font-size: var(--text-lg);
+  }
+
+  .header-subtitle {
+    font-size: 11px;
+  }
 }
 </style>

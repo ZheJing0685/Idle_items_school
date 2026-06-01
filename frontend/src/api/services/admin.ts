@@ -89,7 +89,7 @@ const admin = {
     batchDisable: (categoryIds: number[]) =>
       post<null>('/admin/categories/batch/disable', { categoryIds }),
     getFeedbacks: (params?: Record<string, any>) =>
-      get<any>('/admin/categories/feedbacks', { params }),
+      get<any>('/admin/categories/feedback', { params }),
     reviewFeedback: (feedbackId: number | string, data: Record<string, any>) =>
       post<null>(`/admin/categories/feedback/${feedbackId}/review`, data),
     exportCategories: () =>

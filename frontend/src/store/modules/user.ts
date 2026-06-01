@@ -1,27 +1,25 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import api from '../../api';
-import { setToken, clearToken, getToken } from '../../api/config/axios';
+import { clearAuthState } from '../../api/config/axios';
 import { ErrorHandler } from '../../utils/error';
 import type { UserInfo, RegisterRequest } from '../../types/api';
 
 export const useUserStore = defineStore('user', () => {
-  const refreshToken = ref('');
   const user = ref<UserInfo | null>(null);
   const lastLoginTime = ref<string | null>(null);
   const rememberMe = ref(false);
   const loading = ref(false);
-  const isLoggedIn = ref(!!getToken());
+  const isLoggedIn = ref(false);
   const isAdmin = computed(() => user.value?.role === 'ADMIN');
   const isVerified = computed(() => user.value?.verified === true);
+  let restorePromise: Promise<boolean> | null = null;
 
-  const setRefreshToken = (newRefreshToken: string) => {
-    refreshToken.value = newRefreshToken;
-    if (newRefreshToken) {
-      sessionStorage.setItem('refresh_token', newRefreshToken);
-    } else {
-      sessionStorage.removeItem('refresh_token');
-    }
+  const clearLocalState = () => {
+    clearAuthState();
+    user.value = null;
+    lastLoginTime.value = null;
+    isLoggedIn.value = false;
   };
 
   const login = async (username: string, password: string, remember?: boolean) => {
@@ -29,10 +27,8 @@ export const useUserStore = defineStore('user', () => {
     try {
       const response = await api.auth.login({ username, password });
       if (response.code === 200 && response.data) {
-        const { token: newToken, refreshToken: newRefreshToken, user: userInfo } = response.data;
-        setToken(newToken);
-        setRefreshToken(newRefreshToken);
-        user.value = userInfo;
+        // Cookie 已由后端自动设置，无需前端处理 token
+        user.value = response.data.user;
         lastLoginTime.value = new Date().toISOString();
         rememberMe.value = remember || false;
         isLoggedIn.value = true;
@@ -52,11 +48,8 @@ export const useUserStore = defineStore('user', () => {
     try {
       const response = await api.auth.register(userData);
       if (response.code === 200 && response.data) {
-        // 注册成功后自动登录，保存Token和用户信息
-        const { token: newToken, refreshToken: newRefreshToken, user: userInfo } = response.data;
-        setToken(newToken);
-        setRefreshToken(newRefreshToken);
-        user.value = userInfo;
+        // Cookie 已由后端自动设置
+        user.value = response.data.user;
         lastLoginTime.value = new Date().toISOString();
         isLoggedIn.value = true;
         return response;
@@ -72,36 +65,60 @@ export const useUserStore = defineStore('user', () => {
 
   const logout = async () => {
     try {
-      // 调用后端logout接口，将当前Token加入黑名单
-      if (getToken()) {
-        await api.auth.logout();
-      }
+      // 调用后端登出接口，使 Token 失效并清除 HttpOnly Cookie
+      await api.auth.logout();
     } catch {
       // 即使后端调用失败，也要清除本地状态
     } finally {
-      clearToken();
-      refreshToken.value = '';
-      user.value = null;
-      lastLoginTime.value = null;
-      isLoggedIn.value = false;
+      clearLocalState();
     }
   };
 
   const getCurrentUser = async (): Promise<UserInfo | null> => {
-    if (!getToken()) return null;
     try {
       const response = await api.auth.getCurrentUser();
       if (response.code === 200) {
         user.value = response.data;
+        isLoggedIn.value = true;
         return response.data;
       }
       return null;
     } catch (error: any) {
-      // 401错误时登出（axios拦截器会弹框提示）
       if (error?.response?.status === 401 || error?.code === 401) {
-        await logout();
+        clearLocalState();
       }
       return null;
+    }
+  };
+
+  const restoreSession = async (): Promise<boolean> => {
+    if (restorePromise) return restorePromise;
+
+    restorePromise = (async () => {
+      const currentUser = await getCurrentUser();
+      if (currentUser) return true;
+
+      try {
+        const refreshResponse = await api.auth.refreshToken();
+        if (refreshResponse.code !== 200) {
+          clearLocalState();
+          return false;
+        }
+
+        const refreshedUser = await getCurrentUser();
+        if (refreshedUser) return true;
+      } catch {
+        // Cookie 会话不可恢复，落回未登录态。
+      }
+
+      clearLocalState();
+      return false;
+    })();
+
+    try {
+      return await restorePromise;
+    } finally {
+      restorePromise = null;
     }
   };
 
@@ -120,8 +137,8 @@ export const useUserStore = defineStore('user', () => {
   };
 
   return {
-    refreshToken, user, lastLoginTime, rememberMe, loading,
+    user, lastLoginTime, rememberMe, loading,
     isLoggedIn, isAdmin, isVerified,
-    setRefreshToken, login, register, logout, getCurrentUser, updateProfile,
+    login, register, logout, getCurrentUser, restoreSession, updateProfile,
   };
 });

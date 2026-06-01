@@ -1,238 +1,148 @@
 <template>
   <div class="home">
+    <!-- Hero Banner -->
     <section class="hero">
       <div class="container">
         <div class="hero-content">
-          <div class="hero-text">
-            <div class="hero-badge">
-              <Smile :size="16" fill="var(--secondary-color)" color="var(--secondary-color)" />
-              <span>校园绿色交易平台</span>
+          <span class="hero-tag">🌱 校园绿色行动</span>
+          <h1 class="hero-title">让闲置流动<br>让校园更绿</h1>
+          <p class="hero-description">在这里，每一件闲置物品都找到新主人，减少浪费，传递价值。</p>
+          <div class="hero-stats">
+            <div class="hero-stat-item">
+              <strong>2,847</strong>
+              件物品在流转
             </div>
-            <h1 class="hero-title">
-              闲置不闲置<br />
-              <span class="hero-title-accent">变废为宝</span>
-            </h1>
-            <p class="hero-description">
-              让闲置物品找到新主人，让资源得到充分利用。<br />
-              绿色校园，你我共创。
-            </p>
-            <div class="hero-actions">
-              <router-link to="/items" class="hero-btn hero-btn-primary">
-                <Search :size="20" />
-                探索好物
-              </router-link>
-              <router-link to="/publish" class="hero-btn hero-btn-secondary">
-                <CirclePlus :size="20" />
-                发布闲置
-              </router-link>
+            <div class="hero-stat-item">
+              <strong>128kg</strong>
+              本月减碳量
             </div>
-          </div>
-          <div class="hero-visual">
-            <div class="hero-card-stack">
-              <div class="hero-card hero-card-1">
-                <div class="hero-card-content">
-                  <Laptop :size="28" class="hero-card-icon" stroke-width="1.5" />
-                  <span class="hero-card-label">二手笔记本</span>
-                  <span class="hero-card-price">省 ¥2,000+</span>
-                </div>
-              </div>
-              <div class="hero-card hero-card-2">
-                <div class="hero-card-content">
-                  <BookOpen :size="28" class="hero-card-icon" stroke-width="1.5" />
-                  <span class="hero-card-label">二手教材</span>
-                  <span class="hero-card-price">低至 3 折</span>
-                </div>
-              </div>
-              <div class="hero-card hero-card-3">
-                <div class="hero-card-content">
-                  <Watch :size="28" class="hero-card-icon" stroke-width="1.5" />
-                  <span class="hero-card-label">运动手环</span>
-                  <span class="hero-card-price">几乎全新</span>
-                </div>
-              </div>
-            </div>
-            <div class="hero-stats-row">
-              <div class="hero-stat-item">
-                <span class="hero-stat-number">12,847</span>
-                <span class="hero-stat-label">成功交易</span>
-              </div>
-              <div class="hero-stat-divider"></div>
-              <div class="hero-stat-item">
-                <span class="hero-stat-number">98.6%</span>
-                <span class="hero-stat-label">好评率</span>
-              </div>
-              <div class="hero-stat-divider"></div>
-              <div class="hero-stat-item">
-                <span class="hero-stat-number">24h</span>
-                <span class="hero-stat-label">快速响应</span>
-              </div>
+            <div class="hero-stat-item">
+              <strong>1,206</strong>
+              位同学参与
             </div>
           </div>
         </div>
+        <svg class="hero-deco" viewBox="0 0 200 200" fill="none">
+          <circle cx="100" cy="100" r="80" stroke="currentColor" stroke-width="1.5" opacity="0.3" />
+          <path d="M100 40C70 40 50 70 50 100s20 60 50 60 50-30 50-60S130 40 100 40z" stroke="currentColor" stroke-width="1.5" opacity="0.2" />
+          <path d="M60 100h80M100 60v80" stroke="currentColor" stroke-width="1" opacity="0.15" />
+        </svg>
       </div>
     </section>
 
+    <!-- Categories -->
     <section class="categories">
       <div class="container">
-        <div class="section-header">
-          <div class="section-title-group">
-            <h2 class="section-title">分类浏览</h2>
-            <p class="section-subtitle">找到你需要的闲置好物</p>
-          </div>
-        </div>
-        <div class="categories-grid">
+        <div class="category-row">
           <div
-            v-for="(category, index) in categories"
+            v-for="category in categories"
             :key="category.id"
-            class="category-card-wrapper"
+            class="category-chip"
+            :class="{ active: activeCategory === category.id }"
+            @click="selectCategory(category.id)"
           >
-            <router-link
-              :to="`/items?category=${category.id}`"
-              class="category-card"
-              :style="{ animationDelay: `${index * 0.1}s` }"
-            >
-              <div
-                class="category-icon"
-                :style="{ background: category.bgColor }"
-              >
-                <component :is="getCategoryIcon(category.id)" :size="24" stroke-width="1.5" />
-              </div>
-              <div class="category-info">
-                <h3 class="category-name">{{ category.name }}</h3>
-                <span class="category-count">{{ category.count }} 件物品</span>
-              </div>
-              <ArrowRight class="category-arrow" :size="20" />
-            </router-link>
-            <div
-              class="category-submenu"
-              v-if="category.children && category.children.length > 0"
-            >
-              <router-link
-                v-for="child in category.children"
-                :key="child.id"
-                :to="`/items?category=${child.id}`"
-                class="submenu-item"
-              >
-                <span class="submenu-name">{{ child.name }}</span>
-                <span class="submenu-count">{{ child.count }} 件</span>
-              </router-link>
-            </div>
+            <div class="category-chip-icon">{{ category.icon }}</div>
+            <span class="category-chip-label">{{ category.name }}</span>
           </div>
         </div>
       </div>
     </section>
 
-    <section class="featured">
+    <!-- Eco Stats Bar -->
+    <section class="eco-section">
+      <div class="container">
+        <div class="eco-bar">
+          <span class="eco-bar-icon">♻️</span>
+          <div class="eco-bar-text">
+            本月校园交易已减少 <strong>128kg</strong> 碳排放，相当于种植 <strong>7</strong> 棵树的年吸碳量。每一次交易都是对地球的一份善意。
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Hot Items -->
+    <section class="home-section">
       <div class="container">
         <div class="section-header">
-          <div class="section-title-group">
-            <h2 class="section-title">热门好物</h2>
-            <p class="section-subtitle">精选优质闲置，抢手好货</p>
-          </div>
-          <router-link to="/items" class="section-link">
-             查看更多
-             <ArrowRight :size="16" />
-          </router-link>
+          <h2 class="section-title">热门推荐</h2>
+          <router-link to="/items" class="section-more">查看更多 →</router-link>
         </div>
         <div class="items-grid">
-          <article
-            v-for="(item, index) in featuredItems"
+          <div
+            v-for="(item, index) in hotItems"
             :key="item.id"
-            class="item-card"
-            :style="{ animationDelay: `${index * 0.08}s` }"
+            class="card card-clickable item-card"
             @click="$router.push(`/item/${item.id}`)"
           >
-            <div class="item-image">
-              <img
-                :src="item.coverImage"
-                :alt="item.title"
-                loading="lazy"
-              />
-              <div v-if="!item.coverImage" class="item-image-placeholder">
-                <Image :size="32" />
-                <span>暂无图片</span>
+            <div class="item-card-img">
+              <div class="img-placeholder" :style="{ background: getItemColor(item.category, index) }">
+                {{ getCategoryEmoji(item.category) }}
               </div>
-              <div class="item-overlay">
-                <button class="item-action">
-                  <Eye :size="20" />
-                  查看详情
-                </button>
-              </div>
-              <span class="item-badge" v-if="item.isNew">新品</span>
+              <span v-if="item.eco" class="tag tag-eco eco-badge">环保</span>
+              <button class="fav-btn" :class="{ liked: likedItems.has(item.id) }" @click.stop="toggleLike(item.id)">
+                <svg viewBox="0 0 24 24" :fill="likedItems.has(item.id) ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2">
+                  <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
+                </svg>
+              </button>
             </div>
-            <div class="item-content">
-              <h3 class="item-title">{{ item.title }}</h3>
-              <div class="item-price-row">
-                <span class="item-price">¥{{ item.price }}</span>
-                <span class="item-original" v-if="item.originalPrice"
-                  >¥{{ item.originalPrice }}</span
-                >
-              </div>
-              <div class="item-meta">
-                <div class="item-seller">
-                  <el-avatar :size="20">{{
-                    item.sellerName?.charAt(0) || '卖'
-                  }}</el-avatar>
-                  <span>{{ item.sellerName }}</span>
-                </div>
-                <div class="item-stats">
-                  <span class="item-views">
-                    <Eye :size="12" />
-                    {{ item.viewCount }}
-                  </span>
+            <div class="item-card-body">
+              <div class="item-card-title">{{ item.title }}</div>
+              <div class="item-card-meta">
+                <div class="item-card-price">
+                  <span class="unit">¥</span>{{ item.price.toLocaleString() }}
+                  <span v-if="item.originalPrice" class="original">¥{{ item.originalPrice.toLocaleString() }}</span>
                 </div>
               </div>
             </div>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <section class="promo">
-      <div class="container">
-        <div class="promo-card">
-          <div class="promo-content">
-            <div class="promo-badge">新用户专享</div>
-            <h2 class="promo-title">注册即送100积分</h2>
-            <p class="promo-description">首单立减10元，让交易更划算</p>
-            <router-link to="/register" class="promo-btn">
-               立即注册
-               <ArrowRight :size="18" />
-            </router-link>
-          </div>
-          <div class="promo-visual">
-              <div class="promo-visual-placeholder">
-                <Verified :size="48" />
-                <span>学生认证即享优惠</span>
-              </div>
+            <div class="item-card-seller">
+              <span class="mini-avatar">{{ item.sellerName?.charAt(0) || '卖' }}</span>
+              <span>{{ item.sellerName }}</span>
+              <span style="margin-left:auto">{{ item.time || '刚刚' }}</span>
+            </div>
           </div>
         </div>
       </div>
     </section>
 
-    <section class="trust">
+    <!-- Latest Items -->
+    <section class="home-section">
       <div class="container">
-        <div class="trust-grid">
-          <div class="trust-item">
-            <div class="trust-icon">
-              <ShieldCheck :size="32" color="var(--primary-color)" />
+        <div class="section-header">
+          <h2 class="section-title">最新发布</h2>
+          <router-link to="/items" class="section-more">查看更多 →</router-link>
+        </div>
+        <div class="items-grid">
+          <div
+            v-for="(item, index) in latestItems"
+            :key="item.id"
+            class="card card-clickable item-card"
+            @click="$router.push(`/item/${item.id}`)"
+          >
+            <div class="item-card-img">
+              <div class="img-placeholder" :style="{ background: getItemColor(item.category, index) }">
+                {{ getCategoryEmoji(item.category) }}
+              </div>
+              <span v-if="item.eco" class="tag tag-eco eco-badge">环保</span>
+              <button class="fav-btn" :class="{ liked: likedItems.has(item.id) }" @click.stop="toggleLike(item.id)">
+                <svg viewBox="0 0 24 24" :fill="likedItems.has(item.id) ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2">
+                  <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
+                </svg>
+              </button>
             </div>
-            <h3 class="trust-title">实名认证</h3>
-            <p class="trust-desc">所有用户经过学生身份认证，交易更放心</p>
-          </div>
-          <div class="trust-item">
-            <div class="trust-icon">
-              <MessageSquare :size="32" color="var(--primary-color)" />
+            <div class="item-card-body">
+              <div class="item-card-title">{{ item.title }}</div>
+              <div class="item-card-meta">
+                <div class="item-card-price">
+                  <span class="unit">¥</span>{{ item.price.toLocaleString() }}
+                  <span v-if="item.originalPrice" class="original">¥{{ item.originalPrice.toLocaleString() }}</span>
+                </div>
+              </div>
             </div>
-            <h3 class="trust-title">快捷发布</h3>
-            <p class="trust-desc">拍照上传，简单几步即可发布你的闲置</p>
-          </div>
-          <div class="trust-item">
-            <div class="trust-icon">
-              <Leaf :size="32" color="var(--primary-color)" />
+            <div class="item-card-seller">
+              <span class="mini-avatar">{{ item.sellerName?.charAt(0) || '卖' }}</span>
+              <span>{{ item.sellerName }}</span>
+              <span style="margin-left:auto">{{ item.time || '刚刚' }}</span>
             </div>
-            <h3 class="trust-title">环保交易</h3>
-            <p class="trust-desc">减少资源浪费，为绿色校园贡献力量</p>
           </div>
         </div>
       </div>
@@ -244,80 +154,84 @@
 import { ref, onMounted } from 'vue';
 import { useItemStore } from '../store';
 import api from '../api';
-import { Search, CirclePlus, ArrowRight, Smile, Eye, Image, Verified, ShieldCheck, MessageSquare, Leaf, Laptop, BookOpen, Watch, Smartphone, Home, Trophy, Shirt, Package } from 'lucide-vue-next';
 
 const store = useItemStore();
 
-const categories = ref<any[]>([]);
-const featuredItems = ref<any[]>([]);
-const loading = ref({
-  categories: false,
-  items: false,
-});
+const categories = ref([
+  { id: 'all', name: '全部', icon: '🏠' },
+  { id: 'digital', name: '数码电子', icon: '💻' },
+  { id: 'books', name: '教材书籍', icon: '📚' },
+  { id: 'living', name: '生活用品', icon: '🧴' },
+  { id: 'clothing', name: '服饰鞋包', icon: '👟' },
+  { id: 'sports', name: '运动户外', icon: '⚽' },
+  { id: 'furniture', name: '家具家电', icon: '🪑' },
+  { id: 'other', name: '其他', icon: '📦' },
+]);
 
-const fetchCategories = async () => {
-  loading.value.categories = true;
-  try {
-    const response = await api.category.getCategoryTree();
-    categories.value = response.data.map((category: any) => ({
-      id: category.id,
-      name: category.name,
-      count: category.itemCount || 0,
-      bgColor: getCategoryColor(category.id),
-      children: (category.children || []).map((child: any) => ({
-        id: child.id,
-        name: child.name,
-        count: child.itemCount || 0,
-      })),
-    }));
-  } catch (error) {
-    console.error('获取分类失败', error);
-  } finally {
-    loading.value.categories = false;
+const activeCategory = ref('all');
+const hotItems = ref<any[]>([]);
+const latestItems = ref<any[]>([]);
+const likedItems = ref(new Set<number>());
+
+const IMG_COLORS: Record<string, string[]> = {
+  digital: ['#dce8f7', '#c4d8f0', '#b0cce8'],
+  books: ['#f5edd6', '#ebe0c4', '#e0d3b2'],
+  living: ['#d8f0e0', '#c4e8d0', '#b0e0c0'],
+  clothing: ['#e8d8f0', '#dcc4e8', '#d0b0e0'],
+  sports: ['#f0e0d0', '#e8d4c0', '#e0c8b0'],
+  furniture: ['#e0e8d8', '#d4e0c8', '#c8d8b8'],
+  other: ['#e8e8e8', '#dcdcdc', '#d0d0d0'],
+};
+
+const getItemColor = (category: string, index: number) => {
+  const colors = IMG_COLORS[category] || IMG_COLORS.other;
+  return colors[index % colors.length];
+};
+
+const getCategoryEmoji = (category: string) => {
+  const cat = categories.value.find(c => c.id === category);
+  return cat?.icon || '📦';
+};
+
+const selectCategory = (id: string) => {
+  activeCategory.value = id;
+};
+
+const toggleLike = (id: number) => {
+  if (likedItems.value.has(id)) {
+    likedItems.value.delete(id);
+  } else {
+    likedItems.value.add(id);
   }
 };
 
-const getCategoryColor = (id: number) => {
-  const colors = [
-    'oklch(70% 0.16 38 / 0.15)',
-    'oklch(62% 0.14 195 / 0.12)',
-    'oklch(62% 0.12 158 / 0.12)',
-    'oklch(75% 0.14 85 / 0.12)',
-    'oklch(60% 0.20 25 / 0.10)',
-    'oklch(62% 0.14 250 / 0.10)',
-  ];
-  return colors[(id - 1) % colors.length];
-};
-
-const getCategoryIcon = (id: number) => {
-  const icons = [Smartphone, BookOpen, Home, Trophy, Shirt, Package];
-  return icons[(id - 1) % icons.length];
-};
-
 onMounted(async () => {
-  // 获取分类
-  await fetchCategories();
-
-  // 获取热门物品
-  loading.value.items = true;
   try {
     await store.fetchHotItems();
     if (store.hotItems?.length > 0) {
-      featuredItems.value = store.hotItems.slice(0, 8).map((item: any) => ({
+      hotItems.value = store.hotItems.slice(0, 8).map((item: any) => ({
         id: item.id,
         title: item.title,
         price: item.price,
         originalPrice: item.originalPrice,
-        coverImage: item.coverImage,
-        viewCount: item.viewCount,
+        category: item.categoryName?.toLowerCase() || 'other',
         sellerName: item.sellerNickname || '未知卖家',
-        isNew: item.isNew,
+        eco: item.price < 100,
+        time: '2小时前',
+      }));
+      latestItems.value = store.hotItems.slice(4, 12).map((item: any) => ({
+        id: item.id,
+        title: item.title,
+        price: item.price,
+        originalPrice: item.originalPrice,
+        category: item.categoryName?.toLowerCase() || 'other',
+        sellerName: item.sellerNickname || '未知卖家',
+        eco: item.price < 100,
+        time: '5小时前',
       }));
     }
   } catch (error) {
     console.error('获取热门物品失败', error);
-  } finally {
-    loading.value.items = false;
   }
 });
 </script>

@@ -2,11 +2,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { setActivePinia, createPinia } from 'pinia';
 
 // Mock API
-const { mockLogin, mockRegister, mockLogout, mockGetCurrentUser, mockUpdateProfile } = vi.hoisted(() => ({
+const { mockLogin, mockRegister, mockLogout, mockGetCurrentUser, mockRefreshToken, mockUpdateProfile } = vi.hoisted(() => ({
   mockLogin: vi.fn(),
   mockRegister: vi.fn(),
   mockLogout: vi.fn(),
   mockGetCurrentUser: vi.fn(),
+  mockRefreshToken: vi.fn(),
   mockUpdateProfile: vi.fn(),
 }));
 
@@ -17,6 +18,7 @@ vi.mock('@/api', () => ({
       register: mockRegister,
       logout: mockLogout,
       getCurrentUser: mockGetCurrentUser,
+      refreshToken: mockRefreshToken,
     },
     user: {
       updateProfile: mockUpdateProfile,
@@ -29,6 +31,9 @@ vi.mock('@/api/config/axios', () => ({
   setToken: vi.fn(),
   clearToken: vi.fn(),
   getToken: vi.fn().mockReturnValue('test-token'),
+  isLoggedIn: vi.fn().mockReturnValue(false),
+  clearCookies: vi.fn(),
+  clearAuthState: vi.fn(),
 }));
 
 // Mock ErrorHandler
@@ -173,6 +178,60 @@ describe('User Store', () => {
 
       expect(result).toEqual({ id: 1, username: 'testuser' });
       expect(store.user).toEqual({ id: 1, username: 'testuser' });
+    });
+
+    it('should restore session from server current user after refresh', async () => {
+      mockGetCurrentUser.mockResolvedValue({
+        code: 200,
+        data: { id: 1, username: 'testuser' },
+      });
+
+      const { useUserStore } = await import('@/store/modules/user');
+      const store = useUserStore();
+
+      const result = await store.restoreSession();
+
+      expect(result).toBe(true);
+      expect(mockGetCurrentUser).toHaveBeenCalled();
+      expect(store.user).toEqual({ id: 1, username: 'testuser' });
+      expect(store.isLoggedIn).toBe(true);
+    });
+
+    it('should refresh cookie session before restoring user when current user is unauthorized', async () => {
+      mockGetCurrentUser
+        .mockRejectedValueOnce({ response: { status: 401 } })
+        .mockResolvedValueOnce({
+          code: 200,
+          data: { id: 1, username: 'testuser' },
+        });
+      mockRefreshToken.mockResolvedValue({ code: 200, data: {} });
+
+      const { useUserStore } = await import('@/store/modules/user');
+      const store = useUserStore();
+
+      const result = await store.restoreSession();
+
+      expect(result).toBe(true);
+      expect(mockRefreshToken).toHaveBeenCalledWith();
+      expect(mockGetCurrentUser).toHaveBeenCalledTimes(2);
+      expect(store.user).toEqual({ id: 1, username: 'testuser' });
+      expect(store.isLoggedIn).toBe(true);
+    });
+
+    it('should clear login state when session restore fails', async () => {
+      mockGetCurrentUser.mockRejectedValue({ response: { status: 401 } });
+      mockRefreshToken.mockRejectedValue({ response: { status: 401 } });
+
+      const { useUserStore } = await import('@/store/modules/user');
+      const store = useUserStore();
+      store.user = { id: 1, username: 'testuser' } as any;
+      store.isLoggedIn = true;
+
+      const result = await store.restoreSession();
+
+      expect(result).toBe(false);
+      expect(store.user).toBeNull();
+      expect(store.isLoggedIn).toBe(false);
     });
 
     it('should have getCurrentUser method', async () => {

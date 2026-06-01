@@ -63,7 +63,6 @@
           <el-upload
             ref="uploadRef"
             :action="uploadUrl"
-            :headers="{ Authorization: token }"
             list-type="picture-card"
             :on-success="handleUploadSuccess"
             :on-error="handleUploadError"
@@ -97,7 +96,6 @@ const router = useRouter();
 const route = useRoute();
 
 const orderId = computed(() => parseInt(route.params.orderId));
-const token = localStorage.getItem('token') || '';
 const uploadUrl = '/api/upload/image';
 
 const formRef = ref(null);

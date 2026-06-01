@@ -230,7 +230,9 @@ const fetchDashboard = async () => {
     }
   } catch (error) {
     console.error('Error fetching dashboard:', error);
-    ElMessage.error('网络错误，请稍后重试');
+    if (!error.response) {
+      ElMessage.error('网络连接失败，请检查网络');
+    }
   } finally {
     loading.value = false;
   }

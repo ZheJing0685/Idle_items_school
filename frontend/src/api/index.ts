@@ -12,12 +12,7 @@ import chat from './services/chat';
 import notification from './services/notification';
 import dict from './services/dict';
 import config from './services/config';
-import {
-  setToken,
-  getToken,
-  clearToken,
-  setUnauthorizedHandler,
-} from './config/axios';
+import { setUnauthorizedHandler } from './config/axios';
 
 const api = {
   auth,
@@ -33,11 +28,8 @@ const api = {
   notification,
   dict,
   config,
-  setToken,
-  getToken,
-  clearToken,
   setUnauthorizedHandler,
-  clearCache: (url: string, params?: Record<string, any>) => requestManager.clearCache(url, params),
+  clearCache: (url: string, params?: Record<string, unknown>) => requestManager.clearCache(url, params),
   clearAllCache: () => requestManager.clearAllCache(),
 };
 

@@ -1,0 +1,1828 @@
+<!doctype html>
+<html lang="zh-CN"><head><script data-od-sandbox-shim="">(function(){
+  function makeStore(){
+    var data = {};
+    var api = {
+      getItem: function(k){ return Object.prototype.hasOwnProperty.call(data, k) ? data[k] : null; },
+      setItem: function(k, v){ data[k] = String(v); },
+      removeItem: function(k){ delete data[k]; },
+      clear: function(){ data = {}; },
+      key: function(i){ return Object.keys(data)[i] || null; }
+    };
+    Object.defineProperty(api, 'length', { get: function(){ return Object.keys(data).length; } });
+    return api;
+  }
+  function tryShim(name){
+    var works = false;
+    try { works = !!window[name] && typeof window[name].getItem === 'function'; void window[name].length; }
+    catch (_) { works = false; }
+    if (works) return;
+    try { Object.defineProperty(window, name, { configurable: true, value: makeStore() }); }
+    catch (_) { try { window[name] = makeStore(); } catch (__) {} }
+  }
+  tryShim('localStorage');
+  tryShim('sessionStorage');
+  document.addEventListener('click', (e) => {
+    if (!e.target || !(e.target instanceof Element)) return;
+    var link = e.target.closest('a[href]');
+    if (!link) return;
+    var href = link.getAttribute('href');
+    if (href === null) return;
+    var isAnchor = href.startsWith('#') || href === '';
+    if (isAnchor) {
+      e.preventDefault();
+      if (href === '' || href === '#') {
+        window.scrollTo({ top: 0 });
+        history.replaceState(null, '', ' ');
+      } else {
+        var targetId = href.slice(1);
+        var target = targetId ? document.getElementById(targetId) : null;
+        if (target) {
+          target.scrollIntoView();
+          location.hash === href && history.replaceState(null, '', ' ');
+          location.hash = href;
+        }
+      }
+    } else if (link.getAttribute('target') === '_blank') {
+      e.preventDefault();
+      let safe = false;
+      try {
+        var url = new URL(href, location.href);
+        safe =
+          url.protocol === 'http:' ||
+          url.protocol === 'https:' ||
+          url.protocol === 'mailto:';
+      } catch (_) {}
+      safe && window.open(href, '_blank', 'noopener,noreferrer');
+    }
+  });
+})();</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GreenLoop · 校园绿色交易</title>
+<style>
+/* =============================================
+   1. DESIGN TOKENS — eco-green campus palette
+   ============================================= */
+:root {
+  --bg: oklch(97.5% 0.005 150);
+  --surface: oklch(100% 0 0);
+  --surface-alt: oklch(96.5% 0.008 150);
+  --fg: oklch(16% 0.012 155);
+  --fg-secondary: oklch(38% 0.012 155);
+  --muted: oklch(55% 0.012 155);
+  --border: oklch(91% 0.008 150);
+  --border-light: oklch(95% 0.005 150);
+
+  --accent: oklch(56% 0.15 150);
+  --accent-hover: oklch(48% 0.16 150);
+  --accent-light: oklch(93% 0.05 150);
+  --accent-subtle: oklch(96.5% 0.025 150);
+
+  --price: oklch(62% 0.14 55);
+  --price-light: oklch(94% 0.035 55);
+  --success: oklch(55% 0.14 150);
+  --warning: oklch(72% 0.14 80);
+  --danger: oklch(55% 0.18 25);
+
+  --shadow-sm: 0 1px 3px oklch(0% 0 0 / 0.05);
+  --shadow-md: 0 4px 16px oklch(0% 0 0 / 0.07);
+  --shadow-lg: 0 8px 32px oklch(0% 0 0 / 0.10);
+  --shadow-hover: 0 8px 24px oklch(0% 0 0 / 0.12);
+
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 20px;
+  --r-full: 9999px;
+
+  --font-display: 'PingFang SC', 'Hiragino Sans GB', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+
+  --nav-h: 64px;
+  --bottom-h: 68px;
+  --max-w: 1200px;
+}
+
+/* =============================================
+   2. RESET & BASE
+   ============================================= */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; scroll-behavior: smooth; }
+body { font-family: var(--font-body); font-size: 15px; line-height: 1.6; color: var(--fg); background: var(--bg); overflow-x: hidden; }
+a { color: inherit; text-decoration: none; }
+button { border: none; background: none; font: inherit; color: inherit; cursor: pointer; }
+input, textarea, select { font: inherit; color: inherit; }
+img { display: block; max-width: 100%; }
+ul, ol { list-style: none; }
+
+/* =============================================
+   3. TYPOGRAPHY
+   ============================================= */
+.text-display { font-family: var(--font-display); font-weight: 700; letter-spacing: -0.02em; text-wrap: balance; }
+.text-heading { font-family: var(--font-display); font-weight: 600; letter-spacing: -0.01em; }
+.text-price { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-weight: 700; }
+.text-muted { color: var(--muted); }
+.text-secondary { color: var(--fg-secondary); }
+.text-accent { color: var(--accent); }
+.text-price-color { color: var(--price); }
+.text-sm { font-size: 13px; }
+.text-xs { font-size: 12px; }
+
+/* =============================================
+   4. APP SHELL
+   ============================================= */
+.app { min-height: 100dvh; display: flex; flex-direction: column; }
+
+/* Top accent bar */
+.app::before {
+  content: '';
+  display: block;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent), oklch(65% 0.10 170), var(--accent));
+  flex-shrink: 0;
+}
+
+/* ---- Desktop / Tablet Top Nav ---- */
+.top-nav {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  height: var(--nav-h);
+  display: none;
+}
+.nav-inner {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: 0 24px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+.nav-logo {
+  display: flex; align-items: center; gap: 10px;
+  font-family: var(--font-display); font-weight: 700; font-size: 20px;
+  color: var(--accent); flex-shrink: 0;
+}
+.nav-logo svg { width: 28px; height: 28px; }
+.nav-links { display: flex; gap: 4px; }
+.nav-link {
+  padding: 8px 16px; border-radius: var(--r-sm);
+  font-size: 15px; font-weight: 500; color: var(--fg-secondary);
+  transition: all 0.15s;
+}
+.nav-link:hover { color: var(--fg); background: var(--accent-subtle); }
+.nav-link.active { color: var(--accent); background: var(--accent-light); }
+.nav-search {
+  flex: 1; max-width: 400px; position: relative;
+}
+.nav-search svg {
+  position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+  width: 18px; height: 18px; color: var(--muted); pointer-events: none;
+}
+.nav-search input {
+  width: 100%; height: 40px; padding: 0 16px 0 42px;
+  background: var(--surface-alt); border: 1px solid var(--border);
+  border-radius: var(--r-full); outline: none; font-size: 14px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.nav-search input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px oklch(56% 0.15 150 / 0.12);
+}
+.nav-search input::placeholder { color: var(--muted); }
+.nav-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+.nav-icon-btn {
+  width: 40px; height: 40px; border-radius: var(--r-full);
+  display: grid; place-items: center; position: relative;
+  transition: background 0.15s;
+}
+.nav-icon-btn:hover { background: var(--accent-subtle); }
+.nav-icon-btn svg { width: 20px; height: 20px; color: var(--fg-secondary); }
+.nav-icon-btn .dot {
+  position: absolute; top: 8px; right: 8px;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--danger); border: 2px solid var(--surface);
+}
+.nav-avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--accent-light); color: var(--accent);
+  display: grid; place-items: center;
+  font-size: 14px; font-weight: 600; cursor: pointer;
+  transition: box-shadow 0.15s;
+}
+.nav-avatar:hover { box-shadow: 0 0 0 2px var(--accent); }
+
+/* ---- Mobile Header ---- */
+.mobile-header {
+  position: sticky; top: 0; z-index: 100;
+  background: oklch(100% 0 0 / 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-light);
+}
+.mobile-header-inner {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px;
+}
+.mobile-logo {
+  display: flex; align-items: center; gap: 8px;
+  font-family: var(--font-display); font-weight: 700; font-size: 18px;
+  color: var(--accent);
+}
+.mobile-logo svg { width: 24px; height: 24px; }
+.mobile-header-actions { display: flex; gap: 4px; }
+.mobile-header-actions button {
+  width: 40px; height: 40px; border-radius: 50%;
+  display: grid; place-items: center;
+  transition: background 0.15s;
+}
+.mobile-header-actions button:hover { background: var(--accent-subtle); }
+.mobile-header-actions svg { width: 20px; height: 20px; color: var(--fg-secondary); }
+
+/* ---- Main Content ---- */
+.main-content {
+  flex: 1;
+  max-width: var(--max-w);
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+/* ---- Bottom Tab Bar (mobile) ---- */
+.bottom-bar {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+  height: var(--bottom-h);
+  background: oklch(100% 0 0 / 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid var(--border-light);
+  display: flex; align-items: center; justify-content: space-around;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+.tab-item {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 6px 0; min-width: 56px;
+  color: var(--muted); transition: color 0.15s;
+}
+.tab-item svg { width: 22px; height: 22px; }
+.tab-item span { font-size: 10px; font-weight: 500; }
+.tab-item.active { color: var(--accent); }
+.tab-publish {
+  position: relative;
+}
+.tab-publish-btn {
+  width: 48px; height: 48px; border-radius: 50%;
+  background: var(--accent); color: #fff;
+  display: grid; place-items: center;
+  box-shadow: 0 4px 12px oklch(56% 0.15 150 / 0.35);
+  transition: transform 0.15s, box-shadow 0.15s;
+  margin-top: -16px;
+}
+.tab-publish-btn:hover { transform: scale(1.05); box-shadow: 0 6px 16px oklch(56% 0.15 150 / 0.45); }
+.tab-publish-btn svg { width: 24px; height: 24px; }
+
+/* =============================================
+   5. SHARED COMPONENTS
+   ============================================= */
+/* Buttons */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 10px 20px; border-radius: var(--r-md);
+  font-size: 14px; font-weight: 600;
+  transition: all 0.15s;
+}
+.btn-primary {
+  background: var(--accent); color: #fff;
+}
+.btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+.btn-secondary {
+  background: var(--surface); color: var(--fg);
+  border: 1px solid var(--border);
+}
+.btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+.btn-ghost {
+  background: transparent; color: var(--fg-secondary);
+}
+.btn-ghost:hover { background: var(--accent-subtle); color: var(--accent); }
+.btn-lg { padding: 14px 28px; font-size: 16px; border-radius: var(--r-lg); }
+.btn-sm { padding: 6px 14px; font-size: 13px; }
+.btn-block { width: 100%; }
+.btn-icon { width: 40px; height: 40px; padding: 0; border-radius: 50%; }
+.btn-icon svg { width: 20px; height: 20px; }
+
+/* Tags / Badges */
+.tag {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 10px; border-radius: var(--r-full);
+  font-size: 12px; font-weight: 500;
+}
+.tag-green { background: var(--accent-light); color: var(--accent); }
+.tag-eco { background: var(--accent-light); color: var(--accent); }
+.tag-eco::before { content: '🌿'; font-size: 11px; }
+.tag-condition { background: var(--surface-alt); color: var(--fg-secondary); border: 1px solid var(--border-light); }
+.tag-price { background: var(--price-light); color: var(--price); font-weight: 600; }
+.tag-category { background: var(--surface-alt); color: var(--fg-secondary); cursor: pointer; border: 1px solid transparent; transition: all 0.15s; }
+.tag-category:hover, .tag-category.active { background: var(--accent-light); color: var(--accent); border-color: var(--accent); }
+
+/* Cards */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-hover);
+}
+.card-clickable { cursor: pointer; }
+
+/* Item Card */
+.item-card { position: relative; }
+.item-card-img {
+  aspect-ratio: 4 / 3;
+  position: relative;
+  overflow: hidden;
+}
+.item-card-img .img-placeholder {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 32px;
+}
+.item-card-img .eco-badge {
+  position: absolute; top: 10px; left: 10px;
+}
+.item-card-img .fav-btn {
+  position: absolute; top: 10px; right: 10px;
+  width: 32px; height: 32px; border-radius: 50%;
+  background: oklch(100% 0 0 / 0.8);
+  backdrop-filter: blur(4px);
+  display: grid; place-items: center;
+  transition: all 0.15s;
+}
+.item-card-img .fav-btn:hover { background: #fff; transform: scale(1.1); }
+.item-card-img .fav-btn svg { width: 16px; height: 16px; color: var(--muted); }
+.item-card-img .fav-btn.liked svg { color: var(--danger); fill: var(--danger); }
+.item-card-body { padding: 12px 14px; }
+.item-card-title {
+  font-size: 14px; font-weight: 500; line-height: 1.4;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden; margin-bottom: 8px; min-height: 2.8em;
+}
+.item-card-meta {
+  display: flex; align-items: center; justify-content: space-between;
+}
+.item-card-price {
+  font-family: var(--font-mono); font-weight: 700;
+  font-size: 18px; color: var(--price);
+}
+.item-card-price .unit { font-size: 13px; font-weight: 500; }
+.item-card-price .original {
+  font-size: 12px; color: var(--muted); text-decoration: line-through;
+  font-weight: 400; margin-left: 6px;
+}
+.item-card-seller {
+  display: flex; align-items: center; gap: 6px;
+  padding: 10px 14px; border-top: 1px solid var(--border-light);
+  font-size: 12px; color: var(--muted);
+}
+.item-card-seller .mini-avatar {
+  width: 20px; height: 20px; border-radius: 50%;
+  background: var(--accent-subtle); color: var(--accent);
+  display: grid; place-items: center; font-size: 10px; font-weight: 600;
+}
+
+/* Item grid */
+.items-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+/* Section headers */
+.section-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px;
+}
+.section-title {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: 20px; color: var(--fg);
+}
+.section-more {
+  font-size: 14px; color: var(--muted);
+  display: flex; align-items: center; gap: 4px;
+  transition: color 0.15s;
+}
+.section-more:hover { color: var(--accent); }
+
+/* Avatar */
+.avatar {
+  border-radius: 50%; overflow: hidden;
+  background: var(--accent-light); color: var(--accent);
+  display: grid; place-items: center; font-weight: 600;
+}
+
+/* Input / Form */
+.form-group { margin-bottom: 20px; }
+.form-label {
+  display: block; font-size: 14px; font-weight: 600;
+  color: var(--fg); margin-bottom: 8px;
+}
+.form-input, .form-textarea, .form-select {
+  width: 100%; padding: 12px 16px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-md);
+  font-size: 15px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  outline: none;
+}
+.form-input:focus, .form-textarea:focus, .form-select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px oklch(56% 0.15 150 / 0.10);
+}
+.form-input::placeholder, .form-textarea::placeholder { color: var(--muted); }
+.form-textarea { resize: vertical; min-height: 120px; }
+.form-select { cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23999' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 40px; }
+.form-hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
+
+/* Radio / Condition selector */
+.radio-group { display: flex; flex-wrap: wrap; gap: 8px; }
+.radio-pill {
+  padding: 8px 16px; border-radius: var(--r-full);
+  border: 1.5px solid var(--border); font-size: 14px;
+  cursor: pointer; transition: all 0.15s;
+}
+.radio-pill:hover { border-color: var(--accent); }
+.radio-pill.active { background: var(--accent-light); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+
+/* Overlay & Drawer */
+.overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: oklch(0% 0 0 / 0.4);
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.25s;
+}
+.overlay.open { opacity: 1; pointer-events: auto; }
+.drawer {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 201;
+  background: var(--surface);
+  border-radius: var(--r-xl) var(--r-xl) 0 0;
+  padding: 24px;
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  max-height: 80vh; overflow-y: auto;
+}
+.drawer.open { transform: translateY(0); }
+.drawer-handle {
+  width: 36px; height: 4px; border-radius: 2px;
+  background: var(--border); margin: 0 auto 20px;
+}
+.drawer-title {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: 18px; margin-bottom: 20px;
+}
+
+/* =============================================
+   6. VIEW: HOME (首页)
+   ============================================= */
+.view { display: none; padding-bottom: 24px; }
+.view.active { display: block; }
+
+/* Hero Banner */
+.hero {
+  margin: 16px 0;
+  border-radius: var(--r-xl);
+  overflow: hidden;
+  position: relative;
+  background: linear-gradient(135deg, oklch(92% 0.06 155), oklch(88% 0.08 170), oklch(85% 0.10 150));
+  padding: 32px 24px;
+  min-height: 160px;
+}
+.hero-content { position: relative; z-index: 1; }
+.hero-tag {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: oklch(100% 0 0 / 0.85);
+  padding: 4px 12px; border-radius: var(--r-full);
+  font-size: 12px; font-weight: 600; color: var(--accent);
+  margin-bottom: 12px;
+}
+.hero h1 {
+  font-family: var(--font-display); font-weight: 800;
+  font-size: clamp(22px, 5vw, 32px); line-height: 1.3;
+  color: var(--fg); margin-bottom: 8px;
+  text-wrap: balance;
+}
+.hero p { font-size: 14px; color: var(--fg-secondary); max-width: 320px; }
+.hero-deco {
+  position: absolute; right: -10px; bottom: -10px;
+  width: 160px; height: 160px; opacity: 0.15;
+}
+.hero-stats {
+  display: flex; gap: 24px; margin-top: 16px;
+}
+.hero-stat-item {
+  background: oklch(100% 0 0 / 0.7);
+  backdrop-filter: blur(4px);
+  padding: 8px 14px; border-radius: var(--r-md);
+  font-size: 12px; color: var(--fg-secondary);
+}
+.hero-stat-item strong {
+  display: block; font-size: 18px; color: var(--accent);
+  font-family: var(--font-mono); font-variant-numeric: tabular-nums;
+}
+
+/* Category row */
+.category-row {
+  display: flex; gap: 8px; overflow-x: auto;
+  padding: 16px 0; -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.category-row::-webkit-scrollbar { display: none; }
+.category-chip {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  min-width: 64px; padding: 10px 8px;
+  border-radius: var(--r-md); cursor: pointer;
+  transition: all 0.15s;
+}
+.category-chip:hover { background: var(--accent-subtle); }
+.category-chip.active { background: var(--accent-light); }
+.category-chip-icon {
+  width: 44px; height: 44px; border-radius: var(--r-md);
+  background: var(--surface-alt);
+  display: grid; place-items: center; font-size: 22px;
+  transition: background 0.15s;
+}
+.category-chip.active .category-chip-icon { background: var(--accent-light); }
+.category-chip-label { font-size: 12px; color: var(--fg-secondary); white-space: nowrap; }
+.category-chip.active .category-chip-label { color: var(--accent); font-weight: 600; }
+
+/* Eco stats bar */
+.eco-bar {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 18px;
+  background: var(--accent-subtle);
+  border-radius: var(--r-md);
+  margin: 8px 0 20px;
+  border: 1px solid oklch(56% 0.15 150 / 0.12);
+}
+.eco-bar-icon { font-size: 24px; flex-shrink: 0; }
+.eco-bar-text { font-size: 13px; color: var(--fg-secondary); }
+.eco-bar-text strong { color: var(--accent); font-weight: 700; }
+
+/* Section spacing */
+.home-section { margin-bottom: 28px; }
+
+/* =============================================
+   7. VIEW: ITEMS (物品列表)
+   ============================================= */
+.items-header {
+  display: flex; align-items: center; gap: 12px;
+  padding: 16px 0 12px;
+  flex-wrap: wrap;
+}
+.items-search-mobile {
+  flex: 1; min-width: 200px; position: relative;
+}
+.items-search-mobile svg {
+  position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+  width: 18px; height: 18px; color: var(--muted); pointer-events: none;
+}
+.items-search-mobile input {
+  width: 100%; height: 42px; padding: 0 14px 0 42px;
+  background: var(--surface); border: 1.5px solid var(--border);
+  border-radius: var(--r-full); outline: none; font-size: 14px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.items-search-mobile input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px oklch(56% 0.15 150 / 0.10);
+}
+.filter-btn-mobile {
+  display: flex; align-items: center; gap: 6px;
+  padding: 10px 16px; border-radius: var(--r-full);
+  border: 1.5px solid var(--border); font-size: 14px; font-weight: 500;
+  transition: all 0.15s;
+}
+.filter-btn-mobile:hover { border-color: var(--accent); color: var(--accent); }
+.filter-btn-mobile svg { width: 16px; height: 16px; }
+
+.items-toolbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 0 16px;
+}
+.items-sort {
+  display: flex; gap: 4px;
+}
+.sort-option {
+  padding: 6px 12px; border-radius: var(--r-full);
+  font-size: 13px; color: var(--muted);
+  transition: all 0.15s;
+}
+.sort-option:hover { color: var(--fg); }
+.sort-option.active { background: var(--fg); color: var(--surface); }
+.items-count { font-size: 13px; color: var(--muted); }
+
+/* Detail page */
+.detail-back {
+  display: flex; align-items: center; gap: 4px;
+  padding: 12px 0; font-size: 14px; color: var(--fg-secondary);
+  transition: color 0.15s;
+}
+.detail-back:hover { color: var(--accent); }
+.detail-back svg { width: 18px; height: 18px; }
+
+.detail-layout {
+  display: grid; gap: 24px;
+}
+.detail-gallery {
+  border-radius: var(--r-lg); overflow: hidden;
+  background: var(--surface-alt);
+}
+.detail-main-img {
+  aspect-ratio: 4 / 3;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 64px; position: relative;
+}
+.detail-thumbs {
+  display: flex; gap: 8px; padding: 12px;
+}
+.detail-thumb {
+  width: 60px; height: 60px; border-radius: var(--r-sm);
+  overflow: hidden; cursor: pointer;
+  border: 2px solid transparent; transition: border-color 0.15s;
+  display: grid; place-items: center; font-size: 20px;
+  background: var(--surface);
+}
+.detail-thumb.active, .detail-thumb:hover { border-color: var(--accent); }
+
+.detail-info { display: flex; flex-direction: column; gap: 20px; }
+.detail-title {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: 22px; line-height: 1.4;
+}
+.detail-price-row {
+  display: flex; align-items: baseline; gap: 12px;
+}
+.detail-price {
+  font-family: var(--font-mono); font-weight: 800;
+  font-size: 28px; color: var(--price);
+}
+.detail-price .unit { font-size: 16px; font-weight: 600; }
+.detail-original-price {
+  font-size: 15px; color: var(--muted); text-decoration: line-through;
+}
+.detail-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+.detail-desc {
+  font-size: 15px; line-height: 1.7; color: var(--fg-secondary);
+}
+.detail-specs {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+}
+.detail-spec {
+  display: flex; flex-direction: column; gap: 2px;
+}
+.detail-spec-label { font-size: 12px; color: var(--muted); }
+.detail-spec-value { font-size: 14px; font-weight: 600; }
+
+.seller-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r-lg); padding: 16px;
+  display: flex; align-items: center; gap: 14px;
+}
+.seller-avatar {
+  width: 48px; height: 48px; border-radius: 50%;
+  background: var(--accent-light); color: var(--accent);
+  display: grid; place-items: center;
+  font-size: 18px; font-weight: 700; flex-shrink: 0;
+}
+.seller-info { flex: 1; }
+.seller-name { font-weight: 600; font-size: 15px; }
+.seller-school { font-size: 13px; color: var(--muted); }
+.seller-rating { display: flex; align-items: center; gap: 4px; font-size: 13px; color: var(--warning); margin-top: 2px; }
+
+.detail-actions {
+  display: flex; gap: 12px;
+  padding: 16px 0;
+  position: sticky; bottom: 0;
+  background: var(--bg);
+}
+.detail-actions .btn { flex: 1; }
+
+/* Similar items */
+.similar-section { padding: 24px 0; }
+.similar-section .section-title { margin-bottom: 16px; }
+
+/* =============================================
+   8. VIEW: PUBLISH (发布页面)
+   ============================================= */
+.publish-header {
+  padding: 20px 0;
+}
+.publish-header h2 {
+  font-family: var(--font-display); font-weight: 700; font-size: 24px;
+}
+.publish-header p { font-size: 14px; color: var(--muted); margin-top: 4px; }
+
+.publish-form { max-width: 640px; }
+
+.upload-zone {
+  border: 2px dashed var(--border);
+  border-radius: var(--r-lg);
+  padding: 40px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--surface);
+}
+.upload-zone:hover {
+  border-color: var(--accent);
+  background: var(--accent-subtle);
+}
+.upload-zone-icon {
+  width: 56px; height: 56px; margin: 0 auto 12px;
+  border-radius: 50%; background: var(--accent-subtle);
+  display: grid; place-items: center;
+}
+.upload-zone-icon svg { width: 24px; height: 24px; color: var(--accent); }
+.upload-zone-title { font-size: 15px; font-weight: 600; color: var(--fg); }
+.upload-zone-hint { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+.upload-previews {
+  display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px;
+}
+.upload-preview {
+  width: 100px; height: 100px; border-radius: var(--r-md);
+  overflow: hidden; position: relative;
+  display: grid; place-items: center; font-size: 28px;
+}
+.upload-preview .remove-btn {
+  position: absolute; top: 4px; right: 4px;
+  width: 24px; height: 24px; border-radius: 50%;
+  background: oklch(0% 0 0 / 0.5); color: #fff;
+  display: grid; place-items: center; font-size: 14px;
+}
+
+.form-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+}
+
+.toggle-group {
+  display: flex; background: var(--surface-alt);
+  border-radius: var(--r-md); overflow: hidden;
+  border: 1.5px solid var(--border);
+}
+.toggle-option {
+  flex: 1; padding: 12px; text-align: center;
+  font-size: 14px; font-weight: 500;
+  cursor: pointer; transition: all 0.15s;
+}
+.toggle-option.active {
+  background: var(--accent); color: #fff;
+}
+
+.publish-actions {
+  display: flex; gap: 12px;
+  padding: 24px 0 40px;
+}
+
+/* =============================================
+   9. VIEW: PROFILE (个人中心)
+   ============================================= */
+.profile-header {
+  padding: 24px 0 16px;
+  display: flex; align-items: center; gap: 20px;
+}
+.profile-avatar {
+  width: 72px; height: 72px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent-light), var(--accent-subtle));
+  color: var(--accent); display: grid; place-items: center;
+  font-size: 28px; font-weight: 700; flex-shrink: 0;
+  border: 3px solid var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+.profile-user-info { flex: 1; }
+.profile-name {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: 20px;
+}
+.profile-school { font-size: 14px; color: var(--muted); margin-top: 2px; }
+.profile-bio { font-size: 13px; color: var(--fg-secondary); margin-top: 4px; }
+
+.profile-stats {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 1px; background: var(--border);
+  border-radius: var(--r-lg); overflow: hidden;
+  margin: 16px 0;
+}
+.profile-stat {
+  background: var(--surface); padding: 16px;
+  text-align: center;
+}
+.profile-stat-num {
+  font-family: var(--font-mono); font-weight: 800;
+  font-size: 22px; color: var(--accent);
+}
+.profile-stat-label { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+.profile-tabs {
+  display: flex; gap: 0; border-bottom: 1px solid var(--border);
+  margin-bottom: 20px;
+}
+.profile-tab {
+  padding: 12px 20px; font-size: 14px; font-weight: 500;
+  color: var(--muted); position: relative;
+  transition: color 0.15s;
+}
+.profile-tab:hover { color: var(--fg); }
+.profile-tab.active {
+  color: var(--accent); font-weight: 600;
+}
+.profile-tab.active::after {
+  content: '';
+  position: absolute; bottom: -1px; left: 20px; right: 20px;
+  height: 2px; background: var(--accent); border-radius: 1px;
+}
+
+.profile-section { margin-bottom: 20px; }
+.profile-menu {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+}
+.profile-menu-item {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border-light);
+  transition: background 0.15s; cursor: pointer;
+}
+.profile-menu-item:last-child { border-bottom: none; }
+.profile-menu-item:hover { background: var(--accent-subtle); }
+.profile-menu-icon {
+  width: 36px; height: 36px; border-radius: var(--r-sm);
+  background: var(--surface-alt);
+  display: grid; place-items: center;
+}
+.profile-menu-icon svg { width: 18px; height: 18px; color: var(--fg-secondary); }
+.profile-menu-text { flex: 1; font-size: 14px; font-weight: 500; }
+.profile-menu-arrow { color: var(--muted); font-size: 18px; }
+.profile-menu-badge {
+  background: var(--danger); color: #fff;
+  font-size: 11px; font-weight: 700;
+  padding: 2px 7px; border-radius: var(--r-full);
+}
+
+/* =============================================
+   10. RESPONSIVE
+   ============================================= */
+@media (min-width: 768px) {
+  .main-content { padding: 0 24px; }
+  .items-grid { grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .hero { padding: 40px 32px; }
+  .detail-layout { grid-template-columns: 1fr 1fr; }
+  .profile-stats { grid-template-columns: repeat(4, 1fr); }
+  .form-row { grid-template-columns: 1fr 1fr; }
+  .bottom-bar { display: none; }
+  .mobile-header { display: none; }
+  .top-nav { display: block; }
+  .view { padding-bottom: 40px; }
+  .drawer { left: auto; right: 0; width: 380px; border-radius: var(--r-xl) 0 0 var(--r-xl); transform: translateX(100%); bottom: auto; top: 0; height: 100%; }
+  .drawer.open { transform: translateX(0); }
+  .filter-btn-mobile { display: none; }
+}
+
+@media (min-width: 1024px) {
+  .items-grid { grid-template-columns: repeat(4, 1fr); gap: 20px; }
+  .hero { padding: 48px 40px; min-height: 200px; }
+  .detail-layout { grid-template-columns: 5fr 4fr; gap: 40px; }
+  .detail-main-img { font-size: 80px; }
+}
+
+@media (max-width: 767px) {
+  .bottom-bar { display: flex; }
+  .mobile-header { display: block; }
+  .top-nav { display: none; }
+  .main-content { padding: 0 12px; }
+  .hero { margin: 10px 0; padding: 24px 18px; min-height: 140px; }
+  .hero-stats { flex-wrap: wrap; gap: 10px; }
+  .hero-stat-item { padding: 6px 10px; }
+  .hero-stat-item strong { font-size: 15px; }
+  .detail-actions { padding-bottom: calc(var(--bottom-h) + 16px); }
+  .profile-header { flex-direction: column; text-align: center; }
+  .publish-actions { flex-direction: column; }
+  .publish-actions .btn { width: 100%; }
+}
+
+/* =============================================
+   11. ANIMATIONS
+   ============================================= */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.view.active { animation: fadeIn 0.25s ease; }
+@media (prefers-reduced-motion: reduce) {
+  .view.active { animation: none; }
+  .card { transition: none; }
+  .tab-publish-btn { transition: none; }
+}
+
+/* Utility: empty state */
+.empty-state {
+  text-align: center; padding: 48px 24px; color: var(--muted);
+}
+.empty-state-icon { font-size: 40px; margin-bottom: 12px; }
+.empty-state-text { font-size: 15px; }
+</style>
+<style data-od-tweaks-bridge-style="">
+[data-od-tweaks-hidden] .tw-panel {
+  transform: translateX(calc(100% + 32px)) !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+.tw-restore { display: none !important; }
+</style><script data-od-tweaks-bridge="">(function(){
+  // Synchronously hide BEFORE the artifact body parses so the panel never
+  // flashes on initial paint. The host removes the attribute via postMessage
+  // once it knows the desired state.
+  document.documentElement.setAttribute('data-od-tweaks-hidden', '');
+
+  var suppressEcho = false;
+  var observer = null;
+
+  function panelEl(){ return document.querySelector('.tw-panel'); }
+
+  function applyClassesToPanel(visible){
+    var panel = panelEl();
+    if (panel) panel.classList.toggle('tw-hidden', !visible);
+  }
+
+  function setPanelVisible(visible){
+    suppressEcho = true;
+    document.documentElement.toggleAttribute('data-od-tweaks-hidden', !visible);
+    applyClassesToPanel(visible);
+    // Clear flag after the MutationObserver has had a chance to fire for this
+    // change so we don't echo our own host-driven toggles back to the host.
+    Promise.resolve().then(function(){ suppressEcho = false; });
+  }
+
+  function postState(){
+    var panel = panelEl();
+    if (!panel) return;
+    try {
+      parent.postMessage({
+        type: 'od:tweaks-panel-state',
+        visible: !panel.classList.contains('tw-hidden'),
+      }, '*');
+    } catch (e) {}
+  }
+
+  function postAvailability(){
+    try {
+      parent.postMessage({
+        type: 'od:tweaks-available',
+        available: !!panelEl(),
+      }, '*');
+    } catch (e) {}
+  }
+
+  function attachObserver(){
+    var panel = panelEl();
+    if (!panel || observer) return;
+    observer = new MutationObserver(function(){
+      if (suppressEcho) return;
+      postState();
+    });
+    observer.observe(panel, { attributes: true, attributeFilter: ['class'] });
+  }
+
+  function onReady(){
+    // Capture the panel authored visibility BEFORE we apply the host hidden
+    // attribute. The bridge sets data-od-tweaks-hidden synchronously in head
+    // (before the body parses), so on entry to onReady the attribute is
+    // always present even though the artifact may have authored the panel
+    // as default-visible. Reading the panel class first is the only place
+    // we can still observe the author intent. Then drive the attribute,
+    // classes, and posted state from that captured value so a default
+    // visible tw-panel reports visible:true and the toolbar toggle starts
+    // ON. Issue surfaced in PR #1643 review.
+    var panel = panelEl();
+    var initialVisible = !!panel && !panel.classList.contains('tw-hidden');
+    document.documentElement.toggleAttribute('data-od-tweaks-hidden', !initialVisible);
+    applyClassesToPanel(initialVisible);
+    attachObserver();
+    postAvailability();
+    // Post the captured initial visibility so the toolbar toggle reflects
+    // the default state on mount. Without this the toggle reads OFF while
+    // a default-visible tw-panel artifact clearly shows its panel and the
+    // user would have to click toggle-on then toggle-off to actually hide.
+    postState();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', onReady);
+  } else {
+    onReady();
+  }
+
+  window.addEventListener('message', function(ev){
+    if (!ev.data || ev.data.type !== 'od:tweaks-panel-visible') return;
+    setPanelVisible(!!ev.data.visible);
+  });
+})();</script></head>
+<body>
+<div class="app" id="app" data-od-id="path-0">
+
+  <!-- ====== Top Navigation (Desktop/Tablet) ====== -->
+  <nav class="top-nav" data-od-id="path-0-0">
+    <div class="nav-inner" data-od-id="path-0-0-0">
+      <a class="nav-logo" href="#/home" onclick="navigate('home')" data-od-id="path-0-0-0-0">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8C8 10 5.9 16.17 3.82 21.34l1.89.66.95-2.3c.48.17.98.3 1.34.3C19 20 22 3 22 3c-1 2-8 2.25-13 3.25S2 11.5 2 13.5s1.75 3.75 1.75 3.75C7 8 17 8 17 8z"></path></svg>
+        GreenLoop
+      </a>
+      <div class="nav-links">
+        <a class="nav-link active" href="#/home" data-nav="home" onclick="navigate('home')" data-od-id="path-0-0-0-1-0">首页</a>
+        <a class="nav-link" href="#/items" data-nav="items" onclick="navigate('items')" data-od-id="path-0-0-0-1-1">发现</a>
+        <a class="nav-link" href="#/publish" data-nav="publish" onclick="navigate('publish')" data-od-id="path-0-0-0-1-2">发布</a>
+      </div>
+      <div class="nav-search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"></circle><path d="M21 21l-4.35-4.35"></path></svg>
+        <input type="text" placeholder="搜索校园好物…" id="nav-search-input" data-od-id="path-0-0-0-2-1">
+      </div>
+      <div class="nav-actions">
+        <button class="nav-icon-btn" title="消息" data-od-id="path-0-0-0-3-0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"></path></svg>
+          <span class="dot"></span>
+        </button>
+        <div class="nav-avatar" onclick="navigate('profile')" title="个人中心">陈</div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ====== Mobile Header ====== -->
+  <header class="mobile-header" data-od-id="path-0-1">
+    <div class="mobile-header-inner" data-od-id="path-0-1-0">
+      <div class="mobile-logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8C8 10 5.9 16.17 3.82 21.34l1.89.66.95-2.3c.48.17.98.3 1.34.3C19 20 22 3 22 3c-1 2-8 2.25-13 3.25S2 11.5 2 13.5s1.75 3.75 1.75 3.75C7 8 17 8 17 8z"></path></svg>
+        GreenLoop
+      </div>
+      <div class="mobile-header-actions">
+        <button onclick="document.getElementById('mobile-search').focus()" title="搜索" data-od-id="path-0-1-0-1-0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"></circle><path d="M21 21l-4.35-4.35"></path></svg>
+        </button>
+        <button title="消息" data-od-id="path-0-1-0-1-1">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"></path></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ====== Main Content ====== -->
+  <main class="main-content" data-od-id="path-0-2">
+
+    <!-- ===== HOME ===== -->
+    <section class="view active" id="view-home" data-od-id="path-0-2-0">
+      <!-- Hero -->
+      <div class="hero" data-od-id="path-0-2-0-0">
+        <div class="hero-content">
+          <span class="hero-tag">🌱 校园绿色行动</span>
+          <h1 data-od-id="path-0-2-0-0-0-1">让闲置流动<br>让校园更绿</h1>
+          <p>在这里，每一件闲置物品都找到新主人，减少浪费，传递价值。</p>
+          <div class="hero-stats">
+            <div class="hero-stat-item">
+              <strong>2,847</strong>
+              件物品在流转
+            </div>
+            <div class="hero-stat-item">
+              <strong>128kg</strong>
+              本月减碳量
+            </div>
+            <div class="hero-stat-item">
+              <strong>1,206</strong>
+              位同学参与
+            </div>
+          </div>
+        </div>
+        <svg class="hero-deco" viewBox="0 0 200 200" fill="none">
+          <circle cx="100" cy="100" r="80" stroke="currentColor" stroke-width="1.5" opacity="0.3"></circle>
+          <path d="M100 40C70 40 50 70 50 100s20 60 50 60 50-30 50-60S130 40 100 40z" stroke="currentColor" stroke-width="1.5" opacity="0.2"></path>
+          <path d="M60 100h80M100 60v80" stroke="currentColor" stroke-width="1" opacity="0.15"></path>
+        </svg>
+      </div>
+
+      <!-- Categories -->
+      <div class="home-section" data-od-id="path-0-2-0-1">
+        <div class="category-row" id="category-row" data-od-id="path-0-2-0-1-0"></div>
+      </div>
+
+      <!-- Eco bar -->
+      <div class="eco-bar" data-od-id="path-0-2-0-2">
+        <span class="eco-bar-icon">♻️</span>
+        <div class="eco-bar-text">
+          本月校园交易已减少 <strong>128kg</strong> 碳排放，相当于种植 <strong>7</strong> 棵树的年吸碳量。每一次交易都是对地球的一份善意。
+        </div>
+      </div>
+
+      <!-- Hot items -->
+      <div class="home-section" data-od-id="path-0-2-0-3">
+        <div class="section-header">
+          <h2 class="section-title" data-od-id="path-0-2-0-3-0-0">热门推荐</h2>
+          <a class="section-more" href="#/items" onclick="navigate('items')" data-od-id="path-0-2-0-3-0-1">查看更多 →</a>
+        </div>
+        <div class="items-grid" id="hot-items" data-od-id="path-0-2-0-3-1"></div>
+      </div>
+
+      <!-- Latest items -->
+      <div class="home-section" data-od-id="path-0-2-0-4">
+        <div class="section-header">
+          <h2 class="section-title" data-od-id="path-0-2-0-4-0-0">最新发布</h2>
+          <a class="section-more" href="#/items" onclick="navigate('items')" data-od-id="path-0-2-0-4-0-1">查看更多 →</a>
+        </div>
+        <div class="items-grid" id="latest-items" data-od-id="path-0-2-0-4-1"></div>
+      </div>
+    </section>
+
+    <!-- ===== ITEMS LIST ===== -->
+    <section class="view" id="view-items" data-od-id="path-0-2-1">
+      <div class="items-header" data-od-id="path-0-2-1-0">
+        <div class="items-search-mobile">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"></circle><path d="M21 21l-4.35-4.35"></path></svg>
+          <input type="text" placeholder="搜索物品名称、描述…" id="mobile-search" data-od-id="path-0-2-1-0-0-1">
+        </div>
+        <button class="filter-btn-mobile" onclick="toggleDrawer()" data-od-id="path-0-2-1-0-1">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 21v-7m0-4V3m8 18v-9m0-4V3m8 18v-5m0-4V3M1 14h6M9 8h6M17 16h6"></path></svg>
+          筛选
+        </button>
+      </div>
+
+      <div class="category-row" id="items-category-row" data-od-id="path-0-2-1-1"></div>
+
+      <div class="items-toolbar" data-od-id="path-0-2-1-2">
+        <div class="items-sort" id="sort-options" data-od-id="path-0-2-1-2-0">
+          <button class="sort-option active" data-sort="newest" data-od-id="path-0-2-1-2-0-0">最新</button>
+          <button class="sort-option" data-sort="price-asc" data-od-id="path-0-2-1-2-0-1">价格↑</button>
+          <button class="sort-option" data-sort="price-desc" data-od-id="path-0-2-1-2-0-2">价格↓</button>
+        </div>
+        <span class="items-count" id="items-count" data-od-id="path-0-2-1-2-1">共 12 件</span>
+      </div>
+
+      <div class="items-grid" id="all-items" data-od-id="path-0-2-1-3"></div>
+    </section>
+
+    <!-- ===== ITEM DETAIL ===== -->
+    <section class="view" id="view-detail" data-od-id="path-0-2-2">
+      <a class="detail-back" href="#/items" onclick="navigate('items')" data-od-id="path-0-2-2-0">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 12H5m7-7l-7 7 7 7"></path></svg>
+        返回列表
+      </a>
+      <div class="detail-layout" id="detail-content" data-od-id="path-0-2-2-1"></div>
+    </section>
+
+    <!-- ===== PUBLISH ===== -->
+    <section class="view" id="view-publish" data-od-id="path-0-2-3">
+      <div class="publish-header" data-od-id="path-0-2-3-0">
+        <h2 data-od-id="path-0-2-3-0-0">发布闲置物品</h2>
+        <p>让你的闲置物品找到新主人，为绿色校园贡献力量</p>
+      </div>
+      <div class="publish-form" data-od-id="path-0-2-3-1">
+        <!-- Image upload -->
+        <div class="form-group">
+          <label class="form-label">物品图片</label>
+          <div class="upload-previews" id="upload-previews" data-od-id="path-0-2-3-1-0-1"></div>
+          <div class="upload-zone" id="upload-zone" onclick="addUploadPreview()" data-od-id="path-0-2-3-1-0-2">
+            <div class="upload-zone-icon" data-od-id="path-0-2-3-1-0-2-0">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><path d="M21 15l-5-5L5 21"></path></svg>
+            </div>
+            <div class="upload-zone-title" data-od-id="path-0-2-3-1-0-2-1">点击或拖拽上传图片</div>
+            <div class="upload-zone-hint" data-od-id="path-0-2-3-1-0-2-2">支持 JPG、PNG，最多 9 张</div>
+          </div>
+        </div>
+
+        <!-- Title -->
+        <div class="form-group">
+          <label class="form-label">物品名称</label>
+          <input class="form-input" type="text" placeholder="简洁描述你的物品，如「MacBook Air M2 256G」">
+        </div>
+
+        <!-- Category & Condition -->
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">分类</label>
+            <select class="form-select">
+              <option value="">选择分类</option>
+              <option>数码电子</option>
+              <option>教材书籍</option>
+              <option>生活用品</option>
+              <option>服饰鞋包</option>
+              <option>运动户外</option>
+              <option>家具家电</option>
+              <option>其他</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">新旧程度</label>
+            <div class="radio-group" id="condition-group" data-od-id="path-0-2-3-1-2-1-1">
+              <span class="radio-pill" onclick="selectCondition(this)">全新</span>
+              <span class="radio-pill active" onclick="selectCondition(this)">九五新</span>
+              <span class="radio-pill" onclick="selectCondition(this)">九成新</span>
+              <span class="radio-pill" onclick="selectCondition(this)">八成新</span>
+              <span class="radio-pill" onclick="selectCondition(this)">七成新</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Price type toggle -->
+        <div class="form-group">
+          <label class="form-label">交易方式</label>
+          <div class="toggle-group" id="price-toggle" data-od-id="path-0-2-3-1-3-1">
+            <div class="toggle-option active" onclick="selectPriceType(this, 'sell')" data-od-id="path-0-2-3-1-3-1-0">💰 出售</div>
+            <div class="toggle-option" onclick="selectPriceType(this, 'exchange')" data-od-id="path-0-2-3-1-3-1-1">♻️ 交换</div>
+            <div class="toggle-option" onclick="selectPriceType(this, 'free')" data-od-id="path-0-2-3-1-3-1-2">🎁 免费送</div>
+          </div>
+        </div>
+
+        <!-- Price -->
+        <div class="form-group" id="price-input-group" data-od-id="path-0-2-3-1-4">
+          <label class="form-label">出售价格</label>
+          <input class="form-input" type="number" placeholder="输入价格（元）" style="max-width: 240px;">
+          <div class="form-hint" data-od-id="path-0-2-3-1-4-2">建议参考原价的 30%–60%，合理定价更容易成交</div>
+        </div>
+
+        <!-- Description -->
+        <div class="form-group">
+          <label class="form-label">物品描述</label>
+          <textarea class="form-textarea" placeholder="描述物品的使用情况、购买时间、功能状态等，越详细越容易卖出哦~"></textarea>
+        </div>
+
+        <!-- Location -->
+        <div class="form-group">
+          <label class="form-label">交易地点</label>
+          <select class="form-select">
+            <option value="">选择校区</option>
+            <option>主校区 — 图书馆附近</option>
+            <option>主校区 — 食堂门口</option>
+            <option>东校区 — 宿舍楼下</option>
+            <option>南校区</option>
+            <option>其他（自行填写）</option>
+          </select>
+        </div>
+
+        <!-- Submit -->
+        <div class="publish-actions">
+          <button class="btn btn-primary btn-lg" onclick="handlePublish()" data-od-id="path-0-2-3-1-7-0">发布物品</button>
+          <button class="btn btn-secondary btn-lg" data-od-id="path-0-2-3-1-7-1">存为草稿</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== PROFILE ===== -->
+    <section class="view" id="view-profile" data-od-id="path-0-2-4">
+      <div class="profile-header" data-od-id="path-0-2-4-0">
+        <div class="profile-avatar">陈</div>
+        <div class="profile-user-info">
+          <div class="profile-name">陈同学</div>
+          <div class="profile-school">计算机科学与技术学院 · 大三</div>
+          <div class="profile-bio">热爱环保的码农，闲置物品换新主人 ♻️</div>
+        </div>
+      </div>
+
+      <div class="profile-stats" data-od-id="path-0-2-4-1">
+        <div class="profile-stat">
+          <div class="profile-stat-num">12</div>
+          <div class="profile-stat-label">发布</div>
+        </div>
+        <div class="profile-stat">
+          <div class="profile-stat-num">8</div>
+          <div class="profile-stat-label">已售</div>
+        </div>
+        <div class="profile-stat">
+          <div class="profile-stat-num">24</div>
+          <div class="profile-stat-label">收藏</div>
+        </div>
+        <div class="profile-stat">
+          <div class="profile-stat-num">4.9</div>
+          <div class="profile-stat-label">评分</div>
+        </div>
+      </div>
+
+      <!-- Profile tabs -->
+      <div class="profile-tabs" id="profile-tabs" data-od-id="path-0-2-4-2">
+        <button class="profile-tab active" data-tab="my-items" onclick="switchProfileTab(this)" data-od-id="path-0-2-4-2-0">我的发布</button>
+        <button class="profile-tab" data-tab="sold" onclick="switchProfileTab(this)" data-od-id="path-0-2-4-2-1">已售出</button>
+        <button class="profile-tab" data-tab="favorites" onclick="switchProfileTab(this)" data-od-id="path-0-2-4-2-2">收藏夹</button>
+      </div>
+      <div class="items-grid" id="profile-items" data-od-id="path-0-2-4-3"></div>
+
+      <!-- Menu -->
+      <div class="profile-section" style="margin-top: 24px;" data-od-id="path-0-2-4-4">
+        <div class="profile-menu">
+          <div class="profile-menu-item">
+            <div class="profile-menu-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"></path></svg>
+            </div>
+            <span class="profile-menu-text">消息通知</span>
+            <span class="profile-menu-badge">3</span>
+            <span class="profile-menu-arrow">›</span>
+          </div>
+          <div class="profile-menu-item">
+            <div class="profile-menu-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4m7 14l5-5-5-5m5 5H9"></path></svg>
+            </div>
+            <span class="profile-menu-text">浏览历史</span>
+            <span class="profile-menu-arrow">›</span>
+          </div>
+          <div class="profile-menu-item">
+            <div class="profile-menu-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"></path></svg>
+            </div>
+            <span class="profile-menu-text">账号设置</span>
+            <span class="profile-menu-arrow">›</span>
+          </div>
+          <div class="profile-menu-item">
+            <div class="profile-menu-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4m0-4h.01"></path></svg>
+            </div>
+            <span class="profile-menu-text">帮助与反馈</span>
+            <span class="profile-menu-arrow">›</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ====== Bottom Tab Bar (Mobile) ====== -->
+  <nav class="bottom-bar" data-od-id="path-0-3">
+    <a class="tab-item active" href="#/home" data-tab="home" onclick="navigate('home')" data-od-id="path-0-3-0">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path><polyline points="9,22 9,12 15,12 15,22"></polyline></svg>
+      <span>首页</span>
+    </a>
+    <a class="tab-item" href="#/items" data-tab="items" onclick="navigate('items')" data-od-id="path-0-3-1">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"></circle><path d="M21 21l-4.35-4.35"></path></svg>
+      <span>发现</span>
+    </a>
+    <a class="tab-item tab-publish" href="#/publish" data-tab="publish" onclick="navigate('publish')" data-od-id="path-0-3-2">
+      <div class="tab-publish-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14m-7-7h14"></path></svg>
+      </div>
+    </a>
+    <a class="tab-item" href="#/" data-tab="chat" data-od-id="path-0-3-3">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"></path></svg>
+      <span>消息</span>
+    </a>
+    <a class="tab-item" href="#/profile" data-tab="profile" onclick="navigate('profile')" data-od-id="path-0-3-4">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+      <span>我的</span>
+    </a>
+  </nav>
+
+  <!-- ====== Filter Drawer ====== -->
+  <div class="overlay" id="overlay" onclick="toggleDrawer()" data-od-id="path-0-4"></div>
+  <div class="drawer" id="filter-drawer" data-od-id="path-0-5">
+    <div class="drawer-handle" data-od-id="path-0-5-0"></div>
+    <div class="drawer-title" data-od-id="path-0-5-1">筛选条件</div>
+    <div class="form-group" data-od-id="path-0-5-2">
+      <label class="form-label">价格范围</label>
+      <div class="form-row">
+        <input class="form-input" type="number" placeholder="最低价">
+        <input class="form-input" type="number" placeholder="最高价">
+      </div>
+    </div>
+    <div class="form-group" data-od-id="path-0-5-3">
+      <label class="form-label">新旧程度</label>
+      <div class="radio-group">
+        <span class="radio-pill active">不限</span>
+        <span class="radio-pill">全新</span>
+        <span class="radio-pill">九成新以上</span>
+        <span class="radio-pill">八成新以上</span>
+      </div>
+    </div>
+    <div class="form-group" data-od-id="path-0-5-4">
+      <label class="form-label">交易方式</label>
+      <div class="radio-group">
+        <span class="radio-pill active">不限</span>
+        <span class="radio-pill">出售</span>
+        <span class="radio-pill">交换</span>
+        <span class="radio-pill">免费送</span>
+      </div>
+    </div>
+    <div style="display: flex; gap: 12px; margin-top: 24px;">
+      <button class="btn btn-secondary btn-block" onclick="toggleDrawer()" data-od-id="path-0-5-5-0">重置</button>
+      <button class="btn btn-primary btn-block" onclick="toggleDrawer()" data-od-id="path-0-5-5-1">确认筛选</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ===========================================
+   DATA
+   =========================================== */
+const CATEGORIES = [
+  { id: 'all',       label: '全部',     icon: '🏠' },
+  { id: 'digital',   label: '数码电子', icon: '💻' },
+  { id: 'books',     label: '教材书籍', icon: '📚' },
+  { id: 'living',    label: '生活用品', icon: '🧴' },
+  { id: 'clothing',  label: '服饰鞋包', icon: '👟' },
+  { id: 'sports',    label: '运动户外', icon: '⚽' },
+  { id: 'furniture', label: '家具家电', icon: '🪑' },
+  { id: 'other',     label: '其他',     icon: '📦' },
+];
+
+const IMG_COLORS = {
+  digital:   ['#dce8f7','#c4d8f0','#b0cce8'],
+  books:     ['#f5edd6','#ebe0c4','#e0d3b2'],
+  living:    ['#d8f0e0','#c4e8d0','#b0e0c0'],
+  clothing:  ['#e8d8f0','#dcc4e8','#d0b0e0'],
+  sports:    ['#f0e0d0','#e8d4c0','#e0c8b0'],
+  furniture: ['#e0e8d8','#d4e0c8','#c8d8b8'],
+  other:     ['#e8e8e8','#dcdcdc','#d0d0d0'],
+};
+
+const ITEMS = [
+  { id:1, title:'MacBook Air M2 8+256G 午夜色', price:4500, original:7999, category:'digital', condition:'九成新', seller:{name:'张小明', initial:'ZM', school:'计算机学院'}, time:'2小时前', eco:true, desc:'去年购入，轻度使用，电池循环次数低于50次。附原装充电器和包装盒。屏幕贴膜，无任何划痕。' },
+  { id:2, title:'考研英语真题集（2024版）', price:35, original:89, category:'books', condition:'九五新', seller:{name:'李雨萌', initial:'LY', school:'外国语学院'}, time:'5小时前', eco:true, desc:'只做过一遍，答案已用铅笔标记，可擦除。附赠考研词汇手册一本。' },
+  { id:3, title:'小米智能台灯 Pro', price:89, original:199, category:'living', condition:'八成新', seller:{name:'王大伟', initial:'WD', school:'物理学院'}, time:'1天前', eco:false, desc:'毕业清货，台灯功能完好，色温亮度均可调，有正常使用痕迹。' },
+  { id:4, title:'Nike Air Force 1 白色 42码', price:350, original:749, category:'clothing', condition:'七成新', seller:{name:'陈思远', initial:'CS', school:'体育学院'}, time:'3天前', eco:false, desc:'穿了半年，鞋底有正常磨损，鞋面干净。原盒还在。' },
+  { id:5, title:'iPad Pro 11寸 M2 + Apple Pencil 2', price:3800, original:6799, category:'digital', condition:'九成新', seller:{name:'刘雨桐', initial:'LY', school:'设计学院'}, time:'6小时前', eco:true, desc:'自用一年，主要用于画画和记笔记，屏幕贴膜无划痕。Apple Pencil 笔尖刚换新。' },
+  { id:6, title:'二手捷安特自行车', price:280, original:800, category:'sports', condition:'八成新', seller:{name:'赵磊', initial:'ZL', school:'机械学院'}, time:'2天前', eco:true, desc:'校园代步神器，变速正常，刹车灵敏，送车锁和打气筒。' },
+  { id:7, title:'马利素描画材全套', price:120, original:260, category:'other', condition:'九成新', seller:{name:'周小艺', initial:'ZX', school:'美术学院'}, time:'12小时前', eco:false, desc:'包含铅笔套装、素描本、橡皮、画板，素描课结束后闲置。' },
+  { id:8, title:'哈利波特全集（中文精装版）', price:85, original:258, category:'books', condition:'九五新', seller:{name:'孙悦', initial:'SY', school:'文学院'}, time:'1天前', eco:true, desc:'七本全套精装，书脊完好，无笔记标注，放在书架上当装饰也很好看。' },
+  { id:9, title:'人体工学电竞椅', price:650, original:1299, category:'furniture', condition:'八成新', seller:{name:'吴杰', initial:'WJ', school:'信息学院'}, time:'4天前', eco:false, desc:'毕业搬不走，椅子调节功能正常，头枕腰靠齐全。只接受自提。' },
+  { id:10, title:'Keep 瑜伽垫 + 可调节哑铃套装', price:150, original:380, category:'sports', condition:'九成新', seller:{name:'郑小健', initial:'ZX', school:'体育学院'}, time:'8小时前', eco:false, desc:'瑜伽垫6mm加厚款，哑铃2×5kg可调节，买来用了一个学期。' },
+  { id:11, title:'AirPods Pro 2 USB-C 版', price:1200, original:1899, category:'digital', condition:'九五新', seller:{name:'黄思齐', initial:'HS', school:'商学院'}, time:'3小时前', eco:true, desc:'购入半年，音质优秀，主动降噪完好，附充电线和备用耳塞。' },
+  { id:12, title:'高等数学同济第七版 + 习题全解', price:25, original:68, category:'books', condition:'八成新', seller:{name:'钱多多', initial:'QD', school:'数学学院'}, time:'1天前', eco:true, desc:'课本有少量铅笔标注，习题全解几乎全新。两本打包出售。' },
+];
+
+const CONDITION_MAP = { '全新':'unused', '九五新':'like-new', '九成新':'good', '八成新':'fair', '七成新':'worn' };
+
+/* ===========================================
+   STATE
+   =========================================== */
+let currentView = 'home';
+let activeCategory = 'all';
+let likedItems = new Set();
+
+/* ===========================================
+   HELPERS
+   =========================================== */
+function getItemImg(item, idx) {
+  const colors = IMG_COLORS[item.category] || IMG_COLORS.other;
+  return colors[idx % colors.length];
+}
+
+function getCategoryIcon(catId) {
+  const c = CATEGORIES.find(c => c.id === catId);
+  return c ? c.icon : '📦';
+}
+
+/* ===========================================
+   RENDER FUNCTIONS
+   =========================================== */
+function renderCategories(containerId, selectable) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = CATEGORIES.map(c =>
+    `<div class="category-chip ${selectable && c.id === activeCategory ? 'active' : ''}" data-cat="${c.id}" onclick="${selectable ? `selectCategory('${c.id}', '${containerId}')` : `navigate('items'); selectCategory('${c.id}', 'items-category-row')`}">
+      <div class="category-chip-icon">${c.icon}</div>
+      <span class="category-chip-label">${c.label}</span>
+    </div>`
+  ).join('');
+}
+
+function renderItemCard(item, idx) {
+  const liked = likedItems.has(item.id);
+  return `<div class="card card-clickable item-card" onclick="showDetail(${item.id})">
+    <div class="item-card-img">
+      <div class="img-placeholder" style="background:${getItemImg(item, idx)}">${getCategoryIcon(item.category)}</div>
+      ${item.eco ? '<span class="tag tag-eco eco-badge">环保</span>' : ''}
+      <button class="fav-btn ${liked ? 'liked' : ''}" onclick="event.stopPropagation(); toggleLike(${item.id}, this)">
+        <svg viewBox="0 0 24 24" fill="${liked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+      </button>
+    </div>
+    <div class="item-card-body">
+      <div class="item-card-title">${item.title}</div>
+      <div class="item-card-meta">
+        <div class="item-card-price"><span class="unit">¥</span>${item.price.toLocaleString()}${item.original ? `<span class="original">¥${item.original.toLocaleString()}</span>` : ''}</div>
+      </div>
+    </div>
+    <div class="item-card-seller">
+      <span class="mini-avatar">${item.seller.initial.charAt(0)}</span>
+      <span>${item.seller.name}</span>
+      <span style="margin-left:auto">${item.time}</span>
+    </div>
+  </div>`;
+}
+
+function renderGrid(containerId, items, limit) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  const list = limit ? items.slice(0, limit) : items;
+  el.innerHTML = list.map((item, i) => renderItemCard(item, i)).join('');
+}
+
+function renderDetail(id) {
+  const item = ITEMS.find(i => i.id === id);
+  if (!item) return;
+  const el = document.getElementById('detail-content');
+  const colors = IMG_COLORS[item.category] || IMG_COLORS.other;
+  const similar = ITEMS.filter(i => i.category === item.category && i.id !== id).slice(0, 4);
+  el.innerHTML = `
+    <div class="detail-gallery">
+      <div class="detail-main-img" id="detail-main-img" style="background:${colors[0]}">
+        ${getCategoryIcon(item.category)}
+      </div>
+      <div class="detail-thumbs">
+        ${colors.map((c, i) => `<div class="detail-thumb ${i===0?'active':''}" style="background:${c}" onclick="switchThumb(this, '${c}', '${getCategoryIcon(item.category)}')">${getCategoryIcon(item.category)}</div>`).join('')}
+      </div>
+    </div>
+    <div class="detail-info">
+      <div>
+        <div class="detail-title">${item.title}</div>
+        <div class="detail-tags" style="margin-top:10px">
+          ${item.eco ? '<span class="tag tag-eco">环保优选</span>' : ''}
+          <span class="tag tag-condition">${item.condition}</span>
+          <span class="tag tag-category">${getCategoryIcon(item.category)} ${CATEGORIES.find(c=>c.id===item.category)?.label || ''}</span>
+        </div>
+      </div>
+      <div class="detail-price-row">
+        <div class="detail-price"><span class="unit">¥</span>${item.price.toLocaleString()}</div>
+        ${item.original ? `<div class="detail-original-price">原价 ¥${item.original.toLocaleString()}</div>` : ''}
+      </div>
+      <div class="detail-specs">
+        <div class="detail-spec"><span class="detail-spec-label">新旧程度</span><span class="detail-spec-value">${item.condition}</span></div>
+        <div class="detail-spec"><span class="detail-spec-label">发布时间</span><span class="detail-spec-value">${item.time}</span></div>
+        <div class="detail-spec"><span class="detail-spec-label">分类</span><span class="detail-spec-value">${CATEGORIES.find(c=>c.id===item.category)?.label || ''}</span></div>
+        <div class="detail-spec"><span class="detail-spec-label">交易方式</span><span class="detail-spec-value">面交</span></div>
+      </div>
+      <div class="detail-desc">${item.desc}</div>
+      <div class="seller-card">
+        <div class="seller-avatar">${item.seller.initial}</div>
+        <div class="seller-info">
+          <div class="seller-name">${item.seller.name}</div>
+          <div class="seller-school">${item.seller.school}</div>
+          <div class="seller-rating">⭐ 4.9 · 已售 8 件</div>
+        </div>
+        <button class="btn btn-ghost btn-sm">查看主页</button>
+      </div>
+      <div class="detail-actions">
+        <button class="btn btn-secondary btn-lg" onclick="toggleLike(${item.id})">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+          收藏
+        </button>
+        <button class="btn btn-primary btn-lg">💬 我想要</button>
+      </div>
+      ${similar.length ? `<div class="similar-section">
+        <h3 class="section-title">相似物品</h3>
+        <div class="items-grid">${similar.map((s,i) => renderItemCard(s,i)).join('')}</div>
+      </div>` : ''}
+    </div>`;
+}
+
+function renderProfileItems(tab) {
+  let items;
+  if (tab === 'my-items') items = ITEMS.slice(0, 4);
+  else if (tab === 'sold') items = ITEMS.slice(4, 7);
+  else items = ITEMS.slice(7, 11);
+  renderGrid('profile-items', items);
+}
+
+/* ===========================================
+   NAVIGATION
+   =========================================== */
+function navigate(view) {
+  currentView = view;
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  const target = document.getElementById('view-' + view);
+  if (target) target.classList.add('active');
+
+  // Update nav links
+  document.querySelectorAll('.nav-link').forEach(l => l.classList.toggle('active', l.dataset.nav === view));
+  document.querySelectorAll('.tab-item').forEach(t => t.classList.toggle('active', t.dataset.tab === view));
+
+  window.scrollTo(0, 0);
+  location.hash = '#/' + view;
+}
+
+/* ===========================================
+   INTERACTIONS
+   =========================================== */
+function selectCategory(catId, containerId) {
+  activeCategory = catId;
+  renderCategories(containerId, true);
+  // Re-render items grid
+  const filtered = catId === 'all' ? ITEMS : ITEMS.filter(i => i.category === catId);
+  renderGrid('all-items', filtered);
+  document.getElementById('items-count').textContent = `共 ${filtered.length} 件`;
+}
+
+function showDetail(id) {
+  renderDetail(id);
+  navigate('detail');
+}
+
+function toggleLike(id, btnEl) {
+  if (likedItems.has(id)) likedItems.delete(id);
+  else likedItems.add(id);
+  // Re-render affected areas
+  if (currentView === 'home') {
+    renderGrid('hot-items', ITEMS.slice(0, 8), 8);
+    renderGrid('latest-items', ITEMS.slice(4, 12), 8);
+  } else if (currentView === 'items') {
+    const filtered = activeCategory === 'all' ? ITEMS : ITEMS.filter(i => i.category === activeCategory);
+    renderGrid('all-items', filtered);
+  }
+}
+
+function switchThumb(el, color, icon) {
+  document.querySelectorAll('.detail-thumb').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  const main = document.getElementById('detail-main-img');
+  main.style.background = color;
+}
+
+function toggleDrawer() {
+  document.getElementById('overlay').classList.toggle('open');
+  document.getElementById('filter-drawer').classList.toggle('open');
+}
+
+function selectCondition(el) {
+  el.parentElement.querySelectorAll('.radio-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function selectPriceType(el, type) {
+  el.parentElement.querySelectorAll('.toggle-option').forEach(o => o.classList.remove('active'));
+  el.classList.add('active');
+  const group = document.getElementById('price-input-group');
+  if (type === 'free') group.style.display = 'none';
+  else {
+    group.style.display = '';
+    group.querySelector('.form-label').textContent = type === 'exchange' ? '期望交换物品' : '出售价格';
+    group.querySelector('input').placeholder = type === 'exchange' ? '描述你想交换的物品' : '输入价格（元）';
+  }
+}
+
+function switchProfileTab(el) {
+  document.querySelectorAll('#profile-tabs .profile-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderProfileItems(el.dataset.tab);
+}
+
+function handlePublish() {
+  alert('🎉 发布成功！你的物品已进入审核，预计 10 分钟内上架。');
+}
+
+function addUploadPreview() {
+  const container = document.getElementById('upload-previews');
+  if (container.children.length >= 9) return;
+  const colors = ['#dce8f7','#f5edd6','#d8f0e0','#e8d8f0','#f0e0d0'];
+  const icons = ['📷','🖼️','📸','🎨','✏️'];
+  const idx = container.children.length;
+  const div = document.createElement('div');
+  div.className = 'upload-preview';
+  div.style.background = colors[idx % colors.length];
+  div.innerHTML = `${icons[idx % icons.length]}<button class="remove-btn" onclick="event.stopPropagation(); this.parentElement.remove()">×</button>`;
+  container.appendChild(div);
+}
+
+/* Sort buttons */
+document.getElementById('sort-options')?.addEventListener('click', function(e) {
+  const btn = e.target.closest('.sort-option');
+  if (!btn) return;
+  this.querySelectorAll('.sort-option').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+});
+
+/* Filter drawer pill toggles */
+document.getElementById('filter-drawer')?.addEventListener('click', function(e) {
+  const pill = e.target.closest('.radio-pill');
+  if (!pill) return;
+  pill.parentElement.querySelectorAll('.radio-pill').forEach(p => p.classList.remove('active'));
+  pill.classList.add('active');
+});
+
+/* ===========================================
+   INIT
+   =========================================== */
+function init() {
+  renderCategories('category-row', false);
+  renderCategories('items-category-row', true);
+  renderGrid('hot-items', ITEMS.slice(0, 8), 8);
+  renderGrid('latest-items', ITEMS.slice(4, 12), 8);
+  renderGrid('all-items', ITEMS);
+  renderProfileItems('my-items');
+
+  // Route from hash
+  const hash = location.hash.replace('#/', '') || 'home';
+  const validViews = ['home','items','detail','publish','profile'];
+  if (validViews.includes(hash)) navigate(hash);
+}
+
+init();
+</script>
+
+
+<script data-od-snapshot-bridge="">(function(){
+  function copyComputedStyle(source, target){
+    if (!source || !target || source.nodeType !== 1 || target.nodeType !== 1) return;
+    var computed = window.getComputedStyle(source);
+    var style = target.getAttribute('style') || '';
+    for (var i = 0; i < computed.length; i++){
+      var prop = computed[i];
+      style += prop + ':' + computed.getPropertyValue(prop) + ';';
+    }
+    target.setAttribute('style', style);
+  }
+  function syncElementState(source, target){
+    var tag = source.tagName ? source.tagName.toLowerCase() : '';
+    if (tag === 'img' && source.currentSrc) target.setAttribute('src', source.currentSrc);
+    if (tag === 'input' || tag === 'textarea') target.setAttribute('value', source.value || '');
+    if (tag === 'canvas') {
+      try {
+        var img = document.createElement('img');
+        img.setAttribute('src', source.toDataURL('image/png'));
+        img.setAttribute('style', target.getAttribute('style') || '');
+        target.parentNode && target.parentNode.replaceChild(img, target);
+      } catch (_) {}
+    }
+  }
+  function inlineSnapshotStyles(originalRoot, cloneRoot){
+    copyComputedStyle(originalRoot, cloneRoot);
+    syncElementState(originalRoot, cloneRoot);
+    var originals = originalRoot.querySelectorAll('*');
+    var clones = cloneRoot.querySelectorAll('*');
+    var count = Math.min(originals.length, clones.length);
+    for (var i = 0; i < count; i++){
+      copyComputedStyle(originals[i], clones[i]);
+      syncElementState(originals[i], clones[i]);
+    }
+    var scripts = cloneRoot.querySelectorAll('script');
+    for (var s = scripts.length - 1; s >= 0; s--) scripts[s].remove();
+  }
+  function waitForImages(){
+    var imgs = Array.prototype.slice.call(document.images || []);
+    return Promise.all(imgs.map(function(img){
+      if (img.complete) return Promise.resolve();
+      return new Promise(function(resolve){
+        img.addEventListener('load', resolve, { once: true });
+        img.addEventListener('error', resolve, { once: true });
+      });
+    }));
+  }
+  function renderSnapshot(id){
+    var w = Math.max(1, window.innerWidth || document.documentElement.clientWidth || 1);
+    var h = Math.max(1, window.innerHeight || document.documentElement.clientHeight || 1);
+    var dpr = window.devicePixelRatio || 1;
+    var docW = Math.max(w, document.documentElement.scrollWidth || 0, document.body ? document.body.scrollWidth : 0);
+    var docH = Math.max(h, document.documentElement.scrollHeight || 0, document.body ? document.body.scrollHeight : 0);
+    var clone = document.documentElement.cloneNode(true);
+    clone.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
+    inlineSnapshotStyles(document.documentElement, clone);
+    var serializer = new XMLSerializer();
+    var html = serializer.serializeToString(clone);
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '">' +
+      '<foreignObject x="' + (-window.scrollX || 0) + '" y="' + (-window.scrollY || 0) + '" width="' + docW + '" height="' + docH + '">' +
+      html +
+      '</foreignObject></svg>';
+    var img = new Image();
+    img.onload = function(){
+      try {
+        var canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.floor(w * dpr));
+        canvas.height = Math.max(1, Math.floor(h * dpr));
+        var ctx = canvas.getContext('2d');
+        if (!ctx) throw new Error('no 2d context');
+        ctx.scale(dpr, dpr);
+        ctx.drawImage(img, 0, 0, w, h);
+        window.parent.postMessage({ type: 'od:snapshot:result', id: id, dataUrl: canvas.toDataURL('image/png'), w: canvas.width, h: canvas.height }, '*');
+      } catch (err) {
+        window.parent.postMessage({ type: 'od:snapshot:result', id: id, error: String(err && err.message || err) }, '*');
+      }
+    };
+    img.onerror = function(){
+      window.parent.postMessage({ type: 'od:snapshot:result', id: id, error: 'snapshot image failed' }, '*');
+    };
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+  }
+  window.addEventListener('message', function(ev){
+    var data = ev && ev.data;
+    if (!data || data.type !== 'od:snapshot' || !data.id) return;
+    waitForImages().then(function(){ renderSnapshot(String(data.id)); });
+  });
+})();</script><script data-od-srcdoc-transport-activation="">(function(){
+  window.addEventListener('message', function(ev){
+    var data = ev && ev.data;
+    if (!data || data.type !== 'od:srcdoc-transport-activate' || typeof data.html !== 'string') return;
+    document.open();
+    document.write(data.html);
+    document.close();
+  });
+})();</script></body></html>

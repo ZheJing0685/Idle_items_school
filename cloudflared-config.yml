@@ -1,0 +1,58 @@
+# Cloudflare Tunnel 配置文件
+# 使用方法: cloudflared tunnel --config cloudflared-config.yml run
+
+# 隧道ID（如果使用命名隧道）
+# tunnel: <your-tunnel-id>
+
+# 认证凭据文件路径
+# credentials-file: ~/.cloudflared/<tunnel-id>.json
+
+# 全局设置
+protocol: quic                    # 使用QUIC协议，比HTTP/2更快
+retries: 10                      # 重试次数
+retries-refresh: 30s             # 重试刷新间隔
+ha-connections: 4                # 高可用连接数
+metrics: "[::]:8080"             # 监控端口
+loglevel: info                   # 日志级别
+
+# 优化设置
+no-chunked-encoding: false       # 启用分块编码
+origin-server-name: localhost    # 源服务器名称
+
+# 入口规则
+ingress:
+  # 主应用路由
+  - hostname: localhost
+    service: http://localhost:5173
+    originRequest:
+      connectTimeout: 30s        # 连接超时
+      tlsTimeout: 10s            # TLS超时
+      tcpKeepAlive: 30s          # TCP keepalive
+      keepAliveConnections: 100  # 保持长连接数
+      keepAliveTimeout: 90s      # keepalive超时
+      noTLSVerify: true          # 跳过TLS验证（开发环境）
+      disableChunkedEncoding: false
+      httpHostHeader: localhost  # HTTP主机头
+
+  # API路由（直接访问后端）
+  - hostname: localhost
+    path: /api/*
+    service: http://localhost:7000
+    originRequest:
+      connectTimeout: 30s
+      tlsTimeout: 10s
+      tcpKeepAlive: 30s
+      keepAliveConnections: 100
+      keepAliveTimeout: 90s
+      noTLSVerify: true
+
+  # 静态资源路由
+  - hostname: localhost
+    path: /uploads/*
+    service: http://localhost:7000
+    originRequest:
+      connectTimeout: 30s
+      noTLSVerify: true
+
+  # 默认规则
+  - service: http_status:404

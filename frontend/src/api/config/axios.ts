@@ -9,138 +9,51 @@ const instance: AxiosInstance = axios.create({
   baseURL,
   timeout: 15000,
   timeoutErrorMessage: '请求超时，请稍后重试',
+  withCredentials: true, // 关键：自动携带 Cookie
 });
 
-let memoryToken = '';
+const refreshInstance: AxiosInstance = axios.create({
+  baseURL,
+  timeout: 15000,
+  withCredentials: true,
+});
+
 let unauthorizedHandler: (() => void) | null = null;
-let refreshSubscribers: Array<(token: string) => void> = [];
-let refreshTimeout: ReturnType<typeof setTimeout> | null = null;
-let isRefreshing = false;
-const MAX_SUBSCRIBERS = 100;
-const REFRESH_TIMEOUT_MS = 10000;
 
 export const setUnauthorizedHandler = (handler: () => void): void => {
   unauthorizedHandler = handler;
 };
 
-const initToken = (): void => {
-  const stored = sessionStorage.getItem('access_token');
-  if (stored) memoryToken = stored;
-};
-
-initToken();
-
 instance.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    if (memoryToken && config.headers) {
-      config.headers.Authorization = `Bearer ${memoryToken}`;
-    }
+    // Token 由 HttpOnly Cookie 自动携带，无需手动设置 Authorization
     return config;
   },
   (error: AxiosError) => Promise.reject(error),
 );
 
-const refreshAccessToken = async (): Promise<string | null> => {
-  try {
-    const refreshToken = sessionStorage.getItem('refresh_token');
-    if (!refreshToken) throw new Error('no refresh token');
-    const { default: api } = await import('../../api');
-    const response: ApiResponse<{ token: string; refreshToken?: string }> = await api.auth.refreshToken(refreshToken);
-    if (response.code === 200 && response.data?.token) {
-      setToken(response.data.token);
-      if (response.data.refreshToken) {
-        sessionStorage.setItem('refresh_token', response.data.refreshToken);
-      }
-      return response.data.token;
-    }
-    throw new Error('refresh failed');
-  } catch (error) {
-    handleRefreshError(error);
-    return null;
-  }
-};
-
-const addRefreshSubscriber = (cb: (token: string) => void): void => {
-  if (refreshSubscribers.length >= MAX_SUBSCRIBERS) {
-    console.warn('Token刷新队列已满，拒绝新的订阅者');
-    return;
-  }
-
-  refreshSubscribers.push(cb);
-
-  if (!refreshTimeout) {
-    refreshTimeout = setTimeout(() => {
-      console.error('Token刷新超时，通知所有订阅者');
-      refreshSubscribers.forEach((callback) => callback(''));
-      refreshSubscribers = [];
-      refreshTimeout = null;
-    }, REFRESH_TIMEOUT_MS);
-  }
-};
-
-const onRefreshed = (token: string): void => {
-  if (refreshTimeout) {
-    clearTimeout(refreshTimeout);
-    refreshTimeout = null;
-  }
-
-  refreshSubscribers.forEach((cb) => cb(token));
-  refreshSubscribers = [];
-};
-
-const handleRefreshError = (error: unknown): void => {
-  console.error('Token刷新失败:', error);
-
-  if (refreshTimeout) {
-    clearTimeout(refreshTimeout);
-    refreshTimeout = null;
-  }
-
-  refreshSubscribers.forEach((cb) => cb(''));
-  refreshSubscribers = [];
-
-  clearToken();
-};
-
 instance.interceptors.response.use(
   (response: AxiosResponse<ApiResponse>) => {
-    return response.data as any;
+    return response.data as unknown as AxiosResponse<ApiResponse>;
   },
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
     if (!originalRequest) return Promise.reject(error);
 
     if (error.response?.status === 401 && !originalRequest._retry) {
-      if (isRefreshing) {
-        return new Promise((resolve, reject) => {
-          addRefreshSubscriber((token: string) => {
-            if (!token) {
-              reject(error);
-              return;
-            }
-            if (originalRequest.headers) {
-              originalRequest.headers.Authorization = `Bearer ${token}`;
-            }
-            resolve(instance(originalRequest));
-          });
-        });
-      }
-
       originalRequest._retry = true;
-      isRefreshing = true;
 
-      const newToken = await refreshAccessToken();
-      isRefreshing = false;
-
-      if (newToken) {
-        onRefreshed(newToken);
-        if (originalRequest.headers) {
-          originalRequest.headers.Authorization = `Bearer ${newToken}`;
+      // 尝试通过 refresh 接口自动续期，Refresh Token 由 HttpOnly Cookie 自动携带。
+      try {
+        const response = await refreshInstance.post<ApiResponse>('/auth/refresh');
+        if (response.data.code === 200) {
+          return instance(originalRequest);
         }
-        return instance(originalRequest);
+      } catch {
+        // 刷新失败，继续走登出逻辑
       }
 
-      clearToken();
+      clearAuthState();
       if (unauthorizedHandler) {
         unauthorizedHandler();
       } else {
@@ -184,17 +97,14 @@ instance.interceptors.response.use(
   },
 );
 
-export const setToken = (token: string): void => {
-  memoryToken = token;
-  sessionStorage.setItem('access_token', token);
-};
+export function clearAuthState(): void {}
 
-export const getToken = (): string => memoryToken;
+// 兼容旧调用：认证状态现在只以 /auth/me 的服务端校验结果为准。
+export const clearCookies = clearAuthState;
 
-export const clearToken = (): void => {
-  memoryToken = '';
-  sessionStorage.removeItem('access_token');
-  sessionStorage.removeItem('refresh_token');
-};
+// 兼容旧导出（已被移除的函数的空实现，防止其他文件报错）
+export const setToken = (_token: string): void => {};
+export const getToken = (): string => '';
+export const clearToken = (): void => {};
 
 export default instance;

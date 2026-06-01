@@ -78,6 +78,7 @@ backend/.env
 backend/.env.local
 backend/.env.*.local
 !backend/.env.example
+backend/src/main/resources/application-local.yml
 
 # Frontend environment configs
 frontend/.env

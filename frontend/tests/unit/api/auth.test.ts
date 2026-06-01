@@ -90,15 +90,13 @@ describe('Auth API (TypeScript)', () => {
   });
 
   describe('refreshToken', () => {
-    it('should call post with correct url and refreshToken', async () => {
+    it('should call post with correct url and no body (refresh token from HttpOnly cookie)', async () => {
       const mockResponse = { code: 200, data: { token: 'new-token' } };
       mockPost.mockResolvedValue(mockResponse);
 
-      const result = await authApi.refreshToken('old-refresh-token');
+      const result = await authApi.refreshToken();
 
-      expect(mockPost).toHaveBeenCalledWith('/auth/refresh', {
-        refreshToken: 'old-refresh-token',
-      });
+      expect(mockPost).toHaveBeenCalledWith('/auth/refresh');
       expect(result).toEqual(mockResponse);
     });
   });

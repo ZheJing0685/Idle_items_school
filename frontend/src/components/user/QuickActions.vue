@@ -91,16 +91,32 @@ defineProps({
   font-size: var(--text-sm);
   font-weight: 500;
   color: var(--text-primary);
+  white-space: nowrap;
 }
 
 @media (max-width: 768px) {
   .quick-actions {
     grid-template-columns: repeat(3, 1fr);
     padding: var(--space-4);
+    gap: var(--space-2);
   }
 
   .action-item {
-    padding: var(--space-4);
+    padding: var(--space-3) var(--space-2);
+  }
+
+  .action-icon {
+    width: 44px;
+    height: 44px;
+  }
+
+  .action-icon :deep(svg) {
+    width: 22px;
+    height: 22px;
+  }
+
+  .action-text {
+    font-size: var(--text-xs);
   }
 }
 </style>

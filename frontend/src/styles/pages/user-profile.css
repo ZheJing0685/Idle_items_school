@@ -1,5 +1,6 @@
 .profile-page {
   max-width: 700px;
+  margin: 0 auto;
 }
 
 .profile-sections {
@@ -25,8 +26,14 @@
 
 .avatar-upload-wrapper {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: var(--space-6);
+  gap: var(--space-4);
+}
+
+.avatar-container {
+  position: relative;
+  display: inline-block;
 }
 
 .profile-avatar {
@@ -35,6 +42,52 @@
   font-weight: 700;
   border: 3px solid var(--bg-surface);
   box-shadow: var(--shadow-md);
+  flex-shrink: 0;
+}
+
+.avatar-upload-trigger {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.avatar-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  border-radius: 50%;
+}
+
+.avatar-upload-trigger:hover .avatar-overlay,
+.avatar-upload-trigger:active .avatar-overlay {
+  opacity: 1;
+}
+
+.avatar-overlay span {
+  font-size: var(--text-xs);
+  margin-top: var(--space-1);
+}
+
+.avatar-hint {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  margin: 0;
+  text-align: center;
 }
 
 .profile-form {
@@ -60,6 +113,24 @@
 .profile-form :deep(.el-input__wrapper),
 .profile-form :deep(.el-textarea__inner) {
   border-radius: var(--radius-md);
+}
+
+.profile-form :deep(.el-input__inner) {
+  min-height: 40px;
+}
+
+.profile-form :deep(.el-radio-group) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.profile-form :deep(.el-radio) {
+  margin-right: 0;
+}
+
+.profile-form :deep(.el-date-editor) {
+  width: 100%;
 }
 
 .account-info {
@@ -104,8 +175,9 @@
 
 .transaction-stats {
   flex: 1;
-  display: flex;
-  gap: var(--space-4);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-3);
 }
 
 .transaction-stats .stat-item {
@@ -113,10 +185,9 @@
   flex-direction: column;
   align-items: center;
   gap: var(--space-1);
-  padding: var(--space-3) var(--space-4);
+  padding: var(--space-3) var(--space-2);
   background: var(--bg-surface);
   border-radius: var(--radius-md);
-  min-width: 80px;
 }
 
 .transaction-stats .stat-value {
@@ -133,26 +204,221 @@
 
 .form-actions {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   padding-top: var(--space-4);
 }
 
 .form-actions .el-button {
-  min-width: 120px;
+  min-width: 160px;
+  height: 44px;
+  font-size: var(--text-base);
+  font-weight: 500;
 }
 
+/* 移动端响应式优化 */
 @media (max-width: 768px) {
+  .profile-page {
+    max-width: 100%;
+  }
+
+  .profile-sections {
+    gap: var(--space-4);
+  }
+
+  .section-card {
+    padding: var(--space-4);
+    border-radius: var(--radius-md);
+  }
+
+  .section-title {
+    font-size: var(--text-base);
+    margin-bottom: var(--space-4);
+    padding-bottom: var(--space-2);
+  }
+
+  .avatar-upload-wrapper {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .avatar-container {
+    width: 80px;
+    height: 80px;
+  }
+
+  .profile-avatar {
+    width: 80px;
+    height: 80px;
+    font-size: var(--text-3xl);
+  }
+
+  .avatar-hint {
+    font-size: 11px;
+  }
+
+  .profile-form :deep(.el-form-item__label) {
+    font-size: var(--text-xs);
+  }
+
+  .profile-form :deep(.el-input__wrapper),
+  .profile-form :deep(.el-textarea__inner) {
+    border-radius: var(--radius-sm);
+  }
+
+  .profile-form :deep(.el-input__inner) {
+    min-height: 44px;
+    font-size: var(--text-base);
+  }
+
+  .profile-form :deep(.el-textarea__inner) {
+    min-height: 100px;
+    font-size: var(--text-base);
+  }
+
   .info-row {
     flex-direction: column;
     gap: var(--space-2);
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--border-subtle);
   }
-  
+
+  .info-row:last-child {
+    border-bottom: none;
+  }
+
   .info-label {
     width: auto;
     padding-top: 0;
+    font-weight: 500;
   }
-  
+
+  .credit-score {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+  }
+
   .transaction-stats {
-    flex-wrap: wrap;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-2);
+  }
+
+  .transaction-stats .stat-item {
+    padding: var(--space-2);
+    min-width: 0;
+  }
+
+  .transaction-stats .stat-value {
+    font-size: var(--text-base);
+  }
+
+  .transaction-stats .stat-label {
+    font-size: 10px;
+  }
+
+  .form-actions {
+    position: sticky;
+    bottom: 0;
+    background: var(--bg-surface);
+    padding: var(--space-3) 0;
+    margin: 0 calc(-1 * var(--space-4));
+    padding-left: var(--space-4);
+    padding-right: var(--space-4);
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .form-actions .el-button {
+    width: 100%;
+    min-width: 0;
+    height: 48px;
+  }
+}
+
+/* 小屏幕手机优化 */
+@media (max-width: 375px) {
+  .section-card {
+    padding: var(--space-3);
+  }
+
+  .avatar-container {
+    width: 72px;
+    height: 72px;
+  }
+
+  .profile-avatar {
+    width: 72px;
+    height: 72px;
+    font-size: var(--text-2xl);
+  }
+
+  .transaction-stats {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .transaction-stats .stat-item {
+    padding: var(--space-2) var(--space-1);
+  }
+
+  .transaction-stats .stat-value {
+    font-size: var(--text-sm);
+  }
+}
+
+/* 横屏模式优化 */
+@media (max-height: 500px) and (orientation: landscape) {
+  .page-header {
+    margin-bottom: var(--space-3);
+  }
+
+  .profile-sections {
+    gap: var(--space-3);
+  }
+
+  .section-card {
+    padding: var(--space-3);
+  }
+
+  .avatar-upload-wrapper {
+    flex-direction: row;
+    justify-content: center;
+  }
+
+  .avatar-container {
+    width: 60px;
+    height: 60px;
+  }
+
+  .profile-avatar {
+    width: 60px;
+    height: 60px;
+  }
+}
+
+/* 深色模式适配 */
+@media (prefers-color-scheme: dark) {
+  .section-card {
+    background: var(--bg-muted);
+  }
+
+  .transaction-stats .stat-item {
+    background: var(--bg-surface);
+  }
+}
+
+/* 减少动画偏好 */
+@media (prefers-reduced-motion: reduce) {
+  .profile-avatar {
+    transition: none;
+  }
+}
+
+/* 高对比度模式 */
+@media (prefers-contrast: high) {
+  .section-card {
+    border: 2px solid var(--border-default);
+  }
+
+  .info-row {
+    border-bottom-width: 2px;
   }
 }

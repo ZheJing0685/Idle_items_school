@@ -1,395 +1,158 @@
 <template>
   <div class="publish-page">
-    <div class="page-header">
-      <div class="container">
-        <div class="header-content">
-          <h1 class="page-title">{{ isEdit ? '编辑物品' : '发布闲置' }}</h1>
-          <p class="page-subtitle">
-            {{ isEdit ? '修改你的物品信息' : '让闲置找到新主人，变废为宝' }}
-          </p>
-        </div>
-      </div>
-    </div>
-
     <div class="container">
-      <div class="publish-layout">
-        <div class="publish-main">
-          <el-form
-            ref="formRef"
-            :model="form"
-            :rules="rules"
-            label-position="top"
-            class="publish-form"
-          >
-            <div class="form-section">
-              <h3 class="section-title">
-                <Image :size="20" />
-                物品图片
-              </h3>
-              <div class="image-upload-area">
-                <div class="uploaded-images" v-if="form.images.length > 0">
-                  <div
-                    v-for="(img, index) in form.images"
-                    :key="index"
-                    class="uploaded-image"
-                  >
-                    <img :src="img" alt="上传图片" />
-                    <button class="remove-btn" @click="removeImage(index)" aria-label="删除图片">
-                      <X :size="16" />
-                    </button>
-                    <span class="cover-badge" v-if="index === 0">封面</span>
-                  </div>
-                </div>
-                <div
-                  class="upload-trigger"
-                  @click="triggerUpload"
-                  v-if="form.images.length < 9"
-                >
-                  <input
-                    type="file"
-                    ref="fileInput"
-                    accept="image/*"
-                    multiple
-                    @change="handleFileChange"
-                    style="display: none"
-                  />
-                  <div class="upload-content">
-                    <Image :size="48" color="var(--text-muted)" stroke-width="1.5" />
-                    <p class="upload-text">点击上传图片</p>
-                    <p class="upload-hint">支持 JPG、PNG、WebP，最多9张</p>
-                  </div>
-                </div>
-              </div>
-              <p class="image-tip" v-if="form.images.length === 0">
-                请至少上传一张图片，第一张将作为封面图
-              </p>
+      <!-- Header -->
+      <div class="publish-header">
+        <h2>{{ isEdit ? '编辑物品' : '发布闲置物品' }}</h2>
+        <p>让你的闲置物品找到新主人，为绿色校园贡献力量</p>
+      </div>
+
+      <!-- Form -->
+      <div class="publish-form">
+        <!-- Image Upload -->
+        <div class="form-group">
+          <label class="form-label">物品图片</label>
+          <div class="upload-previews" v-if="form.images.length > 0">
+            <div
+              v-for="(img, index) in form.images"
+              :key="index"
+              class="upload-preview"
+              :style="{ background: getPreviewColor(index) }"
+            >
+              <span>{{ getPreviewIcon(index) }}</span>
+              <button class="remove-btn" @click="removeImage(index)">×</button>
             </div>
-
-            <div class="form-section">
-              <h3 class="section-title">
-                <Edit3 :size="20" />
-                物品信息
-              </h3>
-
-              <el-form-item label="物品标题" prop="title" class="form-item">
-                <el-input
-                  v-model="form.title"
-                  placeholder="简洁明了的标题能让买家快速了解你的物品"
-                  maxlength="60"
-                  show-word-limit
-                  size="large"
-                />
-              </el-form-item>
-
-              <div class="form-row">
-                <el-form-item label="分类" prop="categoryId" class="form-item">
-                  <el-cascader
-                    v-model="form.categoryId"
-                    :options="categoryTreeOptions"
-                    :props="{
-                      value: 'id',
-                      label: 'name',
-                      children: 'children',
-                      emitPath: false,
-                    }"
-                    placeholder="选择分类"
-                    size="large"
-                    class="form-select"
-                  />
-                </el-form-item>
-
-                <el-form-item label="成色" prop="condition" class="form-item">
-                  <el-select
-                    v-model="form.condition"
-                    placeholder="选择成色"
-                    size="large"
-                    class="form-select"
-                  >
-                    <el-option
-                      v-for="option in conditionOptions"
-                      :key="option.value"
-                      :label="option.label"
-                      :value="option.value"
-                    />
-                  </el-select>
-                </el-form-item>
-              </div>
-
-              <div class="form-row">
-                <el-form-item
-                  label="配送方式"
-                  prop="deliveryMethod"
-                  class="form-item"
-                >
-                  <el-select
-                    v-model="form.deliveryMethod"
-                    placeholder="选择配送方式"
-                    size="large"
-                    class="form-select"
-                  >
-                    <el-option
-                      v-for="option in deliveryMethodOptions"
-                      :key="option.value"
-                      :label="option.label"
-                      :value="option.value"
-                    />
-                  </el-select>
-                </el-form-item>
-
-                <el-form-item
-                  label="联系方式"
-                  prop="contactType"
-                  class="form-item"
-                >
-                  <el-select
-                    v-model="form.contactType"
-                    placeholder="选择联系方式"
-                    size="large"
-                    class="form-select"
-                  >
-                    <el-option
-                      v-for="option in contactTypeOptions"
-                      :key="option.value"
-                      :label="option.label"
-                      :value="option.value"
-                    />
-                  </el-select>
-                </el-form-item>
-              </div>
-
-              <div class="form-row">
-                <el-form-item label="是否允许议价" class="form-item">
-                  <el-switch
-                    v-model="form.isBargainAllowed"
-                    active-text="是"
-                    inactive-text="否"
-                  />
-                </el-form-item>
-
-                <el-form-item label="最低接受价格（选填）" class="form-item">
-                  <el-input
-                    v-model.number="form.minPrice"
-                    type="number"
-                    placeholder="输入最低接受价格"
-                    size="large"
-                    class="price-input"
-                  >
-                    <template #prefix>
-                      <span class="input-prefix">¥</span>
-                    </template>
-                  </el-input>
-                </el-form-item>
-              </div>
-
-              <div class="form-row">
-                <el-form-item label="品牌（选填）" class="form-item">
-                  <el-input
-                    v-model="form.brand"
-                    placeholder="输入品牌名称"
-                    size="large"
-                  />
-                </el-form-item>
-
-                <el-form-item label="购买日期（选填）" class="form-item">
-                  <el-date-picker
-                    v-model="form.purchaseDate"
-                    type="date"
-                    placeholder="选择购买日期"
-                    size="large"
-                    class="form-date"
-                  />
-                </el-form-item>
-              </div>
-
-              <el-form-item label="商品标签（选填）" class="form-item">
-                <el-tag
-                  v-for="(tag, index) in form.tags"
-                  :key="index"
-                  closable
-                  @close="form.tags.splice(index, 1)"
-                  class="tag-item"
-                >
-                  {{ tag }}
-                </el-tag>
-                <el-input
-                  v-model="tagInput"
-                  placeholder="输入标签后按回车添加"
-                  @keyup.enter="addTag"
-                  size="large"
-                  class="tag-input"
-                />
-              </el-form-item>
-
-              <el-form-item label="保修信息（选填）" class="form-item">
-                <el-input
-                  v-model="form.warrantyInfo"
-                  type="textarea"
-                  :rows="3"
-                  placeholder="输入保修信息"
-                />
-              </el-form-item>
-
-              <div class="form-row">
-                <el-form-item label="出售价格" prop="price" class="form-item">
-                  <el-input
-                    v-model.number="form.price"
-                    type="number"
-                    placeholder="输入价格"
-                    size="large"
-                    class="price-input"
-                  >
-                    <template #prefix>
-                      <span class="input-prefix">¥</span>
-                    </template>
-                  </el-input>
-                </el-form-item>
-
-                <el-form-item label="原价（选填）" class="form-item">
-                  <el-input
-                    v-model.number="form.originalPrice"
-                    type="number"
-                    placeholder="输入原价"
-                    size="large"
-                    class="price-input"
-                  >
-                    <template #prefix>
-                      <span class="input-prefix">¥</span>
-                    </template>
-                  </el-input>
-                </el-form-item>
-              </div>
-
-              <el-form-item label="交易地点" prop="location" class="form-item">
-                <el-input
-                  v-model="form.location"
-                  placeholder="如：校园南门、宿舍楼下等"
-                  size="large"
-                >
-                  <template #prefix>
-                    <MapPin :size="18" />
-                  </template>
-                </el-input>
-              </el-form-item>
-
-              <el-form-item
-                label="物品描述"
-                prop="description"
-                class="form-item"
-              >
-                <el-input
-                  v-model="form.description"
-                  type="textarea"
-                  :rows="5"
-                  placeholder="详细描述物品的品牌型号、入手渠道、使用感受等，让买家更了解你的物品"
-                  maxlength="500"
-                  show-word-limit
-                />
-              </el-form-item>
+          </div>
+          <div class="upload-zone" @click="triggerUpload" v-if="form.images.length < 9">
+            <input
+              type="file"
+              ref="fileInput"
+              accept="image/*"
+              multiple
+              @change="handleFileChange"
+              style="display: none"
+            />
+            <div class="upload-zone-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <circle cx="8.5" cy="8.5" r="1.5" />
+                <path d="M21 15l-5-5L5 21" />
+              </svg>
             </div>
-
-            <div class="form-section">
-              <h3 class="section-title">
-                <ClipboardList :size="20" />
-                联系方式
-              </h3>
-
-              <div class="form-row">
-                <el-form-item
-                  label="联系人"
-                  prop="contactName"
-                  class="form-item"
-                >
-                  <el-input
-                    v-model="form.contactName"
-                    placeholder="你的称呼"
-                    size="large"
-                  />
-                </el-form-item>
-
-                <el-form-item
-                  label="联系电话"
-                  prop="contactPhone"
-                  class="form-item"
-                >
-                  <el-input
-                    v-model="form.contactPhone"
-                    placeholder="手机号码"
-                    size="large"
-                  />
-                </el-form-item>
-              </div>
-
-              <!-- 根据联系方式类型动态显示对应的输入框 -->
-              <div class="form-row" v-if="form.contactType === '2'">
-                <el-form-item
-                  label="微信号"
-                  prop="contactInfo"
-                  class="form-item"
-                >
-                  <el-input
-                    v-model="form.contactInfo"
-                    placeholder="请输入微信号"
-                    size="large"
-                  />
-                </el-form-item>
-              </div>
-
-              <div class="form-row" v-if="form.contactType === '3'">
-                <el-form-item label="QQ号" prop="contactInfo" class="form-item">
-                  <el-input
-                    v-model="form.contactInfo"
-                    placeholder="请输入QQ号"
-                    size="large"
-                  />
-                </el-form-item>
-              </div>
-
-              <div class="form-row" v-if="form.contactType === '1'">
-                <el-form-item label="平台内联系方式" class="form-item">
-                  <el-input disabled value="通过平台内消息联系" size="large" />
-                </el-form-item>
-              </div>
-            </div>
-
-            <div class="form-actions">
-              <el-button
-                size="large"
-                @click="$router.back()"
-                class="cancel-btn"
-              >
-                取消
-              </el-button>
-              <el-button
-                size="large"
-                type="primary"
-                :loading="submitting"
-                @click="handleSubmit"
-                class="submit-btn"
-              >
-                {{
-                  submitting ? '发布中...' : isEdit ? '保存修改' : '立即发布'
-                }}
-              </el-button>
-            </div>
-          </el-form>
+            <div class="upload-zone-title">点击或拖拽上传图片</div>
+            <div class="upload-zone-hint">支持 JPG、PNG，最多 9 张</div>
+          </div>
         </div>
 
-        <aside class="publish-sidebar">
-          <div class="sidebar-card">
-              <h4 class="card-title">
-                <Smile :size="18" color="var(--secondary-color)" />
-                发布小贴士
-              </h4>
-            <ul class="tips-list">
-              <li>清晰真实的图片能提高成交率</li>
-              <li>详细描述物品的品牌型号和使用情况</li>
-              <li>合理定价，参考同类商品价格</li>
-              <li>选择方便的交易地点</li>
-              <li>保持联系方式畅通</li>
-            </ul>
-          </div>
+        <!-- Title -->
+        <div class="form-group">
+          <label class="form-label">物品名称</label>
+          <input
+            class="form-input"
+            type="text"
+            v-model="form.title"
+            placeholder="简洁描述你的物品，如「MacBook Air M2 256G」"
+          />
+        </div>
 
-        </aside>
+        <!-- Category & Condition -->
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">分类</label>
+            <select class="form-select" v-model="form.categoryId">
+              <option value="">选择分类</option>
+              <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">新旧程度</label>
+            <div class="radio-group">
+              <span
+                v-for="option in conditionOptions"
+                :key="option.value"
+                class="radio-pill"
+                :class="{ active: form.condition === option.value }"
+                @click="form.condition = option.value"
+              >
+                {{ option.label }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Price Type Toggle -->
+        <div class="form-group">
+          <label class="form-label">交易方式</label>
+          <div class="toggle-group">
+            <div
+              class="toggle-option"
+              :class="{ active: priceType === 'sell' }"
+              @click="priceType = 'sell'"
+            >
+              💰 出售
+            </div>
+            <div
+              class="toggle-option"
+              :class="{ active: priceType === 'exchange' }"
+              @click="priceType = 'exchange'"
+            >
+              ♻️ 交换
+            </div>
+            <div
+              class="toggle-option"
+              :class="{ active: priceType === 'free' }"
+              @click="priceType = 'free'"
+            >
+              🎁 免费送
+            </div>
+          </div>
+        </div>
+
+        <!-- Price -->
+        <div class="form-group" v-if="priceType !== 'free'">
+          <label class="form-label">{{ priceType === 'exchange' ? '期望交换物品' : '出售价格' }}</label>
+          <input
+            class="form-input"
+            type="number"
+            v-model.number="form.price"
+            :placeholder="priceType === 'exchange' ? '描述你想交换的物品' : '输入价格（元）'"
+            style="max-width: 240px;"
+          />
+          <div class="form-hint" v-if="priceType === 'sell'">建议参考原价的 30%–60%，合理定价更容易成交</div>
+        </div>
+
+        <!-- Description -->
+        <div class="form-group">
+          <label class="form-label">物品描述</label>
+          <textarea
+            class="form-textarea"
+            v-model="form.description"
+            placeholder="描述物品的使用情况、购买时间、功能状态等，越详细越容易卖出哦~"
+          ></textarea>
+        </div>
+
+        <!-- Location -->
+        <div class="form-group">
+          <label class="form-label">交易地点</label>
+          <select class="form-select" v-model="form.location">
+            <option value="">选择校区</option>
+            <option value="主校区 — 图书馆附近">主校区 — 图书馆附近</option>
+            <option value="主校区 — 食堂门口">主校区 — 食堂门口</option>
+            <option value="东校区 — 宿舍楼下">东校区 — 宿舍楼下</option>
+            <option value="南校区">南校区</option>
+            <option value="其他">其他（自行填写）</option>
+          </select>
+        </div>
+
+        <!-- Submit -->
+        <div class="publish-actions">
+          <button class="btn btn-primary btn-lg" @click="handleSubmit" :disabled="submitting">
+            {{ submitting ? '发布中...' : '发布物品' }}
+          </button>
+          <button class="btn btn-secondary btn-lg" @click="$router.back()">
+            存为草稿
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -398,132 +161,51 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { ElMessage, ElForm } from 'element-plus';
+import { ElMessage } from 'element-plus';
 import api from '../api';
-import { itemRules } from '../utils/validator';
-import { useDictStore } from '../store/dict.js';
-import { Image, X, Edit3, MapPin, ClipboardList, Smile } from 'lucide-vue-next';
 
 const route = useRoute();
 const router = useRouter();
-const formRef = ref<InstanceType<typeof ElForm> | null>(null);
 const fileInput = ref<HTMLInputElement | null>(null);
 const submitting = ref(false);
-const categoryTreeOptions = ref<any[]>([]);
-const dictStore = useDictStore();
+const priceType = ref('sell');
+
+const categories = ref([
+  { id: 1, name: '数码电子' },
+  { id: 2, name: '教材书籍' },
+  { id: 3, name: '生活用品' },
+  { id: 4, name: '服饰鞋包' },
+  { id: 5, name: '运动户外' },
+  { id: 6, name: '家具家电' },
+  { id: 7, name: '其他' },
+]);
+
+const conditionOptions = [
+  { value: 'NEW', label: '全新' },
+  { value: 'LIKE_NEW', label: '九五新' },
+  { value: 'GOOD', label: '九成新' },
+  { value: 'FAIR', label: '八成新' },
+  { value: 'POOR', label: '七成新' },
+];
 
 const isEdit = computed(() => !!route.query.edit);
 
 const form = reactive({
   title: '',
   description: '',
-  price: null,
-  originalPrice: null,
-  minPrice: null,
+  price: null as number | null,
+  originalPrice: null as number | null,
   categoryId: null as number | null,
-  condition: null,
-  deliveryMethod: null,
-  contactType: null,
-  isBargainAllowed: true,
+  condition: 'LIKE_NEW',
   location: '',
-  brand: '',
-  purchaseDate: null,
-  warrantyInfo: '',
-  tags: [] as string[],
-  contactName: '',
-  contactPhone: '',
-  contactInfo: '',
   images: [] as string[],
 });
 
-const tagInput = ref('');
+const previewColors = ['#dce8f7', '#f5edd6', '#d8f0e0', '#e8d8f0', '#f0e0d0'];
+const previewIcons = ['📷', '🖼️', '📸', '🎨', '✏️'];
 
-// 获取字典选项
-const conditionOptions = computed(() => {
-  const options = dictStore.getDictOptions('ITEM_CONDITION');
-  if (options.length > 0) return options;
-  return [
-    { value: 'NEW', label: '全新' },
-    { value: 'LIKE_NEW', label: '九成新' },
-    { value: 'GOOD', label: '八成新' },
-    { value: 'FAIR', label: '七成新' },
-    { value: 'POOR', label: '六成新及以下' },
-  ];
-});
-const deliveryMethodOptions = computed(() =>
-  dictStore.getDictOptions('DELIVERY_METHOD')
-);
-const contactTypeOptions = computed(() =>
-  dictStore.getDictOptions('CONTACT_TYPE')
-);
-
-const validateContactInfo = (rule: any, value: string, callback: any) => {
-  if (form.contactType === '2' && !value) {
-    callback(new Error('请输入微信号'));
-  } else if (form.contactType === '3' && !value) {
-    callback(new Error('请输入QQ号'));
-  } else {
-    callback();
-  }
-};
-
-const rules = {
-  ...itemRules,
-  condition: [{ required: true, message: '请选择成色', trigger: 'change' }],
-  deliveryMethod: [
-    { required: true, message: '请选择配送方式', trigger: 'change' },
-  ],
-  contactType: [
-    { required: true, message: '请选择联系方式', trigger: 'change' },
-  ],
-  location: [{ required: true, message: '请输入交易地点', trigger: 'blur' }],
-  contactName: [{ required: true, message: '请输入联系人', trigger: 'blur' }],
-  contactPhone: [
-    { required: true, message: '请输入联系电话', trigger: 'blur' },
-    { pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确', trigger: 'blur' },
-  ],
-  contactInfo: [{ validator: validateContactInfo, trigger: 'blur' }],
-};
-
-const loadCategories = async () => {
-  try {
-    const response = await api.category.getCategoryTree();
-    if (response.code === 200) {
-      categoryTreeOptions.value = response.data;
-    }
-  } catch (error) {
-    console.error('获取分类失败', error);
-  }
-};
-
-const loadItemForEdit = async () => {
-  if (!isEdit.value) return;
-  try {
-    const response = await api.item.getItem(route.query.edit as string);
-    const item: any = response.data;
-    form.title = item.title;
-    form.description = item.description;
-    form.price = item.price;
-    form.originalPrice = item.originalPrice;
-    form.minPrice = item.minPrice;
-    form.categoryId = item.categoryId;
-    form.condition = item.condition;
-    form.deliveryMethod = item.deliveryMethod;
-    form.contactType = item.contactType;
-    form.isBargainAllowed = item.isBargainAllowed;
-    form.location = item.location;
-    form.brand = item.brand;
-    form.purchaseDate = item.purchaseDate;
-    form.warrantyInfo = item.warrantyInfo;
-    form.tags = item.tags || [];
-    form.contactName = item.contactName;
-    form.contactPhone = item.contactPhone;
-    form.contactInfo = item.contactInfo || '';
-    form.images = item.images || [];
-  } catch (error) {
-    ElMessage.error('获取物品信息失败');
-  }
-};
+const getPreviewColor = (index: number) => previewColors[index % previewColors.length];
+const getPreviewIcon = (index: number) => previewIcons[index % previewIcons.length];
 
 const triggerUpload = () => {
   fileInput.value?.click();
@@ -537,34 +219,26 @@ const handleFileChange = async (e: Event) => {
   const remainingSlots = 9 - form.images.length;
   const filesToUpload = files.slice(0, remainingSlots);
 
-  const uploadTasks = filesToUpload
-    .filter(file => {
-      if (!file.type.startsWith('image/')) {
-        ElMessage.warning('只能上传图片文件');
-        return false;
-      }
-      if (file.size > 5 * 1024 * 1024) {
-        ElMessage.warning('图片大小不能超过5MB');
-        return false;
-      }
-      return true;
-    })
-    .map(async (file) => {
+  for (const file of filesToUpload) {
+    if (!file.type.startsWith('image/')) {
+      ElMessage.warning('只能上传图片文件');
+      continue;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      ElMessage.warning('图片大小不能超过5MB');
+      continue;
+    }
+    try {
       const formData = new FormData();
       formData.append('file', file);
       const response = await api.item.uploadImage(formData);
       if (response.code === 200) {
         form.images.push(response.data.url);
       }
-      return response;
-    });
-
-  const results = await Promise.allSettled(uploadTasks);
-  const failed = results.filter(r => r.status === 'rejected').length;
-  if (failed > 0) {
-    ElMessage.warning(`${failed} 张图片上传失败`);
+    } catch (error) {
+      ElMessage.warning('图片上传失败');
+    }
   }
-
   (e.target as HTMLInputElement).value = '';
 };
 
@@ -572,27 +246,25 @@ const removeImage = (index: number) => {
   form.images.splice(index, 1);
 };
 
-const addTag = () => {
-  if (
-    tagInput.value &&
-    !form.tags.includes(tagInput.value) &&
-    form.tags.length < 5
-  ) {
-    form.tags.push(tagInput.value);
-    tagInput.value = '';
-  }
-};
-
 const handleSubmit = async () => {
-  if (!formRef.value) return;
+  if (!form.title) {
+    ElMessage.warning('请输入物品名称');
+    return;
+  }
+  if (!form.categoryId) {
+    ElMessage.warning('请选择分类');
+    return;
+  }
+  if (priceType.value === 'sell' && !form.price) {
+    ElMessage.warning('请输入价格');
+    return;
+  }
 
   try {
-    await formRef.value.validate();
     submitting.value = true;
-
     const payload = {
       ...form,
-      tags: form.tags,
+      price: priceType.value === 'free' ? 0 : form.price,
     };
 
     if (isEdit.value) {
@@ -600,34 +272,38 @@ const handleSubmit = async () => {
       if (response.code === 200) {
         ElMessage.success('修改成功');
         router.push('/user/items');
-      } else {
-        ElMessage.error(response.message || '修改失败');
       }
     } else {
       const response = await api.item.createItem(payload as any);
       if (response.code === 200) {
-        ElMessage.success('发布成功');
+        ElMessage.success('🎉 发布成功！你的物品已进入审核，预计 10 分钟内上架。');
         router.push('/user/items');
-      } else {
-        ElMessage.error(response.message || '发布失败');
       }
     }
-  } catch (error) {
-    if (error.errors) {
-      ElMessage.error('请完善表单信息');
-    } else {
-      ElMessage.error(error.message || '操作失败');
-    }
+  } catch (error: any) {
+    ElMessage.error(error.message || '操作失败');
   } finally {
     submitting.value = false;
   }
 };
 
 onMounted(async () => {
-  // 加载字典数据
-  await dictStore.preloadCommonDicts();
-  await loadCategories();
-  await loadItemForEdit();
+  if (isEdit.value) {
+    try {
+      const response = await api.item.getItem(route.query.edit as string);
+      const item = response.data;
+      form.title = item.title;
+      form.description = item.description;
+      form.price = item.price;
+      form.originalPrice = item.originalPrice;
+      form.categoryId = item.categoryId;
+      form.condition = item.condition;
+      form.location = item.location;
+      form.images = item.images || [];
+    } catch (error) {
+      ElMessage.error('获取物品信息失败');
+    }
+  }
 });
 </script>
 

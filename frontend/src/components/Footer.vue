@@ -2,43 +2,13 @@
   <footer class="footer">
     <div class="footer-main">
       <div class="container">
-        <div class="footer-grid">
+        <div class="footer-content">
           <div class="footer-brand">
             <div class="footer-logo">
-              <Package :size="40" stroke-width="1.5" color="var(--primary-color)" />
-              <div class="footer-logo-text">
-                <span class="footer-brand-name">闲置好物</span>
-                <span class="footer-brand-tagline">校园绿色交易平台</span>
-              </div>
+              <Package :size="32" stroke-width="1.5" color="var(--primary-color)" />
+              <span class="footer-brand-name">闲置好物</span>
             </div>
-            <p class="footer-desc">
-              让闲置物品找到新主人，让资源得到充分利用。绿色校园，你我共创。
-            </p>
-            <div class="footer-eco-badge">
-              <Leaf :size="20" fill="var(--secondary-color)" color="var(--secondary-color)" />
-              <span>环保交易 · 减少浪费</span>
-            </div>
-          </div>
-
-          <div class="footer-links-group">
-            <h4 class="footer-heading">快速链接</h4>
-            <nav class="footer-links">
-              <router-link to="/">首页</router-link>
-              <router-link to="/items">发现好物</router-link>
-              <router-link to="/publish">发布闲置</router-link>
-              <router-link to="/user/orders">我的订单</router-link>
-            </nav>
-          </div>
-
-          <div class="footer-links-group">
-            <h4 class="footer-heading">分类浏览</h4>
-            <nav class="footer-links">
-              <router-link to="/items?category=1">数码产品</router-link>
-              <router-link to="/items?category=2">书籍教材</router-link>
-              <router-link to="/items?category=3">生活用品</router-link>
-              <router-link to="/items?category=4">运动器材</router-link>
-              <router-link to="/items?category=5">服装鞋帽</router-link>
-            </nav>
+            <p class="footer-desc">校园绿色交易平台</p>
           </div>
 
           <div class="footer-links-group">
@@ -50,22 +20,6 @@
               <a href="#">意见反馈</a>
             </nav>
           </div>
-
-          <div class="footer-contact">
-            <h4 class="footer-heading">联系我们</h4>
-            <div class="contact-item">
-              <Mail :size="18" />
-              <span>contact@xianhaowu.com</span>
-            </div>
-            <div class="contact-item">
-              <Phone :size="18" />
-              <span>400-888-6666</span>
-            </div>
-            <div class="contact-item">
-              <MapPin :size="18" />
-              <span>校园大学生活动中心</span>
-            </div>
-          </div>
         </div>
       </div>
     </div>
@@ -74,12 +28,16 @@
       <div class="container">
         <div class="footer-bottom-content">
           <p class="copyright">
-            © 2026 闲置好物 · 校园绿色交易平台 · 变废为宝，绿色校园
+            © 2026 闲置好物 · 校园绿色交易平台
           </p>
-          <div class="footer-stat">
-            <span class="stat-item">
-              <Smile :size="14" fill="var(--secondary-color)" color="var(--secondary-color)" />
-              已帮助 12,847 件物品找到新主人
+          <div class="footer-contact">
+            <span class="contact-item">
+              <Mail :size="14" />
+              contact@xianhaowu.com
+            </span>
+            <span class="contact-item">
+              <Phone :size="14" />
+              400-888-6666
             </span>
           </div>
         </div>
@@ -89,7 +47,163 @@
 </template>
 
 <script setup lang="ts">
-import { Package, Leaf, Mail, Phone, MapPin, Smile } from 'lucide-vue-next';
+import { Package, Mail, Phone } from 'lucide-vue-next';
 </script>
 
-<style scoped src="../styles/components/footer.css"></style>
+<style scoped>
+.footer {
+  margin-top: auto;
+  background: var(--bg-surface);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.footer-main {
+  padding: var(--space-6) 0;
+}
+
+.footer-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-8);
+}
+
+.footer-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.footer-logo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.footer-brand-name {
+  font-family: var(--font-display);
+  font-size: var(--text-base);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.footer-desc {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.footer-links-group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+}
+
+.footer-heading {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.footer-links {
+  display: flex;
+  gap: var(--space-4);
+}
+
+.footer-links a {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.footer-links a:hover {
+  color: var(--primary-color);
+}
+
+.footer-bottom {
+  background: var(--bg-muted);
+  padding: var(--space-3) 0;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.footer-bottom-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.copyright {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.footer-contact {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.contact-item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.contact-item svg {
+  color: var(--primary-color);
+}
+
+/* 平板端 */
+@media (max-width: 1024px) {
+  .footer-content {
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .footer-links-group {
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .footer-bottom-content {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .footer-contact {
+    justify-content: center;
+  }
+}
+
+/* 移动端 */
+@media (max-width: 768px) {
+  .footer-main {
+    padding: var(--space-4) 0;
+  }
+
+  .footer-brand {
+    flex-direction: column;
+    gap: var(--space-1);
+    text-align: center;
+  }
+
+  .footer-links {
+    gap: var(--space-3);
+  }
+
+  .footer-links a {
+    font-size: var(--text-xs);
+  }
+
+  .footer-contact {
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+}
+</style>

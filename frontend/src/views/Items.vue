@@ -1,186 +1,97 @@
 <template>
   <div class="items-page">
-    <div class="page-hero">
-      <div class="container">
-        <div class="hero-content">
-          <h1 class="page-title">发现闲置好物</h1>
-          <p class="page-subtitle">
-            浏览来自校园的优质二手物品，让闲置找到新主人
-          </p>
-        </div>
-      </div>
-    </div>
-
     <div class="container">
-      <div class="filter-bar">
-        <div class="filter-left">
-          <el-cascader
-            v-model="categoryPath"
-            :options="categoryTreeOptions"
-            :props="{
-              value: 'id',
-              label: 'name',
-              children: 'children',
-              checkStrictly: true,
-            }"
-            placeholder="全部分类"
-            clearable
-            @change="handleCategoryChange"
-            class="filter-select filter-select--wide"
-          />
-
-          <el-select
-            v-model="condition"
-            placeholder="成色"
-            @change="handleFilter"
-            class="filter-select filter-select--narrow"
-          >
-            <el-option label="全部" value="" />
-            <el-option
-              v-for="option in conditionOptions"
-              :key="option.value"
-              :label="option.label"
-              :value="option.value"
-            />
-          </el-select>
-
-          <el-select
-            v-model="deliveryMethod"
-            placeholder="配送方式"
-            @change="handleFilter"
-            class="filter-select filter-select--narrow"
-          >
-            <el-option label="全部" value="" />
-            <el-option
-              v-for="option in deliveryMethodOptions"
-              :key="option.value"
-              :label="option.label"
-              :value="option.value"
-            />
-          </el-select>
-
-          <el-select
-            v-model="sortBy"
-            placeholder="排序"
-            @change="handleFilter"
-            class="filter-select"
-          >
-            <el-option label="最新发布" value="createdAt" />
-            <el-option label="价格 ↑" value="priceAsc" />
-            <el-option label="价格 ↓" value="priceDesc" />
-            <el-option label="浏览最多" value="viewCount" />
-            <el-option label="收藏最多" value="favoriteCount" />
-          </el-select>
+      <!-- Search and Filter Header -->
+      <div class="items-header">
+        <div class="items-search-mobile">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <circle cx="11" cy="11" r="8" />
+            <path d="M21 21l-4.35-4.35" />
+          </svg>
+          <input type="text" placeholder="搜索物品名称、描述…" v-model="keyword" @keyup.enter="handleSearch" />
         </div>
+        <button class="filter-btn-mobile" @click="showDrawer = true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M4 21v-7m0-4V3m8 18v-9m0-4V3m8 18v-5m0-4V3M1 14h6M9 8h6M17 16h6" />
+          </svg>
+          筛选
+        </button>
+      </div>
 
-        <div class="filter-right">
-          <el-input
-            v-model="keyword"
-            placeholder="搜索你想要的..."
-            @keyup.enter="handleSearch"
-            class="search-input"
-          >
-            <template #prefix>
-              <Search :size="18" />
-            </template>
-            <template #append>
-              <el-button @click="handleSearch" class="search-btn"
-                >搜索</el-button
-              >
-            </template>
-          </el-input>
+      <!-- Category Row -->
+      <div class="category-row">
+        <div
+          v-for="category in categories"
+          :key="category.id"
+          class="category-chip"
+          :class="{ active: activeCategory === category.id }"
+          @click="selectCategory(category.id)"
+        >
+          <div class="category-chip-icon">{{ category.icon }}</div>
+          <span class="category-chip-label">{{ category.name }}</span>
         </div>
       </div>
 
+      <!-- Sort Toolbar -->
+      <div class="items-toolbar">
+        <div class="items-sort">
+          <button
+            v-for="option in sortOptions"
+            :key="option.value"
+            class="sort-option"
+            :class="{ active: sortBy === option.value }"
+            @click="sortBy = option.value; handleFilter()"
+          >
+            {{ option.label }}
+          </button>
+        </div>
+        <span class="items-count">共 {{ total }} 件</span>
+      </div>
+
+      <!-- Items Grid -->
       <div class="items-grid" v-if="items.length > 0">
-        <article
+        <div
           v-for="(item, index) in items"
           :key="item.id"
-          class="item-card"
-          :style="{ animationDelay: `${index * 0.05}s` }"
+          class="card card-clickable item-card"
           @click="$router.push(`/item/${item.id}`)"
         >
-          <div class="item-image">
-            <img
-              :src="
-                item.coverImage ||
-                'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=placeholder%20item&image_size=square'
-              "
-              :alt="item.title"
-              loading="lazy"
-            />
-            <div class="item-overlay">
-              <button class="view-btn">
-                <Eye :size="20" />
-                查看详情
-              </button>
+          <div class="item-card-img">
+            <div class="img-placeholder" :style="{ background: getItemColor(item.categoryName, index) }">
+              {{ getCategoryEmoji(item.categoryName) }}
             </div>
-            <span class="item-badge item-badge-new" v-if="isNew(item.createdAt)"
-              >新品</span
-            >
-            <span
-              class="item-badge item-badge-discount"
-              v-if="getDiscount(item.price, item.originalPrice)"
-              >{{ getDiscount(item.price, item.originalPrice) }}%</span
-            >
-            <span
-              class="item-badge item-badge-bargain"
-              v-if="item.isBargainAllowed"
-              >可议价</span
-            >
+            <span v-if="item.eco" class="tag tag-eco eco-badge">环保</span>
+            <button class="fav-btn" :class="{ liked: likedItems.has(item.id) }" @click.stop="toggleLike(item.id)">
+              <svg viewBox="0 0 24 24" :fill="likedItems.has(item.id) ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2">
+                <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
+              </svg>
+            </button>
           </div>
-          <div class="item-content">
-            <h3 class="item-title">{{ item.title }}</h3>
-            <div class="item-tags" v-if="parseTags(item.tags).length > 0">
-              <span
-                class="item-tag"
-                v-for="(tag, index) in parseTags(item.tags).slice(0, 3)"
-                :key="index"
-                >{{ tag }}</span
-              >
-            </div>
-            <div class="item-price-row">
-              <span class="item-price">¥{{ item.price }}</span>
-              <span class="item-original" v-if="item.originalPrice"
-                >¥{{ item.originalPrice }}</span
-              >
-            </div>
-            <div class="item-meta">
-              <div class="item-info">
-                <span class="item-condition" v-if="item.condition">{{
-                  getConditionText(item.condition)
-                }}</span>
-                <span class="item-delivery" v-if="item.deliveryMethod">{{
-                  getDeliveryText(item.deliveryMethod)
-                }}</span>
-              </div>
-              <div class="item-stats">
-                <span class="stat">
-                  <Eye :size="14" />
-                  {{ item.viewCount || 0 }}
-                </span>
-                <span class="stat">
-                  <Heart :size="14" />
-                  {{ item.favoriteCount || 0 }}
-                </span>
+          <div class="item-card-body">
+            <div class="item-card-title">{{ item.title }}</div>
+            <div class="item-card-meta">
+              <div class="item-card-price">
+                <span class="unit">¥</span>{{ item.price?.toLocaleString() }}
+                <span v-if="item.originalPrice" class="original">¥{{ item.originalPrice?.toLocaleString() }}</span>
               </div>
             </div>
           </div>
-        </article>
-      </div>
-
-      <div class="empty-state" v-else>
-        <div class="empty-icon">
-          <Grid :size="64" color="var(--text-muted)" stroke-width="1.5" />
+          <div class="item-card-seller">
+            <span class="mini-avatar">{{ item.sellerNickname?.charAt(0) || '卖' }}</span>
+            <span>{{ item.sellerNickname || '未知卖家' }}</span>
+            <span style="margin-left:auto">{{ getTimeAgo(item.createdAt) }}</span>
+          </div>
         </div>
-        <h3 class="empty-title">暂无物品</h3>
-        <p class="empty-desc">暂时没有找到符合条件的物品</p>
-        <router-link to="/publish" class="empty-action"
-          >发布你的第一个闲置</router-link
-        >
       </div>
 
-      <div class="pagination-wrap" v-if="total > 0">
+      <!-- Empty State -->
+      <div class="empty-state" v-else>
+        <div class="empty-state-icon">📦</div>
+        <div class="empty-state-text">暂无物品</div>
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination-wrap" v-if="total > pageSize">
         <el-pagination
           v-model:current-page="currentPage"
           v-model:page-size="pageSize"
@@ -189,183 +100,187 @@
           :total="total"
           @size-change="handleSizeChange"
           @current-change="handleCurrentChange"
-          class="custom-pagination"
         />
+      </div>
+    </div>
+
+    <!-- Filter Drawer -->
+    <div class="overlay" :class="{ open: showDrawer }" @click="showDrawer = false"></div>
+    <div class="drawer" :class="{ open: showDrawer }">
+      <div class="drawer-handle"></div>
+      <div class="drawer-title">筛选条件</div>
+      <div class="form-group">
+        <label class="form-label">价格范围</label>
+        <div class="form-row">
+          <input class="form-input" type="number" placeholder="最低价" v-model="priceMin" />
+          <input class="form-input" type="number" placeholder="最高价" v-model="priceMax" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">新旧程度</label>
+        <div class="radio-group">
+          <span
+            v-for="option in conditionOptions"
+            :key="option.value"
+            class="radio-pill"
+            :class="{ active: condition === option.value }"
+            @click="condition = option.value"
+          >
+            {{ option.label }}
+          </span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">交易方式</label>
+        <div class="radio-group">
+          <span
+            v-for="option in deliveryOptions"
+            :key="option.value"
+            class="radio-pill"
+            :class="{ active: deliveryMethod === option.value }"
+            @click="deliveryMethod = option.value"
+          >
+            {{ option.label }}
+          </span>
+        </div>
+      </div>
+      <div style="display: flex; gap: 12px; margin-top: 24px;">
+        <button class="btn btn-secondary btn-block" @click="resetFilters">重置</button>
+        <button class="btn btn-primary btn-block" @click="applyFilters">确认筛选</button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, nextTick, watch, computed } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useItemStore } from '../store';
 import api from '../api';
-import { useDictStore } from '../store/dict.js';
-import { Search, Eye, Heart, Grid } from 'lucide-vue-next';
 
 const route = useRoute();
 const store = useItemStore();
-const dictStore = useDictStore();
 
-// 获取字典选项
-const conditionOptions = computed(() => {
-  const options = dictStore.getDictOptions('ITEM_CONDITION');
-  if (options.length > 0) return options;
-  return [
-    { value: 'NEW', label: '全新' },
-    { value: 'LIKE_NEW', label: '九成新' },
-    { value: 'GOOD', label: '八成新' },
-    { value: 'FAIR', label: '七成新' },
-    { value: 'POOR', label: '六成新及以下' },
-  ];
-});
-const deliveryMethodOptions = computed(() =>
-  dictStore.getDictOptions('DELIVERY_METHOD')
-);
+const categories = ref([
+  { id: 'all', name: '全部', icon: '🏠' },
+  { id: 'digital', name: '数码电子', icon: '💻' },
+  { id: 'books', name: '教材书籍', icon: '📚' },
+  { id: 'living', name: '生活用品', icon: '🧴' },
+  { id: 'clothing', name: '服饰鞋包', icon: '👟' },
+  { id: 'sports', name: '运动户外', icon: '⚽' },
+  { id: 'furniture', name: '家具家电', icon: '🪑' },
+  { id: 'other', name: '其他', icon: '📦' },
+]);
 
-const categoryId = ref('');
-const categoryPath = ref<any[]>([]);
-const categoryTreeOptions = ref<any[]>([]);
+const sortOptions = [
+  { value: 'newest', label: '最新' },
+  { value: 'price-asc', label: '价格↑' },
+  { value: 'price-desc', label: '价格↓' },
+];
+
+const conditionOptions = [
+  { value: '', label: '不限' },
+  { value: 'NEW', label: '全新' },
+  { value: 'LIKE_NEW', label: '九成新以上' },
+  { value: 'GOOD', label: '八成新以上' },
+];
+
+const deliveryOptions = [
+  { value: '', label: '不限' },
+  { value: 'LOCAL_DELIVERY', label: '出售' },
+  { value: 'EXCHANGE', label: '交换' },
+  { value: 'FREE', label: '免费送' },
+];
+
+const activeCategory = ref('all');
+const sortBy = ref('newest');
+const keyword = ref('');
 const condition = ref('');
 const deliveryMethod = ref('');
-const sortBy = ref('createdAt');
-const keyword = ref('');
+const priceMin = ref('');
+const priceMax = ref('');
 const currentPage = ref(1);
 const pageSize = ref(24);
 const total = ref(0);
 const items = ref<any[]>([]);
+const likedItems = ref(new Set<number>());
+const showDrawer = ref(false);
 
-// 监听路由参数变化
-watch(
-  () => route.query,
-  (newQuery) => {
-    if (newQuery.category !== categoryId.value) {
-      categoryId.value = (newQuery.category as string) || '';
-      categoryPath.value = categoryId.value
-        ? findCategoryPath(categoryTreeOptions.value, Number(categoryId.value))
-        : [];
-      currentPage.value = 1;
-      loadItems();
-    }
-    if (newQuery.keyword !== keyword.value) {
-      keyword.value = (newQuery.keyword as string) || '';
-      currentPage.value = 1;
-      loadItems();
-    }
-  },
-  { deep: true }
-);
+const IMG_COLORS: Record<string, string[]> = {
+  digital: ['#dce8f7', '#c4d8f0', '#b0cce8'],
+  books: ['#f5edd6', '#ebe0c4', '#e0d3b2'],
+  living: ['#d8f0e0', '#c4e8d0', '#b0e0c0'],
+  clothing: ['#e8d8f0', '#dcc4e8', '#d0b0e0'],
+  sports: ['#f0e0d0', '#e8d4c0', '#e0c8b0'],
+  furniture: ['#e0e8d8', '#d4e0c8', '#c8d8b8'],
+  other: ['#e8e8e8', '#dcdcdc', '#d0d0d0'],
+};
 
-const isNew = (date: string) => {
-  if (!date) return false;
-  const created = new Date(date);
+const getItemColor = (category: string, index: number) => {
+  const cat = category?.toLowerCase() || 'other';
+  const colors = IMG_COLORS[cat] || IMG_COLORS.other;
+  return colors[index % colors.length];
+};
+
+const getCategoryEmoji = (category: string) => {
+  const cat = categories.value.find(c => c.name === category || c.id === category?.toLowerCase());
+  return cat?.icon || '📦';
+};
+
+const getTimeAgo = (dateStr: string) => {
+  if (!dateStr) return '刚刚';
+  const date = new Date(dateStr);
   const now = new Date();
-  const diffDays = (now.getTime() - created.getTime()) / (1000 * 60 * 60 * 24);
-  return diffDays < 7;
+  const diff = now.getTime() - date.getTime();
+  const minutes = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+  if (minutes < 60) return `${minutes}分钟前`;
+  if (hours < 24) return `${hours}小时前`;
+  return `${days}天前`;
 };
 
-const getDiscount = (price: number, originalPrice: number) => {
-  if (!price || !originalPrice || originalPrice <= price) return null;
-  return Math.round((1 - price / originalPrice) * 100);
+const selectCategory = (id: string) => {
+  activeCategory.value = id;
+  currentPage.value = 1;
+  loadItems();
 };
 
-const getConditionText = (condition: string) => {
-  const label = dictStore.getDictLabel('ITEM_CONDITION', condition);
-  if (label && label !== condition) return label;
-  const fallbackMap: Record<string, string> = {
-    NEW: '全新',
-    LIKE_NEW: '九成新',
-    GOOD: '八成新',
-    FAIR: '七成新',
-    POOR: '六成新及以下',
-  };
-  return fallbackMap[condition] || condition;
-};
-
-const getDeliveryText = (method: string) => {
-  const label = dictStore.getDictLabel('DELIVERY_METHOD', method);
-  if (label && label !== method) return label;
-  const fallbackMap: Record<string, string> = {
-    LOCAL_DELIVERY: '自提',
-    HOME_DELIVERY: '上门',
-    EXPRESS: '快递',
-    MAIL: '邮寄',
-  };
-  return fallbackMap[method] || method;
-};
-
-const loadCategories = async () => {
-  try {
-    const response = await api.category.getCategoryTree();
-    if (response.code === 200) {
-      categoryTreeOptions.value = response.data || [];
-    }
-  } catch (error) {
-    console.error('获取分类失败', error);
-  }
-};
-
-const findCategoryPath = (nodes: any[], targetId: number, path: any[] = []): any[] => {
-  for (const node of nodes) {
-    if (node.id === targetId) return [...path, node.id];
-    if (node.children && node.children.length > 0) {
-      const found = findCategoryPath(node.children, targetId, [
-        ...path,
-        node.id,
-      ]);
-      if (found.length > 0) return found;
-    }
-  }
-  return [];
-};
-
-const handleCategoryChange = (val: any) => {
-  if (val && val.length > 0) {
-    categoryId.value = val[val.length - 1].toString();
+const toggleLike = (id: number) => {
+  if (likedItems.value.has(id)) {
+    likedItems.value.delete(id);
   } else {
-    categoryId.value = '';
-    categoryPath.value = [];
+    likedItems.value.add(id);
   }
+};
+
+const resetFilters = () => {
+  condition.value = '';
+  deliveryMethod.value = '';
+  priceMin.value = '';
+  priceMax.value = '';
+  showDrawer.value = false;
   handleFilter();
 };
 
-// 解析标签（支持JSON字符串和逗号分隔两种格式）
-const parseTags = (tagsStr: string) => {
-  if (!tagsStr) return [];
-  if (tagsStr.includes('[') || tagsStr.includes('{')) {
-    try {
-      const tags = JSON.parse(tagsStr);
-      return Array.isArray(tags) ? tags : [];
-    } catch {
-      return [];
-    }
-  }
-  return tagsStr.split(',').map(t => t.trim()).filter(Boolean);
+const applyFilters = () => {
+  showDrawer.value = false;
+  handleFilter();
 };
 
 const loadItems = async () => {
   try {
-    if (keyword.value) {
-      await store.searchItems(keyword.value, currentPage.value, pageSize.value, sortBy.value);
-      items.value = store.searchResults;
-      total.value = store.searchTotal;
-    } else {
-      const params = {
-        page: currentPage.value,
-        size: pageSize.value,
-        categoryId: categoryId.value || undefined,
-        condition: condition.value || undefined,
-        deliveryMethod: deliveryMethod.value || undefined,
-        sortBy: sortBy.value,
-      };
-      await store.fetchItems(params);
-      items.value = store.items;
-      total.value = store.total;
-    }
-
-    await nextTick();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    const params = {
+      page: currentPage.value,
+      size: pageSize.value,
+      sortBy: sortBy.value,
+      keyword: keyword.value || undefined,
+      condition: condition.value || undefined,
+      deliveryMethod: deliveryMethod.value || undefined,
+    };
+    await store.fetchItems(params);
+    items.value = store.items || [];
+    total.value = store.total || 0;
   } catch (error) {
     console.error('获取物品失败', error);
   }
@@ -392,30 +307,25 @@ const handleCurrentChange = (page: number) => {
   loadItems();
 };
 
-onMounted(async () => {
-  // 加载字典数据
-  await dictStore.preloadCommonDicts();
-  await loadCategories();
-  if (route.query.category) {
-    categoryId.value = route.query.category as string;
-    categoryPath.value = findCategoryPath(
-      categoryTreeOptions.value,
-      Number(categoryId.value)
-    );
+watch(() => route.query, (newQuery) => {
+  if (newQuery.keyword) {
+    keyword.value = newQuery.keyword as string;
   }
+  if (newQuery.category) {
+    activeCategory.value = newQuery.category as string;
+  }
+  loadItems();
+}, { deep: true });
+
+onMounted(() => {
   if (route.query.keyword) {
     keyword.value = route.query.keyword as string;
+  }
+  if (route.query.category) {
+    activeCategory.value = route.query.category as string;
   }
   loadItems();
 });
 </script>
 
 <style scoped src="../styles/pages/items.css"></style>
-
-<style>
-.items-page .filter-left > .el-cascader.filter-select--wide {
-  width: 180px;
-  min-width: 0;
-  overflow: hidden;
-}
-</style>

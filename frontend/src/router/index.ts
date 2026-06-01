@@ -338,7 +338,8 @@ router.beforeEach(async (to, from, next) => {
   const store = userStore();
 
   if (to.matched.some((record) => record.meta.requiresAuth)) {
-    if (!store.isLoggedIn) {
+    const restored = store.isLoggedIn || await store.restoreSession();
+    if (!restored) {
       const redirectPath = to.fullPath;
       if (isValidRedirectPath(redirectPath)) {
         localStorage.setItem('redirectPath', redirectPath);
@@ -348,7 +349,7 @@ router.beforeEach(async (to, from, next) => {
       if (to.matched.some((record) => record.meta.requiresAdmin)) {
         try {
           if (!store.user) {
-            await store.getCurrentUser();
+            await store.restoreSession();
           }
         } catch (error) {
           console.error('获取用户信息失败', error);
@@ -365,7 +366,7 @@ router.beforeEach(async (to, from, next) => {
       } else {
         if (!store.user) {
           try {
-            await store.getCurrentUser();
+            await store.restoreSession();
           } catch (error) {
             console.error('获取用户信息失败', error);
             store.logout();

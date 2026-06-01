@@ -1,7 +1,7 @@
 // ============================================
 // API Response Types
 // ============================================
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   code: number
   message: string
   data: T
@@ -280,7 +280,7 @@ export interface DisputeInfo {
   reason: string
   description?: string
   evidenceImages?: string[]
-  disputeStatus: 'PENDING' | 'RESOLVED' | 'DISMISSED'
+  disputeStatus: 'PENDING' | 'ASSIGNED' | 'PROCESSING' | 'ESCALATED' | 'RESOLVED' | 'CLOSED' | 'CANCELLED'
   resolution?: string
   createdAt: string
   updatedAt?: string

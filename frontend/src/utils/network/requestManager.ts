@@ -1,4 +1,4 @@
-interface CacheEntry<T = any> {
+interface CacheEntry<T = unknown> {
   data: T
   timestamp: number
   expiry: number
@@ -8,24 +8,24 @@ interface CacheEntry<T = any> {
 interface RequestOptions {
   useCache?: boolean
   useMerge?: boolean
-  params?: Record<string, any>
+  params?: Record<string, unknown>
   cacheKey?: string
   cacheExpiry?: number
 }
 
 interface BatchRequest {
   url: string
-  requestFn: () => Promise<any>
+  requestFn: () => Promise<unknown>
   useCache?: boolean
   useMerge?: boolean
-  params?: Record<string, any>
+  params?: Record<string, unknown>
   cacheKey?: string
   cacheExpiry?: number
 }
 
 class RequestManager {
   private cache: Map<string, CacheEntry>;
-  private requests: Map<string, Promise<any>>;
+  private requests: Map<string, Promise<unknown>>;
   private cacheSize: number;
   private defaultCacheExpiry: number;
   private cacheHits = 0;
@@ -38,7 +38,7 @@ class RequestManager {
     this.defaultCacheExpiry = 5 * 60 * 1000;
   }
 
-  async request<T = any>(
+  async request<T = unknown>(
     url: string,
     requestFn: () => Promise<T>,
     options: RequestOptions = {},
@@ -73,7 +73,7 @@ class RequestManager {
         }
         return response;
       })
-      .catch((error: any) => {
+      .catch((error: unknown) => {
         this.requests.delete(key);
         throw error;
       });
@@ -85,9 +85,9 @@ class RequestManager {
     return promise;
   }
 
-  async batchRequest(requests: BatchRequest[]): Promise<any[]> {
-    const results: any[] = [];
-    const requestMap = new Map<string, Promise<any>>();
+  async batchRequest(requests: BatchRequest[]): Promise<unknown[]> {
+    const results: unknown[] = [];
+    const requestMap = new Map<string, Promise<unknown>>();
 
     for (const req of requests) {
       const {
@@ -130,12 +130,12 @@ class RequestManager {
     this.requests.clear();
   }
 
-  cancelRequest(url: string, params?: Record<string, any>): void {
+  cancelRequest(url: string, params?: Record<string, unknown>): void {
     const key = this.generateKey(url, params);
     this.requests.delete(key);
   }
 
-  generateKey(url: string, params?: Record<string, any>): string {
+  generateKey(url: string, params?: Record<string, unknown>): string {
     if (!params) return url;
     const sortedParams = Object.keys(params)
       .sort()
@@ -144,7 +144,7 @@ class RequestManager {
     return `${url}?${sortedParams}`;
   }
 
-  setCache(key: string, value: any, expiry: number = this.defaultCacheExpiry): void {
+  setCache(key: string, value: unknown, expiry: number = this.defaultCacheExpiry): void {
     if (this.cache.size >= this.cacheSize) {
       this.evictOldestCache();
     }
@@ -170,26 +170,25 @@ class RequestManager {
 
   evictOldestCache(): void {
     if (this.cache.size === 0) return;
-    
+
     let oldestKey = '';
     let oldestScore = -Infinity;
-    
-    // 计算每个条目的淘汰分数（越大越容易被淘汰）
+
     for (const [key, value] of this.cache.entries()) {
       const age = Date.now() - value.timestamp;
-      const score = age / (value.accessCount + 1); // 考虑访问频率
+      const score = age / (value.accessCount + 1);
       if (score > oldestScore) {
         oldestScore = score;
         oldestKey = key;
       }
     }
-    
+
     if (oldestKey) {
       this.cache.delete(oldestKey);
     }
   }
 
-  clearCache(url: string, params?: Record<string, any>): void {
+  clearCache(url: string, params?: Record<string, unknown>): void {
     const key = this.generateKey(url, params);
     this.cache.delete(key);
   }
@@ -215,15 +214,14 @@ class RequestManager {
   setCacheSize(size: number): void {
     this.cacheSize = size;
     if (this.cache.size <= size) return;
-    
-    // 一次性淘汰所有超限条目
+
     const entries = Array.from(this.cache.entries())
       .map(([key, value]) => ({
         key,
-        score: (Date.now() - value.timestamp) / (value.accessCount + 1)
+        score: (Date.now() - value.timestamp) / (value.accessCount + 1),
       }))
-      .sort((a, b) => b.score - a.score); // 按分数降序排列
-    
+      .sort((a, b) => b.score - a.score);
+
     const toDelete = entries.length - size;
     for (let i = 0; i < toDelete; i++) {
       this.cache.delete(entries[i].key);
@@ -243,7 +241,7 @@ class RequestManager {
     return {
       hits: this.cacheHits,
       misses: this.cacheMisses,
-      hitRate: total > 0 ? this.cacheHits / total : 0
+      hitRate: total > 0 ? this.cacheHits / total : 0,
     };
   }
 }
