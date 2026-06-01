@@ -79,6 +79,7 @@ html.reduced-motion *::after {
   /* === 字体 === */
   --font-display: 'PingFang SC', 'Hiragino Sans GB', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', system-ui, sans-serif;
+  --font-mono: 'SF Mono', 'Fira Code', 'Cascadia Code', 'JetBrains Mono', Menlo, monospace;
 
   /* === 字号 (5步 scale) === */
   --text-xs: 0.75rem;
