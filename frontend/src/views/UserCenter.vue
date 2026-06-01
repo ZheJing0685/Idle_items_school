@@ -9,6 +9,14 @@
           <div class="profile-school">{{ userInfo?.school || '计算机科学与技术学院 · 大三' }}</div>
           <div class="profile-bio">{{ userInfo?.bio || '热爱环保的码农，闲置物品换新主人 ♻️' }}</div>
         </div>
+        <a v-if="store.isAdmin" href="/admin" class="admin-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" />
+            <path d="M12 8V12" />
+            <path d="M12 16H12.01" />
+          </svg>
+          管理后台
+        </a>
       </div>
 
       <!-- Stats -->
@@ -83,14 +91,6 @@
       <div v-else-if="activeTab === 'change-password'" class="tab-content">
         <ChangePassword />
       </div>
-
-      <!-- Tab Content: 管理后台 -->
-      <div v-else-if="activeTab === 'admin'" class="tab-content">
-        <div class="admin-redirect">
-          <p>点击下方按钮进入管理后台</p>
-          <a href="/admin" class="btn btn-primary">进入管理后台</a>
-        </div>
-      </div>
     </div>
   </div>
 </template>
@@ -114,21 +114,15 @@ const store = userStore();
 const userInfo = computed(() => store.user);
 const activeTab = ref('profile');
 
-const tabs = computed(() => {
-  const baseTabs = [
-    { id: 'profile', name: '个人信息' },
-    { id: 'verification', name: '实名认证' },
-    { id: 'my-items', name: '我的发布' },
-    { id: 'orders', name: '我的订单' },
-    { id: 'favorites', name: '收藏夹' },
-    { id: 'chat', name: '消息中心' },
-    { id: 'notifications', name: '消息通知' },
-  ];
-  if (store.isAdmin) {
-    baseTabs.push({ id: 'admin', name: '管理后台' });
-  }
-  return baseTabs;
-});
+const tabs = [
+  { id: 'profile', name: '个人信息' },
+  { id: 'verification', name: '实名认证' },
+  { id: 'my-items', name: '我的发布' },
+  { id: 'orders', name: '我的订单' },
+  { id: 'favorites', name: '收藏夹' },
+  { id: 'chat', name: '消息中心' },
+  { id: 'notifications', name: '消息通知' },
+];
 
 const stats = reactive({
   totalItems: 12,
