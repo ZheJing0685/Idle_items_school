@@ -5,6 +5,8 @@ import org.springframework.context.ApplicationEvent;
 
 @Getter
 public class OrderCreatedEvent extends ApplicationEvent {
+    private static final long serialVersionUID = 1L;
+    
     private final Long orderId;
     private final Long buyerId;
     private final Long sellerId;

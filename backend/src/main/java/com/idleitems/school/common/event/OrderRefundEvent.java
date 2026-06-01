@@ -7,6 +7,8 @@ import java.math.BigDecimal;
 
 @Getter
 public class OrderRefundEvent extends ApplicationEvent {
+    private static final long serialVersionUID = 1L;
+    
     private final Long orderId;
     private final Long buyerId;
     private final Long sellerId;
