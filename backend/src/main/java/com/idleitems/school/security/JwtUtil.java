@@ -44,6 +44,14 @@ public class JwtUtil {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
+    public long getAccessTokenMaxAge() {
+        return expiration / 1000; // Convert milliseconds to seconds
+    }
+
+    public long getRefreshTokenMaxAge() {
+        return refreshExpiration / 1000; // Convert milliseconds to seconds
+    }
+
     public String generateToken(String subject, Map<String, Object> claims) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + expiration);
