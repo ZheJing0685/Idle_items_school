@@ -25,20 +25,53 @@
       <div v-else-if="item" class="detail-layout">
         <!-- Gallery -->
         <div class="detail-gallery">
-          <div class="detail-main-img" :style="{ background: getGalleryBg() }">
-            {{ getCategoryEmoji(item.categoryName) }}
+          <div class="detail-main-img" @click="openLightbox">
+            <img v-if="currentImage" :src="currentImage" :alt="item.title" class="main-img" />
+            <div v-else class="img-placeholder" :style="{ background: getGalleryBg() }">
+              {{ getCategoryEmoji(item.categoryName) }}
+            </div>
+            <div class="img-count" v-if="allImages.length > 1">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <circle cx="8.5" cy="8.5" r="1.5" />
+                <path d="M21 15l-5-5L5 21" />
+              </svg>
+              {{ allImages.length }} 张图片
+            </div>
           </div>
-          <div class="detail-thumbs">
+          <div class="detail-thumbs" v-if="allImages.length > 1">
             <div
-              v-for="(color, index) in getGalleryColors()"
+              v-for="(img, index) in allImages"
               :key="index"
               class="detail-thumb"
               :class="{ active: currentThumb === index }"
-              :style="{ background: color }"
-              @click="currentThumb = index"
+              @click="currentThumb = index; currentImage = img"
             >
-              {{ getCategoryEmoji(item.categoryName) }}
+              <img :src="img" :alt="`图片 ${index + 1}`" />
             </div>
+          </div>
+        </div>
+
+        <!-- Lightbox -->
+        <div class="lightbox" v-if="showLightbox" @click="closeLightbox">
+          <div class="lightbox-content" @click.stop>
+            <button class="lightbox-close" @click="closeLightbox">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <path d="M18 6L6 18M6 6l12 12" />
+              </svg>
+            </button>
+            <button class="lightbox-prev" v-if="allImages.length > 1" @click="prevImage">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
+            </button>
+            <img :src="currentImage" :alt="item.title" class="lightbox-img" />
+            <button class="lightbox-next" v-if="allImages.length > 1" @click="nextImage">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <path d="M9 18l6-6-6-6" />
+              </svg>
+            </button>
+            <div class="lightbox-counter">{{ currentThumb + 1 }} / {{ allImages.length }}</div>
           </div>
         </div>
 
@@ -127,6 +160,9 @@ const loading = ref(true);
 const item = ref(null);
 const isFavorited = ref(false);
 const currentThumb = ref(0);
+const currentImage = ref('');
+const showLightbox = ref(false);
+const allImages = ref<string[]>([]);
 
 const IMG_COLORS = {
   digital: ['#dce8f7', '#c4d8f0', '#b0cce8'],
@@ -187,6 +223,33 @@ const fetchItemDetail = async () => {
     const response = await api.item.getItem(itemId);
     item.value = response.data;
     item.value.eco = item.value.price < 100;
+    
+    // Parse images
+    if (item.value.images) {
+      try {
+        const images = typeof item.value.images === 'string' ? JSON.parse(item.value.images) : item.value.images;
+        item.value.images = Array.isArray(images) ? images.filter(Boolean) : [];
+      } catch {
+        item.value.images = [];
+      }
+    } else {
+      item.value.images = [];
+    }
+    
+    // Build all images array (coverImage + other images)
+    const imgs: string[] = [];
+    if (item.value.coverImage) {
+      imgs.push(item.value.coverImage);
+    }
+    item.value.images.forEach((img: string) => {
+      if (img && !imgs.includes(img)) {
+        imgs.push(img);
+      }
+    });
+    allImages.value = imgs;
+    
+    // Set current image
+    currentImage.value = allImages.value[0] || '';
   } catch (error) {
     ElMessage.error(error.message || '获取物品详情失败');
     router.push('/');
@@ -242,6 +305,28 @@ const viewSellerProfile = () => {
   if (item.value?.userId) {
     router.push(`/user/${item.value.userId}`);
   }
+};
+
+const openLightbox = () => {
+  if (allImages.value.length > 0) {
+    showLightbox.value = true;
+    document.body.style.overflow = 'hidden';
+  }
+};
+
+const closeLightbox = () => {
+  showLightbox.value = false;
+  document.body.style.overflow = '';
+};
+
+const prevImage = () => {
+  currentThumb.value = (currentThumb.value - 1 + allImages.value.length) % allImages.value.length;
+  currentImage.value = allImages.value[currentThumb.value];
+};
+
+const nextImage = () => {
+  currentThumb.value = (currentThumb.value + 1) % allImages.value.length;
+  currentImage.value = allImages.value[currentThumb.value];
 };
 
 onMounted(() => {
