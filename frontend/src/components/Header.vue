@@ -33,7 +33,8 @@
         </button>
         <template v-if="store.isLoggedIn">
           <div class="nav-avatar" @click="handleNavigate('/user/profile')" :title="getUserName()">
-            {{ getAvatarText() }}
+            <img v-if="store.user?.avatar" :src="store.user.avatar" alt="头像" class="avatar-img" />
+            <span v-else>{{ getAvatarText() }}</span>
           </div>
         </template>
         <template v-else>

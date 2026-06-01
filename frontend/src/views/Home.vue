@@ -75,7 +75,8 @@
             @click="$router.push(`/item/${item.id}`)"
           >
             <div class="item-card-img">
-              <div class="img-placeholder" :style="{ background: getItemColor(item.category, index) }">
+              <img v-if="item.coverImage" :src="item.coverImage" :alt="item.title" class="item-img" />
+              <div v-else class="img-placeholder" :style="{ background: getItemColor(item.category, index) }">
                 {{ getCategoryEmoji(item.category) }}
               </div>
               <span v-if="item.eco" class="tag tag-eco eco-badge">环保</span>
@@ -119,7 +120,8 @@
             @click="$router.push(`/item/${item.id}`)"
           >
             <div class="item-card-img">
-              <div class="img-placeholder" :style="{ background: getItemColor(item.category, index) }">
+              <img v-if="item.coverImage" :src="item.coverImage" :alt="item.title" class="item-img" />
+              <div v-else class="img-placeholder" :style="{ background: getItemColor(item.category, index) }">
                 {{ getCategoryEmoji(item.category) }}
               </div>
               <span v-if="item.eco" class="tag tag-eco eco-badge">环保</span>
@@ -152,9 +154,11 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import { useItemStore } from '../store';
 import api from '../api';
 
+const router = useRouter();
 const store = useItemStore();
 
 const categories = ref([
@@ -195,6 +199,11 @@ const getCategoryEmoji = (category: string) => {
 
 const selectCategory = (id: string) => {
   activeCategory.value = id;
+  if (id === 'all') {
+    router.push('/items');
+  } else {
+    router.push({ path: '/items', query: { category: id } });
+  }
 };
 
 const toggleLike = (id: number) => {
@@ -214,6 +223,7 @@ onMounted(async () => {
         title: item.title,
         price: item.price,
         originalPrice: item.originalPrice,
+        coverImage: item.coverImage,
         category: item.categoryName?.toLowerCase() || 'other',
         sellerName: item.sellerNickname || '未知卖家',
         eco: item.price < 100,
@@ -224,6 +234,7 @@ onMounted(async () => {
         title: item.title,
         price: item.price,
         originalPrice: item.originalPrice,
+        coverImage: item.coverImage,
         category: item.categoryName?.toLowerCase() || 'other',
         sellerName: item.sellerNickname || '未知卖家',
         eco: item.price < 100,

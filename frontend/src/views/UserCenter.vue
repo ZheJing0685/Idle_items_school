@@ -3,7 +3,10 @@
     <div class="container">
       <!-- Profile Header -->
       <div class="profile-header">
-        <div class="profile-avatar">{{ userInfo?.nickname?.charAt(0) || '陈' }}</div>
+        <div class="profile-avatar">
+          <img v-if="userInfo?.avatar" :src="userInfo.avatar" alt="头像" class="avatar-img" />
+          <span v-else>{{ userInfo?.nickname?.charAt(0) || '陈' }}</span>
+        </div>
         <div class="profile-user-info">
           <div class="profile-name">{{ userInfo?.nickname || '陈同学' }}</div>
           <div class="profile-school">{{ userInfo?.school || '计算机科学与技术学院 · 大三' }}</div>
