@@ -1,9 +1,9 @@
 package com.idleitems.school.util;
 
-import com.idleitems.school.dto.ItemSummaryDTO;
-import com.idleitems.school.entity.Item;
-import com.idleitems.school.entity.User;
-import com.idleitems.school.repository.ReviewRepository;
+import com.idleitems.school.module.item.dto.ItemSummaryDTO;
+import com.idleitems.school.module.item.entity.Item;
+import com.idleitems.school.module.user.entity.User;
+import com.idleitems.school.module.order.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

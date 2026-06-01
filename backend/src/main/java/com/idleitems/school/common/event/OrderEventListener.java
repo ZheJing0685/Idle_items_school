@@ -1,6 +1,6 @@
 package com.idleitems.school.common.event;
 
-import com.idleitems.school.service.NotificationService;
+import com.idleitems.school.module.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;

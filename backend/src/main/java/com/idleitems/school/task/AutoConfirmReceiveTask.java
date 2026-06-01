@@ -1,8 +1,8 @@
 package com.idleitems.school.task;
 
-import com.idleitems.school.entity.Order;
-import com.idleitems.school.repository.OrderRepository;
-import com.idleitems.school.service.NotificationService;
+import com.idleitems.school.module.order.entity.Order;
+import com.idleitems.school.module.order.repository.OrderRepository;
+import com.idleitems.school.module.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
