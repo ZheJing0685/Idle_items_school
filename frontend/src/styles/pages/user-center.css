@@ -187,6 +187,11 @@
   font-weight: 500;
 }
 
+/* Tab Content */
+.tab-content {
+  min-height: 200px;
+}
+
 /* Menu */
 .profile-section {
   margin-bottom: 20px;

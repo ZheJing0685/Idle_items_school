@@ -38,100 +38,56 @@
           :key="tab.id"
           class="profile-tab"
           :class="{ active: activeTab === tab.id }"
-          @click="handleTabClick(tab)"
+          @click="activeTab = tab.id"
         >
           {{ tab.name }}
         </button>
       </div>
 
-      <!-- Tab Content or Router View -->
-      <router-view v-if="isSubRoute" />
-      <div v-else>
-        <!-- Tab Content -->
-        <div class="items-grid" v-if="activeTab === 'my-items'">
-          <div
-            v-for="(item, index) in myItems"
-            :key="item.id"
-            class="card card-clickable item-card"
-            @click="$router.push(`/item/${item.id}`)"
-          >
-            <div class="item-card-img">
-              <div class="img-placeholder" :style="{ background: getItemColor(index) }">
-                📦
-              </div>
-            </div>
-            <div class="item-card-body">
-              <div class="item-card-title">{{ item.title }}</div>
-              <div class="item-card-meta">
-                <div class="item-card-price">
-                  <span class="unit">¥</span>{{ item.price?.toLocaleString() }}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="items-grid" v-else-if="activeTab === 'sold'">
-          <div
-            v-for="(item, index) in soldItems"
-            :key="item.id"
-            class="card card-clickable item-card"
-            @click="$router.push(`/item/${item.id}`)"
-          >
-            <div class="item-card-img">
-              <div class="img-placeholder" :style="{ background: getItemColor(index) }">
-                📦
-              </div>
-            </div>
-            <div class="item-card-body">
-              <div class="item-card-title">{{ item.title }}</div>
-              <div class="item-card-meta">
-                <div class="item-card-price">
-                  <span class="unit">¥</span>{{ item.price?.toLocaleString() }}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="items-grid" v-else-if="activeTab === 'favorites'">
-          <div
-            v-for="(item, index) in favoriteItems"
-            :key="item.id"
-            class="card card-clickable item-card"
-            @click="$router.push(`/item/${item.id}`)"
-          >
-            <div class="item-card-img">
-              <div class="img-placeholder" :style="{ background: getItemColor(index) }">
-                📦
-              </div>
-            </div>
-            <div class="item-card-body">
-              <div class="item-card-title">{{ item.title }}</div>
-              <div class="item-card-meta">
-                <div class="item-card-price">
-                  <span class="unit">¥</span>{{ item.price?.toLocaleString() }}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+      <!-- Tab Content: 个人信息 -->
+      <div v-if="activeTab === 'profile'" class="tab-content">
+        <Profile />
       </div>
 
-      <!-- Menu (only show when not on sub-route) -->
-      <div v-if="!isSubRoute" class="profile-section" style="margin-top: 24px;">
+      <!-- Tab Content: 我的发布 -->
+      <div v-else-if="activeTab === 'my-items'" class="tab-content">
+        <UserItems />
+      </div>
+
+      <!-- Tab Content: 已售出 -->
+      <div v-else-if="activeTab === 'sold'" class="tab-content">
+        <OrderList />
+      </div>
+
+      <!-- Tab Content: 收藏夹 -->
+      <div v-else-if="activeTab === 'favorites'" class="tab-content">
+        <Favorites />
+      </div>
+
+      <!-- Tab Content: 消息中心 -->
+      <div v-else-if="activeTab === 'chat'" class="tab-content">
+        <Chat />
+      </div>
+
+      <!-- Tab Content: 消息通知 -->
+      <div v-else-if="activeTab === 'notifications'" class="tab-content">
+        <Notifications />
+      </div>
+
+      <!-- Tab Content: 修改密码 -->
+      <div v-else-if="activeTab === 'change-password'" class="tab-content">
+        <ChangePassword />
+      </div>
+
+      <!-- Tab Content: 我的订单 -->
+      <div v-else-if="activeTab === 'orders'" class="tab-content">
+        <OrderList />
+      </div>
+
+      <!-- Menu (only show on main profile tab) -->
+      <div v-if="activeTab === 'profile'" class="profile-section" style="margin-top: 24px;">
         <div class="profile-menu">
-          <div class="profile-menu-item" @click="$router.push('/user/profile')">
-            <div class="profile-menu-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                <path d="M20 21V19C20 16.7909 18.2091 15 16 15H8C5.79086 15 4 16.7909 4 19V21" />
-                <circle cx="12" cy="7" r="4" />
-              </svg>
-            </div>
-            <span class="profile-menu-text">个人中心</span>
-            <span class="profile-menu-arrow">›</span>
-          </div>
-          <div class="profile-menu-item" @click="$router.push('/user/items')">
+          <div class="profile-menu-item" @click="activeTab = 'my-items'">
             <div class="profile-menu-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
                 <path d="M20 7L12 3L4 7" />
@@ -142,7 +98,7 @@
             <span class="profile-menu-text">我的发布</span>
             <span class="profile-menu-arrow">›</span>
           </div>
-          <div class="profile-menu-item" @click="$router.push('/user/orders')">
+          <div class="profile-menu-item" @click="activeTab = 'orders'">
             <div class="profile-menu-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
                 <path d="M6 2L3 6V20C3 20.5304 3.21071 21.0391 3.58579 21.4142C3.96086 21.7893 4.46957 22 5 22H19C19.5304 22 20.0391 21.7893 20.4142 21.4142C20.7893 21.0391 21 20.5304 21 20V6L18 2H6Z" />
@@ -152,7 +108,7 @@
             <span class="profile-menu-text">我的订单</span>
             <span class="profile-menu-arrow">›</span>
           </div>
-          <div class="profile-menu-item" @click="$router.push('/user/favorites')">
+          <div class="profile-menu-item" @click="activeTab = 'favorites'">
             <div class="profile-menu-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
                 <path d="M20.84 4.61C20.3292 4.09924 19.7228 3.69397 19.0554 3.41708C18.3879 3.14019 17.6725 2.99756 16.95 2.99756C16.2275 2.99756 15.5121 3.14019 14.8446 3.41708C14.1772 3.69397 13.5708 4.09924 13.06 4.61L12 5.67L10.94 4.61C9.9083 3.57831 8.50903 2.99787 7.05 2.99787C5.59096 2.99787 4.19169 3.57831 3.16 4.61C2.1283 5.64169 1.54785 7.04097 1.54785 8.5C1.54785 9.95903 2.1283 11.3583 3.16 12.39L4.22 13.45L12 21.23L19.78 13.45L20.84 12.39C21.3508 11.8792 21.756 11.2728 22.0329 10.6054C22.3098 9.93789 22.4524 9.22248 22.4524 8.5C22.4524 7.77751 22.3098 7.0621 22.0329 6.39464C21.756 5.72718 21.3508 5.12075 20.84 4.61Z" />
@@ -161,7 +117,7 @@
             <span class="profile-menu-text">我的收藏</span>
             <span class="profile-menu-arrow">›</span>
           </div>
-          <div class="profile-menu-item" @click="$router.push('/user/chat')">
+          <div class="profile-menu-item" @click="activeTab = 'chat'">
             <div class="profile-menu-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
                 <path d="M21 15C21 15.5304 20.7893 16.0391 20.4142 16.4142C20.0391 16.7893 19.5304 17 19 17H7L3 21V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H16C16.5304 3 17.0391 3.21071 17.4142 3.58579C17.7893 3.96086 18 4.46957 18 5" />
@@ -171,7 +127,7 @@
             <span class="profile-menu-badge">3</span>
             <span class="profile-menu-arrow">›</span>
           </div>
-          <div class="profile-menu-item" @click="$router.push('/user/notifications')">
+          <div class="profile-menu-item" @click="activeTab = 'notifications'">
             <div class="profile-menu-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
@@ -181,7 +137,7 @@
             <span class="profile-menu-text">消息通知</span>
             <span class="profile-menu-arrow">›</span>
           </div>
-          <div class="profile-menu-item" @click="$router.push('/user/change-password')">
+          <div class="profile-menu-item" @click="activeTab = 'change-password'">
             <div class="profile-menu-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
                 <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" />
@@ -199,27 +155,28 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { ref, reactive, computed, onMounted } from 'vue';
 import { userStore } from '../store';
 import api from '../api';
 
-const route = useRoute();
-const router = useRouter();
+// Import child components
+import Profile from './user/Profile.vue';
+import UserItems from './user/Items.vue';
+import OrderList from './OrderList.vue';
+import Favorites from './user/Favorites.vue';
+import Chat from './user/Chat.vue';
+import Notifications from './user/Notifications.vue';
+import ChangePassword from './user/ChangePassword.vue';
+
 const store = userStore();
 const userInfo = computed(() => store.user);
-const activeTab = ref('my-items');
-
-// Check if we're on a sub-route
-const isSubRoute = computed(() => {
-  const path = route.path;
-  return path !== '/user' && path.startsWith('/user/');
-});
+const activeTab = ref('profile');
 
 const tabs = [
-  { id: 'my-items', name: '我的发布', route: '/user/items' },
-  { id: 'sold', name: '已售出', route: '/user/orders' },
-  { id: 'favorites', name: '收藏夹', route: '/user/favorites' },
+  { id: 'profile', name: '个人信息' },
+  { id: 'my-items', name: '我的发布' },
+  { id: 'orders', name: '我的订单' },
+  { id: 'favorites', name: '收藏夹' },
 ];
 
 const stats = reactive({
@@ -228,25 +185,6 @@ const stats = reactive({
   favorites: 24,
   rating: 4.9,
 });
-
-const myItems = ref<any[]>([]);
-const soldItems = ref<any[]>([]);
-const favoriteItems = ref<any[]>([]);
-
-const itemColors = ['#dce8f7', '#f5edd6', '#d8f0e0', '#e8d8f0', '#f0e0d0'];
-const getItemColor = (index: number) => itemColors[index % itemColors.length];
-
-const handleTabClick = (tab: any) => {
-  activeTab.value = tab.id;
-  router.push(tab.route);
-};
-
-// Watch route changes to update active tab
-watch(() => route.path, (path) => {
-  if (path === '/user/items') activeTab.value = 'my-items';
-  else if (path === '/user/orders') activeTab.value = 'sold';
-  else if (path === '/user/favorites') activeTab.value = 'favorites';
-}, { immediate: true });
 
 onMounted(async () => {
   try {
