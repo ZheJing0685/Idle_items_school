@@ -49,6 +49,11 @@
         <Profile @change-tab="activeTab = $event" />
       </div>
 
+      <!-- Tab Content: 实名认证 -->
+      <div v-else-if="activeTab === 'verification'" class="tab-content">
+        <Verification />
+      </div>
+
       <!-- Tab Content: 我的发布 -->
       <div v-else-if="activeTab === 'my-items'" class="tab-content">
         <UserItems />
@@ -78,6 +83,14 @@
       <div v-else-if="activeTab === 'change-password'" class="tab-content">
         <ChangePassword />
       </div>
+
+      <!-- Tab Content: 管理后台 -->
+      <div v-else-if="activeTab === 'admin'" class="tab-content">
+        <div class="admin-redirect">
+          <p>点击下方按钮进入管理后台</p>
+          <a href="/admin" class="btn btn-primary">进入管理后台</a>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -89,6 +102,7 @@ import api from '../api';
 
 // Import child components
 import Profile from './user/Profile.vue';
+import Verification from './user/Verification.vue';
 import UserItems from './user/Items.vue';
 import OrderList from './OrderList.vue';
 import Favorites from './user/Favorites.vue';
@@ -100,14 +114,21 @@ const store = userStore();
 const userInfo = computed(() => store.user);
 const activeTab = ref('profile');
 
-const tabs = [
-  { id: 'profile', name: '个人信息' },
-  { id: 'my-items', name: '我的发布' },
-  { id: 'orders', name: '我的订单' },
-  { id: 'favorites', name: '收藏夹' },
-  { id: 'chat', name: '消息中心' },
-  { id: 'notifications', name: '消息通知' },
-];
+const tabs = computed(() => {
+  const baseTabs = [
+    { id: 'profile', name: '个人信息' },
+    { id: 'verification', name: '实名认证' },
+    { id: 'my-items', name: '我的发布' },
+    { id: 'orders', name: '我的订单' },
+    { id: 'favorites', name: '收藏夹' },
+    { id: 'chat', name: '消息中心' },
+    { id: 'notifications', name: '消息通知' },
+  ];
+  if (store.isAdmin) {
+    baseTabs.push({ id: 'admin', name: '管理后台' });
+  }
+  return baseTabs;
+});
 
 const stats = reactive({
   totalItems: 12,
