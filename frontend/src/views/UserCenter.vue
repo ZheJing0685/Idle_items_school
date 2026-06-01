@@ -38,84 +38,88 @@
           :key="tab.id"
           class="profile-tab"
           :class="{ active: activeTab === tab.id }"
-          @click="activeTab = tab.id"
+          @click="handleTabClick(tab)"
         >
           {{ tab.name }}
         </button>
       </div>
 
-      <!-- Tab Content -->
-      <div class="items-grid" v-if="activeTab === 'my-items'">
-        <div
-          v-for="(item, index) in myItems"
-          :key="item.id"
-          class="card card-clickable item-card"
-          @click="$router.push(`/item/${item.id}`)"
-        >
-          <div class="item-card-img">
-            <div class="img-placeholder" :style="{ background: getItemColor(index) }">
-              📦
+      <!-- Tab Content or Router View -->
+      <router-view v-if="isSubRoute" />
+      <div v-else>
+        <!-- Tab Content -->
+        <div class="items-grid" v-if="activeTab === 'my-items'">
+          <div
+            v-for="(item, index) in myItems"
+            :key="item.id"
+            class="card card-clickable item-card"
+            @click="$router.push(`/item/${item.id}`)"
+          >
+            <div class="item-card-img">
+              <div class="img-placeholder" :style="{ background: getItemColor(index) }">
+                📦
+              </div>
+            </div>
+            <div class="item-card-body">
+              <div class="item-card-title">{{ item.title }}</div>
+              <div class="item-card-meta">
+                <div class="item-card-price">
+                  <span class="unit">¥</span>{{ item.price?.toLocaleString() }}
+                </div>
+              </div>
             </div>
           </div>
-          <div class="item-card-body">
-            <div class="item-card-title">{{ item.title }}</div>
-            <div class="item-card-meta">
-              <div class="item-card-price">
-                <span class="unit">¥</span>{{ item.price?.toLocaleString() }}
+        </div>
+
+        <div class="items-grid" v-else-if="activeTab === 'sold'">
+          <div
+            v-for="(item, index) in soldItems"
+            :key="item.id"
+            class="card card-clickable item-card"
+            @click="$router.push(`/item/${item.id}`)"
+          >
+            <div class="item-card-img">
+              <div class="img-placeholder" :style="{ background: getItemColor(index) }">
+                📦
+              </div>
+            </div>
+            <div class="item-card-body">
+              <div class="item-card-title">{{ item.title }}</div>
+              <div class="item-card-meta">
+                <div class="item-card-price">
+                  <span class="unit">¥</span>{{ item.price?.toLocaleString() }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="items-grid" v-else-if="activeTab === 'favorites'">
+          <div
+            v-for="(item, index) in favoriteItems"
+            :key="item.id"
+            class="card card-clickable item-card"
+            @click="$router.push(`/item/${item.id}`)"
+          >
+            <div class="item-card-img">
+              <div class="img-placeholder" :style="{ background: getItemColor(index) }">
+                📦
+              </div>
+            </div>
+            <div class="item-card-body">
+              <div class="item-card-title">{{ item.title }}</div>
+              <div class="item-card-meta">
+                <div class="item-card-price">
+                  <span class="unit">¥</span>{{ item.price?.toLocaleString() }}
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div class="items-grid" v-else-if="activeTab === 'sold'">
-        <div
-          v-for="(item, index) in soldItems"
-          :key="item.id"
-          class="card card-clickable item-card"
-          @click="$router.push(`/item/${item.id}`)"
-        >
-          <div class="item-card-img">
-            <div class="img-placeholder" :style="{ background: getItemColor(index) }">
-              📦
-            </div>
-          </div>
-          <div class="item-card-body">
-            <div class="item-card-title">{{ item.title }}</div>
-            <div class="item-card-meta">
-              <div class="item-card-price">
-                <span class="unit">¥</span>{{ item.price?.toLocaleString() }}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="items-grid" v-else-if="activeTab === 'favorites'">
-        <div
-          v-for="(item, index) in favoriteItems"
-          :key="item.id"
-          class="card card-clickable item-card"
-          @click="$router.push(`/item/${item.id}`)"
-        >
-          <div class="item-card-img">
-            <div class="img-placeholder" :style="{ background: getItemColor(index) }">
-              📦
-            </div>
-          </div>
-          <div class="item-card-body">
-            <div class="item-card-title">{{ item.title }}</div>
-            <div class="item-card-meta">
-              <div class="item-card-price">
-                <span class="unit">¥</span>{{ item.price?.toLocaleString() }}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Menu -->
-      <div class="profile-section" style="margin-top: 24px;">
+      <!-- Menu (only show when not on sub-route) -->
+      <div v-if="!isSubRoute" class="profile-section" style="margin-top: 24px;">
         <div class="profile-menu">
           <div class="profile-menu-item" @click="$router.push('/user/profile')">
             <div class="profile-menu-icon">
@@ -195,18 +199,27 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue';
+import { ref, reactive, computed, onMounted, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { userStore } from '../store';
 import api from '../api';
 
+const route = useRoute();
+const router = useRouter();
 const store = userStore();
 const userInfo = computed(() => store.user);
 const activeTab = ref('my-items');
 
+// Check if we're on a sub-route
+const isSubRoute = computed(() => {
+  const path = route.path;
+  return path !== '/user' && path.startsWith('/user/');
+});
+
 const tabs = [
-  { id: 'my-items', name: '我的发布' },
-  { id: 'sold', name: '已售出' },
-  { id: 'favorites', name: '收藏夹' },
+  { id: 'my-items', name: '我的发布', route: '/user/items' },
+  { id: 'sold', name: '已售出', route: '/user/orders' },
+  { id: 'favorites', name: '收藏夹', route: '/user/favorites' },
 ];
 
 const stats = reactive({
@@ -222,6 +235,18 @@ const favoriteItems = ref<any[]>([]);
 
 const itemColors = ['#dce8f7', '#f5edd6', '#d8f0e0', '#e8d8f0', '#f0e0d0'];
 const getItemColor = (index: number) => itemColors[index % itemColors.length];
+
+const handleTabClick = (tab: any) => {
+  activeTab.value = tab.id;
+  router.push(tab.route);
+};
+
+// Watch route changes to update active tab
+watch(() => route.path, (path) => {
+  if (path === '/user/items') activeTab.value = 'my-items';
+  else if (path === '/user/orders') activeTab.value = 'sold';
+  else if (path === '/user/favorites') activeTab.value = 'favorites';
+}, { immediate: true });
 
 onMounted(async () => {
   try {
