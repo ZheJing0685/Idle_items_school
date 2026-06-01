@@ -24,9 +24,10 @@
         <input type="text" placeholder="搜索校园好物…" v-model="searchKeyword" @keyup.enter="handleSearch" />
       </div>
       <div class="nav-actions">
-        <button class="nav-icon-btn" title="消息" @click="handleNavigate('/user/chat')">
+        <button class="nav-icon-btn" title="消息通知" @click="handleNavigate('/user/notifications')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
           </svg>
           <span class="dot" v-if="hasNotifications"></span>
         </button>
@@ -58,9 +59,10 @@
             <path d="M21 21l-4.35-4.35" />
           </svg>
         </button>
-        <button title="消息" @click="handleNavigate('/user/chat')">
+        <button title="消息通知" @click="handleNavigate('/user/notifications')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
           </svg>
         </button>
       </div>
@@ -90,9 +92,10 @@
         </svg>
       </div>
     </router-link>
-    <router-link to="/user/chat" class="tab-item" :class="{ active: $route.path === '/user/chat' }">
+    <router-link to="/user/notifications" class="tab-item" :class="{ active: $route.path === '/user/notifications' }">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-        <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+        <path d="M13.73 21a2 2 0 0 1-3.46 0" />
       </svg>
       <span>消息</span>
     </router-link>

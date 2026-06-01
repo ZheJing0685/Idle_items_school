@@ -217,15 +217,27 @@
 .form-actions {
   display: flex;
   justify-content: center;
+  gap: 12px;
   padding-top: 8px;
 }
 
 .form-actions :deep(.el-button) {
-  min-width: 160px;
+  min-width: 140px;
   height: 44px;
   font-size: 15px;
   font-weight: 600;
   border-radius: 12px;
+}
+
+.change-password-btn {
+  background: var(--bg-surface) !important;
+  border: 1.5px solid var(--border-default) !important;
+  color: var(--text-primary) !important;
+}
+
+.change-password-btn:hover {
+  border-color: var(--primary-color) !important;
+  color: var(--primary-color) !important;
 }
 
 /* Responsive */

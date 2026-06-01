@@ -148,6 +148,9 @@
         <el-button type="primary" @click="handleSave" :loading="saving" size="large">
           保存修改
         </el-button>
+        <el-button @click="$emit('change-tab', 'change-password')" size="large" class="change-password-btn">
+          修改密码
+        </el-button>
       </div>
     </div>
   </div>
