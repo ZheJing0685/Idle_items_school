@@ -24,14 +24,14 @@
         <input type="text" placeholder="搜索校园好物…" v-model="searchKeyword" @keyup.enter="handleSearch" />
       </div>
       <div class="nav-actions">
-        <button class="nav-icon-btn" title="消息" @click="$router.push('/user/chat')">
+        <button class="nav-icon-btn" title="消息" @click="handleNavigate('/user/chat')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
             <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
           </svg>
           <span class="dot" v-if="hasNotifications"></span>
         </button>
         <template v-if="store.isLoggedIn">
-          <div class="nav-avatar" @click="$router.push('/user/profile')" :title="getUserName()">
+          <div class="nav-avatar" @click="handleNavigate('/user/profile')" :title="getUserName()">
             {{ getAvatarText() }}
           </div>
         </template>
@@ -58,7 +58,7 @@
             <path d="M21 21l-4.35-4.35" />
           </svg>
         </button>
-        <button title="消息" @click="$router.push('/user/chat')">
+        <button title="消息" @click="handleNavigate('/user/chat')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
             <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
           </svg>
@@ -119,6 +119,15 @@ const hasNotifications = ref(true);
 const handleSearch = () => {
   if (searchKeyword.value.trim()) {
     router.push({ path: '/items', query: { keyword: searchKeyword.value } });
+  }
+};
+
+const handleNavigate = (path: string) => {
+  if (store.isLoggedIn) {
+    router.push(path);
+  } else {
+    localStorage.setItem('redirectPath', path);
+    router.push('/login');
   }
 };
 
