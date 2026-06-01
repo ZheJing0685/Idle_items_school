@@ -1,21 +1,12 @@
 <template>
   <div class="not-found-page">
     <div class="not-found-container">
+      <!-- Left: 404 Graphic -->
       <div class="not-found-graphic">
         <div class="graphic-circle">
           <svg width="200" height="200" viewBox="0 0 200 200" fill="none">
-            <circle
-              cx="100"
-              cy="100"
-              r="90"
-              class="circle-bg-primary"
-            />
-            <circle
-              cx="100"
-              cy="100"
-              r="70"
-              class="circle-bg-primary-light"
-            />
+            <circle cx="100" cy="100" r="90" fill="oklch(56% 0.15 150 / 0.10)" />
+            <circle cx="100" cy="100" r="70" fill="oklch(56% 0.15 150 / 0.06)" />
             <text
               x="100"
               y="115"
@@ -29,14 +20,11 @@
             </text>
           </svg>
         </div>
-        <div class="deco-leaf leaf-1">
-          <Smile :size="40" fill="var(--secondary-color)" color="var(--secondary-color)" />
-        </div>
-        <div class="deco-leaf leaf-2">
-          <Circle :size="24" fill="var(--primary-light)" color="var(--primary-light)" />
-        </div>
+        <div class="deco-leaf leaf-1">🌱</div>
+        <div class="deco-leaf leaf-2">🍃</div>
       </div>
 
+      <!-- Right: Content -->
       <div class="not-found-content">
         <h1 class="not-found-title">页面不存在</h1>
         <p class="not-found-description">
@@ -46,17 +34,23 @@
 
         <div class="not-found-actions">
           <router-link to="/" class="action-btn action-btn-primary">
-            <Home :size="18" />
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+              <polyline points="9,22 9,12 15,12 15,22" />
+            </svg>
             返回首页
           </router-link>
           <router-link to="/items" class="action-btn action-btn-secondary">
-            <Grid :size="18" />
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <circle cx="11" cy="11" r="8" />
+              <path d="M21 21l-4.35-4.35" />
+            </svg>
             浏览好物
           </router-link>
         </div>
 
         <div class="eco-message">
-          <Smile :size="20" fill="var(--secondary-color)" color="var(--secondary-color)" />
+          <span>♻️</span>
           <span>每一次浏览都在为环保贡献力量</span>
         </div>
       </div>
@@ -65,22 +59,21 @@
 </template>
 
 <script setup lang="ts">
-import { Smile, Circle, Home, Grid } from 'lucide-vue-next';
 </script>
 
 <style scoped>
 .not-found-page {
-  min-height: calc(100vh - var(--header-height) - 200px);
+  min-height: calc(100vh - 200px);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: var(--space-16) var(--space-6);
+  padding: 64px 24px;
 }
 
 .not-found-container {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--space-12);
+  gap: 48px;
   align-items: center;
   max-width: 900px;
   width: 100%;
@@ -99,6 +92,7 @@ import { Smile, Circle, Home, Grid } from 'lucide-vue-next';
 
 .deco-leaf {
   position: absolute;
+  font-size: 40px;
   animation: float 3s ease-in-out infinite;
 }
 
@@ -112,6 +106,7 @@ import { Smile, Circle, Home, Grid } from 'lucide-vue-next';
   bottom: 20%;
   left: 10%;
   animation-delay: 1s;
+  font-size: 24px;
 }
 
 .not-found-content {
@@ -120,87 +115,80 @@ import { Smile, Circle, Home, Grid } from 'lucide-vue-next';
 
 .not-found-title {
   font-family: var(--font-display);
-  font-size: clamp(2rem, 4vw, 3rem);
+  font-size: clamp(24px, 4vw, 36px);
   font-weight: 800;
   color: var(--text-primary);
-  margin: 0 0 var(--space-4);
+  margin: 0 0 16px;
   letter-spacing: -0.03em;
 }
 
 .not-found-description {
-  font-size: var(--text-lg);
+  font-size: 16px;
   color: var(--text-secondary);
-  line-height: var(--leading-relaxed);
-  margin: 0 0 var(--space-8);
+  line-height: 1.7;
+  margin: 0 0 32px;
   max-width: 400px;
 }
 
 .not-found-actions {
   display: flex;
-  gap: var(--space-4);
-  margin-bottom: var(--space-8);
+  gap: 16px;
+  margin-bottom: 32px;
 }
 
 .action-btn {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-4) var(--space-6);
+  gap: 8px;
+  padding: 12px 24px;
   font-weight: 600;
-  font-size: var(--text-base);
-  border-radius: var(--radius-lg);
+  font-size: 15px;
+  border-radius: 12px;
   text-decoration: none;
-  transition: all var(--transition-fast);
+  transition: all 0.15s;
+}
+
+.action-btn svg {
+  width: 18px;
+  height: 18px;
 }
 
 .action-btn-primary {
   background: var(--primary-color);
-  color: var(--text-inverse);
-  box-shadow: 0 4px 14px var(--color-primary-alpha-20);
-}
-
-.circle-bg-primary {
-  fill: var(--color-primary-alpha-15);
-}
-
-.circle-bg-primary-light {
-  fill: var(--color-primary-alpha-10);
+  color: #fff;
 }
 
 .action-btn-primary:hover {
   background: var(--primary-dark);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px var(--color-primary-alpha-30);
-  color: var(--text-inverse);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px oklch(56% 0.15 150 / 0.35);
 }
 
 .action-btn-secondary {
   background: var(--bg-surface);
   color: var(--text-primary);
-  border: 2px solid var(--border-default);
+  border: 1.5px solid var(--border-default);
 }
 
 .action-btn-secondary:hover {
   border-color: var(--primary-color);
   color: var(--primary-color);
-  transform: translateY(-2px);
 }
 
 .eco-message {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-3) var(--space-4);
-  background: var(--color-success-alpha-10);
-  border-radius: var(--radius-full);
-  font-size: var(--text-sm);
+  gap: 8px;
+  padding: 8px 16px;
+  background: var(--eco-light);
+  border-radius: 9999px;
+  font-size: 14px;
   font-weight: 500;
-  color: var(--secondary-dark);
+  color: var(--eco-color);
 }
 
 @keyframes float {
-  0%,
-  100% {
+  0%, 100% {
     transform: translateY(0);
   }
   50% {
@@ -212,7 +200,7 @@ import { Smile, Circle, Home, Grid } from 'lucide-vue-next';
   .not-found-container {
     grid-template-columns: 1fr;
     text-align: center;
-    gap: var(--space-8);
+    gap: 32px;
   }
 
   .not-found-graphic {
@@ -245,7 +233,7 @@ import { Smile, Circle, Home, Grid } from 'lucide-vue-next';
 
 @media (max-width: 480px) {
   .not-found-page {
-    padding: var(--space-10) var(--space-4);
+    padding: 40px 16px;
   }
 
   .not-found-actions {

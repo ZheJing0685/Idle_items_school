@@ -1,96 +1,102 @@
 <template>
   <div class="forgot-password-page">
     <div class="forgot-password-container">
-      <h2>忘记密码</h2>
+      <div class="card-header">
+        <div class="logo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 8C8 10 5.9 16.17 3.82 21.34l1.89.66.95-2.3c.48.17.98.3 1.34.3C19 20 22 3 22 3c-1 2-8 2.25-13 3.25S2 11.5 2 13.5s1.75 3.75 1.75 3.75C7 8 17 8 17 8z" />
+          </svg>
+        </div>
+        <h2 class="card-title">忘记密码</h2>
+        <p class="card-subtitle" v-if="step === 1">请输入您注册时使用的邮箱</p>
+        <p class="card-subtitle" v-else-if="step === 2">验证码已发送到 {{ form.email }}</p>
+        <p class="card-subtitle" v-else-if="step === 3">请设置您的新密码</p>
+        <p class="card-subtitle" v-else>密码重置成功</p>
+      </div>
 
-      <!-- 步骤1: 输入邮箱 -->
+      <!-- Step 1: Input Email -->
       <div v-if="step === 1" class="step-content">
-        <p class="step-desc">请输入您注册时使用的邮箱，我们将发送验证码到该邮箱</p>
-        <el-form :model="form" :rules="rules" ref="formRef">
-          <el-form-item prop="email">
-            <el-input
+        <form class="form" @submit.prevent="sendCode">
+          <div class="form-group">
+            <label class="form-label">邮箱地址</label>
+            <input
               v-model="form.email"
+              type="email"
               placeholder="请输入邮箱"
-              prefix-icon="Message"
+              class="form-input"
+              required
             />
-          </el-form-item>
-          <el-button
-            type="primary"
-            :loading="loading"
-            @click="sendCode"
-            class="full-width"
-          >
-            发送验证码
-          </el-button>
-        </el-form>
+          </div>
+          <button type="submit" class="submit-btn" :disabled="loading">
+            {{ loading ? '发送中...' : '发送验证码' }}
+          </button>
+        </form>
       </div>
 
-      <!-- 步骤2: 输入验证码 -->
+      <!-- Step 2: Input Code -->
       <div v-if="step === 2" class="step-content">
-        <p class="step-desc">验证码已发送到 {{ form.email }}，请查收</p>
-        <el-form :model="form" :rules="rules" ref="formRef">
-          <el-form-item prop="code">
-            <el-input
+        <form class="form" @submit.prevent="verifyCode">
+          <div class="form-group">
+            <label class="form-label">验证码</label>
+            <input
               v-model="form.code"
+              type="text"
               placeholder="请输入6位验证码"
-              prefix-icon="Key"
+              class="form-input"
               maxlength="6"
+              required
             />
-          </el-form-item>
-          <el-button
-            type="primary"
-            :loading="loading"
-            @click="verifyCode"
-            class="full-width"
-          >
-            验证
-          </el-button>
-        </el-form>
+          </div>
+          <button type="submit" class="submit-btn" :disabled="loading">
+            {{ loading ? '验证中...' : '验证' }}
+          </button>
+        </form>
       </div>
 
-      <!-- 步骤3: 设置新密码 -->
+      <!-- Step 3: Set New Password -->
       <div v-if="step === 3" class="step-content">
-        <p class="step-desc">请设置您的新密码</p>
-        <el-form :model="form" :rules="rules" ref="formRef">
-          <el-form-item prop="newPassword">
-            <el-input
+        <form class="form" @submit.prevent="resetPassword">
+          <div class="form-group">
+            <label class="form-label">新密码</label>
+            <input
               v-model="form.newPassword"
               type="password"
               placeholder="请输入新密码"
-              prefix-icon="Lock"
-              show-password
+              class="form-input"
+              required
             />
-          </el-form-item>
-          <el-form-item prop="confirmPassword">
-            <el-input
+          </div>
+          <div class="form-group">
+            <label class="form-label">确认密码</label>
+            <input
               v-model="form.confirmPassword"
               type="password"
               placeholder="请确认新密码"
-              prefix-icon="Lock"
-              show-password
+              class="form-input"
+              required
             />
-          </el-form-item>
-          <el-button
-            type="primary"
-            :loading="loading"
-            @click="resetPassword"
-            class="full-width"
-          >
-            重置密码
-          </el-button>
-        </el-form>
+          </div>
+          <button type="submit" class="submit-btn" :disabled="loading">
+            {{ loading ? '重置中...' : '重置密码' }}
+          </button>
+        </form>
       </div>
 
-      <!-- 步骤4: 成功 -->
+      <!-- Step 4: Success -->
       <div v-if="step === 4" class="step-content success">
-        <el-icon :size="64" class="success-icon"><CircleCheck /></el-icon>
+        <div class="success-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+            <polyline points="22 4 12 14.01 9 11.01" />
+          </svg>
+        </div>
         <h3>密码重置成功</h3>
         <p>请使用新密码登录</p>
-        <el-button type="primary" @click="goToLogin">去登录</el-button>
+        <button class="submit-btn" @click="goToLogin">去登录</button>
       </div>
 
       <div class="back-link">
-        <router-link to="/login">返回登录</router-link>
+        <router-link to="/login">← 返回登录</router-link>
       </div>
     </div>
   </div>
@@ -99,13 +105,10 @@
 <script setup lang="ts">
 import { ref, reactive } from 'vue';
 import { useRouter } from 'vue-router';
-import { ElMessage, ElForm } from 'element-plus';
-import { CircleCheck } from '@element-plus/icons-vue';
-import api from '@/api';
-import { validatePassword } from '../utils/validator';
+import { ElMessage } from 'element-plus';
+import api from '../api';
 
 const router = useRouter();
-const formRef = ref<InstanceType<typeof ElForm> | null>(null);
 const loading = ref(false);
 const step = ref(1);
 
@@ -116,47 +119,12 @@ const form = reactive({
   confirmPassword: ''
 });
 
-const validateConfirmPassword = (rule: any, value: string, callback: any) => {
-  if (value !== form.newPassword) {
-    callback(new Error('两次输入的密码不一致'));
-  } else {
-    callback();
-  }
-};
-
-const rules = {
-  email: [
-    { required: true, message: '请输入邮箱', trigger: 'blur' },
-    { type: 'email', message: '请输入正确的邮箱格式', trigger: 'blur' }
-  ],
-  code: [
-    { required: true, message: '请输入验证码', trigger: 'blur' },
-    { len: 6, message: '验证码为6位数字', trigger: 'blur' }
-  ],
-  newPassword: [
-    { required: true, message: '请输入新密码', trigger: 'blur' },
-    { min: 8, max: 32, message: '密码长度8-32个字符', trigger: 'blur' },
-    {
-      validator: (_rule: any, value: string, callback: (error?: Error) => void) => {
-        if (!validatePassword(value)) {
-          callback(new Error('密码必须包含大小写字母、数字和特殊字符'));
-        } else {
-          callback();
-        }
-      },
-      trigger: 'blur',
-    },
-  ],
-  confirmPassword: [
-    { required: true, message: '请确认新密码', trigger: 'blur' },
-    { validator: validateConfirmPassword, trigger: 'blur' }
-  ]
-};
-
-// 发送验证码
 const sendCode = async () => {
+  if (!form.email) {
+    ElMessage.warning('请输入邮箱');
+    return;
+  }
   try {
-    await formRef.value!.validate();
     loading.value = true;
     await api.auth.forgotPassword(form.email);
     ElMessage.success('验证码已发送');
@@ -169,10 +137,12 @@ const sendCode = async () => {
   }
 };
 
-// 验证验证码
 const verifyCode = async () => {
+  if (!form.code || form.code.length !== 6) {
+    ElMessage.warning('请输入6位验证码');
+    return;
+  }
   try {
-    await formRef.value!.validate();
     loading.value = true;
     await api.auth.verifyCode(form.email, form.code);
     ElMessage.success('验证成功');
@@ -185,10 +155,16 @@ const verifyCode = async () => {
   }
 };
 
-// 重置密码
 const resetPassword = async () => {
+  if (!form.newPassword || !form.confirmPassword) {
+    ElMessage.warning('请填写所有字段');
+    return;
+  }
+  if (form.newPassword !== form.confirmPassword) {
+    ElMessage.warning('两次输入的密码不一致');
+    return;
+  }
   try {
-    await formRef.value!.validate();
     loading.value = true;
     await api.auth.resetPassword(form.email, form.code, form.newPassword);
     ElMessage.success('密码重置成功');
@@ -201,7 +177,6 @@ const resetPassword = async () => {
   }
 };
 
-// 跳转到登录页
 const goToLogin = () => {
   router.push('/login');
 };
@@ -214,32 +189,120 @@ const goToLogin = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+  background: var(--bg-base);
+  padding: 16px;
 }
 
 .forgot-password-container {
-  width: 400px;
-  max-width: 90vw;
-  padding: var(--space-10);
+  width: 100%;
+  max-width: 400px;
+  padding: 40px;
   background: var(--bg-surface);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-xl);
+  border-radius: 20px;
+  box-shadow: 0 8px 32px oklch(0% 0 0 / 0.10);
 }
 
-h2 {
+.card-header {
   text-align: center;
-  margin-bottom: var(--space-6);
+  margin-bottom: 32px;
+}
+
+.logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--primary-alpha-15);
+  margin-bottom: 16px;
+}
+
+.logo svg {
+  width: 32px;
+  height: 32px;
+  color: var(--primary-color);
+}
+
+.card-title {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 700;
   color: var(--text-primary);
+  margin: 0 0 8px;
 }
 
-.step-desc {
-  text-align: center;
-  color: var(--text-secondary);
-  margin-bottom: var(--space-6);
+.card-subtitle {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin: 0;
 }
 
 .step-content {
-  margin-bottom: var(--space-5);
+  margin-bottom: 24px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.form-input {
+  width: 100%;
+  height: 48px;
+  padding: 0 16px;
+  background: var(--bg-muted);
+  border: 1.5px solid transparent;
+  border-radius: 12px;
+  font-size: 15px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  outline: none;
+}
+
+.form-input:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px oklch(56% 0.15 150 / 0.10);
+}
+
+.form-input::placeholder {
+  color: var(--text-muted);
+}
+
+.submit-btn {
+  width: 100%;
+  height: 48px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  background: var(--primary-color);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.submit-btn:hover:not(:disabled) {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px oklch(56% 0.15 150 / 0.35);
+}
+
+.submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .success {
@@ -247,30 +310,49 @@ h2 {
 }
 
 .success-icon {
-  color: var(--success-color);
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--eco-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+}
+
+.success-icon svg {
+  width: 40px;
+  height: 40px;
+  color: var(--eco-color);
 }
 
 .success h3 {
-  margin: var(--space-4) 0 var(--space-2);
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
   color: var(--text-primary);
+  margin: 0 0 8px;
 }
 
 .success p {
-  color: var(--text-secondary);
-  margin-bottom: var(--space-6);
+  font-size: 14px;
+  color: var(--text-muted);
+  margin: 0 0 24px;
 }
 
 .back-link {
   text-align: center;
-  margin-top: var(--space-5);
 }
 
 .back-link a {
+  font-size: 14px;
   color: var(--primary-color);
   text-decoration: none;
+  font-weight: 500;
+  transition: color 0.15s;
 }
 
-.full-width {
-  width: 100%;
+.back-link a:hover {
+  color: var(--primary-dark);
 }
 </style>
