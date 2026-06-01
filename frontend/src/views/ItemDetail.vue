@@ -162,7 +162,7 @@ const isFavorited = ref(false);
 const currentThumb = ref(0);
 const currentImage = ref('');
 const showLightbox = ref(false);
-const allImages = ref<string[]>([]);
+const allImages = ref([] as string[]);
 
 const IMG_COLORS = {
   digital: ['#dce8f7', '#c4d8f0', '#b0cce8'],
