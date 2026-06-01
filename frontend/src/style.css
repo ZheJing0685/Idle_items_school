@@ -27,59 +27,60 @@ html.reduced-motion *::after {
 }
 
 :root {
-  /* === 蓝绿清新配色 (OKLCH) === */
-  /* Primary - 薄荷蓝绿 */
-  --primary-hue: 195;
-  --primary-color: oklch(62% 0.14 195);
-  --primary-light: oklch(78% 0.10 195);
-  --primary-dark: oklch(48% 0.15 195);
-  --primary-muted: oklch(72% 0.08 195);
+  /* === 绿色清新配色 (OKLCH) === */
+  /* Primary - 校园绿色 */
+  --primary-hue: 150;
+  --primary-color: oklch(56% 0.15 150);
+  --primary-light: oklch(72% 0.10 150);
+  --primary-dark: oklch(44% 0.16 150);
+  --primary-muted: oklch(68% 0.08 150);
 
   /* Secondary - 森林绿 */
   --secondary-hue: 158;
-  --secondary-color: oklch(62% 0.12 158);
-  --secondary-light: oklch(75% 0.10 158);
-  --secondary-dark: oklch(48% 0.14 158);
-  --secondary-muted: oklch(70% 0.06 158);
+  --secondary-color: oklch(55% 0.14 150);
+  --secondary-light: oklch(70% 0.10 150);
+  --secondary-dark: oklch(42% 0.16 150);
+  --secondary-muted: oklch(65% 0.06 150);
 
-  /* Accent - 活力珊瑚橙 */
-  --accent-hue: 38;
-  --accent-color: oklch(70% 0.16 38);
-  --accent-light: oklch(82% 0.12 38);
-  --accent-dark: oklch(58% 0.18 38);
-  --accent-muted: oklch(75% 0.10 38);
+  /* Accent - 活力橙 (用于价格) */
+  --accent-hue: 55;
+  --accent-color: oklch(62% 0.14 55);
+  --accent-light: oklch(80% 0.10 55);
+  --accent-dark: oklch(50% 0.16 55);
+  --accent-muted: oklch(75% 0.08 55);
 
   /* 语义色 */
-  --success-color: oklch(62% 0.12 158);
-  --warning-color: oklch(75% 0.14 85);
-  --error-color: oklch(60% 0.20 25);
+  --success-color: oklch(55% 0.14 150);
+  --warning-color: oklch(72% 0.14 80);
+  --error-color: oklch(55% 0.18 25);
   --info-color: oklch(62% 0.14 250);
 
-  /* === 中性色 (微带蓝绿倾向) === */
-  --bg-base: oklch(98% 0.005 200);
-  --bg-surface: oklch(100% 0.005 200);
-  --bg-elevated: oklch(99.5% 0.006 200);
-  --bg-muted: oklch(96% 0.005 200);
+  /* === 中性色 (微带绿倾向) === */
+  --bg-base: oklch(97.5% 0.005 150);
+  --bg-surface: oklch(100% 0 0);
+  --bg-elevated: oklch(99.5% 0.003 150);
+  --bg-muted: oklch(96.5% 0.008 150);
 
-  --text-primary: oklch(25% 0.015 195);
-  --text-secondary: oklch(45% 0.012 195);
-  --text-muted: oklch(50% 0.015 195);
-  --text-inverse: oklch(98% 0.005 195);
+  --text-primary: oklch(16% 0.012 155);
+  --text-secondary: oklch(38% 0.012 155);
+  --text-muted: oklch(55% 0.012 155);
+  --text-inverse: oklch(98% 0.005 150);
 
-  --border-subtle: oklch(90% 0.005 195);
-  --border-default: oklch(85% 0.008 195);
-  --border-strong: oklch(75% 0.012 195);
+  --border-subtle: oklch(95% 0.005 150);
+  --border-default: oklch(91% 0.008 150);
+  --border-strong: oklch(82% 0.012 150);
 
-  /* === 阴影 (非纯黑) === */
-  --shadow-sm: 0 1px 2px oklch(0% 0 195 / 0.04), 0 1px 3px oklch(0% 0 195 / 0.06);
-  --shadow-md: 0 4px 6px oklch(0% 0 195 / 0.05), 0 2px 4px oklch(0% 0 195 / 0.04);
-  --shadow-lg: 0 10px 15px oklch(0% 0 195 / 0.06), 0 4px 6px oklch(0% 0 195 / 0.04);
-  --shadow-xl: 0 20px 25px oklch(0% 0 195 / 0.07), 0 10px 10px oklch(0% 0 195 / 0.04);
-  --shadow-glow: 0 0 20px oklch(62% 0.14 195 / 0.25);
+  /* === 阴影 (带绿色调) === */
+  --shadow-sm: 0 1px 3px oklch(0% 0 150 / 0.05);
+  --shadow-md: 0 4px 16px oklch(0% 0 150 / 0.07);
+  --shadow-lg: 0 8px 32px oklch(0% 0 150 / 0.10);
+  --shadow-xl: 0 16px 48px oklch(0% 0 150 / 0.12);
+  --shadow-glow: 0 0 20px oklch(56% 0.15 150 / 0.25);
+  --shadow-hover: 0 8px 24px oklch(0% 0 150 / 0.12);
 
   /* === 字体 === */
-  --font-display: 'Bricolage Grotesque', system-ui, sans-serif;
-  --font-body: 'Source Sans 3', system-ui, sans-serif;
+  --font-display: 'PingFang SC', 'Hiragino Sans GB', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', system-ui, sans-serif;
 
   /* === 字号 (5步 scale) === */
   --text-xs: 0.75rem;
@@ -111,11 +112,11 @@ html.reduced-motion *::after {
   --space-20: 80px;
   --space-24: 96px;
 
-  /* === 圆角 === */
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
+  /* === 圆角 (参考设计) === */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
   --radius-2xl: 24px;
   --radius-full: 9999px;
 
@@ -134,7 +135,7 @@ html.reduced-motion *::after {
   --admin-header-height: 64px;
 
   /* === 兼容旧变量名 === */
-  --primary-color-rgb: 0, 180, 195;
+  --primary-color-rgb: 56, 150, 100;
   --bg-color: var(--bg-base);
   --card-bg: var(--bg-surface);
   --header-bg: var(--bg-surface);
@@ -190,45 +191,45 @@ html.reduced-motion *::after {
 
   --content-primary: var(--text-primary);
   --content-secondary: var(--text-secondary);
-  --content-tertiary: oklch(50% 0.012 195);
+  --content-tertiary: oklch(45% 0.012 155);
 
-  --color-primary-alpha-10: oklch(62% 0.14 195 / 0.1);
-  --color-primary-alpha-15: oklch(62% 0.14 195 / 0.15);
-  --color-success-alpha-10: oklch(62% 0.12 158 / 0.1);
-  --color-warning-alpha-10: oklch(75% 0.14 85 / 0.1);
-  --color-danger-alpha-10: oklch(60% 0.20 25 / 0.1);
+  --color-primary-alpha-10: oklch(56% 0.15 150 / 0.1);
+  --color-primary-alpha-15: oklch(56% 0.15 150 / 0.15);
+  --color-success-alpha-10: oklch(55% 0.14 150 / 0.1);
+  --color-warning-alpha-10: oklch(72% 0.14 80 / 0.1);
+  --color-danger-alpha-10: oklch(55% 0.18 25 / 0.1);
   --color-info-alpha-10: oklch(62% 0.14 250 / 0.1);
 
   /* 语义色透明度阶梯 (扩展) */
-  --color-primary-alpha-20: oklch(62% 0.14 195 / 0.2);
-  --color-primary-alpha-30: oklch(62% 0.14 195 / 0.3);
-  --color-success-alpha-15: oklch(62% 0.12 158 / 0.15);
-  --color-success-alpha-20: oklch(62% 0.12 158 / 0.2);
-  --color-warning-alpha-15: oklch(75% 0.14 85 / 0.15);
-  --color-warning-alpha-20: oklch(75% 0.14 85 / 0.2);
-  --color-danger-alpha-15: oklch(60% 0.20 25 / 0.15);
-  --color-danger-alpha-20: oklch(60% 0.20 25 / 0.2);
+  --color-primary-alpha-20: oklch(56% 0.15 150 / 0.2);
+  --color-primary-alpha-30: oklch(56% 0.15 150 / 0.3);
+  --color-success-alpha-15: oklch(55% 0.14 150 / 0.15);
+  --color-success-alpha-20: oklch(55% 0.14 150 / 0.2);
+  --color-warning-alpha-15: oklch(72% 0.14 80 / 0.15);
+  --color-warning-alpha-20: oklch(72% 0.14 80 / 0.2);
+  --color-danger-alpha-15: oklch(55% 0.18 25 / 0.15);
+  --color-danger-alpha-20: oklch(55% 0.18 25 / 0.2);
   --color-info-alpha-15: oklch(62% 0.14 250 / 0.15);
   --color-info-alpha-20: oklch(62% 0.14 250 / 0.2);
 
   /* ECharts 图表色板 (基于品牌色派生) */
-  --chart-color-1: oklch(70% 0.16 38);
-  --chart-color-2: oklch(62% 0.14 195);
+  --chart-color-1: oklch(62% 0.14 55);
+  --chart-color-2: oklch(56% 0.15 150);
   --chart-color-3: oklch(60% 0.14 280);
-  --chart-color-4: oklch(62% 0.12 158);
-  --chart-color-5: oklch(50% 0.02 195);
-  --chart-color-6: oklch(60% 0.20 25);
+  --chart-color-4: oklch(55% 0.14 150);
+  --chart-color-5: oklch(50% 0.02 150);
+  --chart-color-6: oklch(55% 0.18 25);
   --chart-color-7: oklch(62% 0.16 330);
   --chart-trend-count: oklch(55% 0.14 250);
-  --chart-trend-amount: oklch(62% 0.12 158);
+  --chart-trend-amount: oklch(55% 0.14 150);
 
   /* 订单状态色 (基于语义色派生) */
-  --order-status-pending: oklch(75% 0.14 85);
+  --order-status-pending: oklch(72% 0.14 80);
   --order-status-shipped: oklch(55% 0.14 250);
-  --order-status-completed: oklch(62% 0.12 158);
-  --order-status-cancelled: oklch(50% 0.02 195);
-  --order-status-refund-requested: oklch(65% 0.18 38);
-  --order-status-refunded: oklch(60% 0.20 25);
+  --order-status-completed: oklch(55% 0.14 150);
+  --order-status-cancelled: oklch(50% 0.02 150);
+  --order-status-refund-requested: oklch(62% 0.14 55);
+  --order-status-refunded: oklch(55% 0.18 25);
 
   /* 滚动条 */
   --scrollbar-thumb: var(--border-strong);
@@ -243,6 +244,15 @@ html.reduced-motion *::after {
   --z-toast: 500;
   --z-tooltip: 600;
   --z-loading: 9999;
+
+  /* === 价格专用变量 === */
+  --price-color: oklch(62% 0.14 55);
+  --price-light: oklch(94% 0.035 55);
+  --price-muted: oklch(80% 0.08 55);
+
+  /* === 环保色变量 === */
+  --eco-color: oklch(55% 0.14 150);
+  --eco-light: oklch(93% 0.05 150);
 }
 
 * {
