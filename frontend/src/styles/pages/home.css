@@ -5,9 +5,10 @@
 .hero {
   padding: var(--space-12) 0;
   background: linear-gradient(
-    180deg,
-    var(--section-bg) 0%,
-    var(--bg-base) 100%
+    135deg,
+    oklch(92% 0.06 155) 0%,
+    oklch(88% 0.08 170) 50%,
+    oklch(85% 0.10 150) 100%
   );
 }
 
@@ -23,12 +24,13 @@
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-2) var(--space-4);
-  background: var(--color-success-alpha-10);
+  background: oklch(100% 0 0 / 0.85);
   border-radius: var(--radius-full);
   font-size: var(--text-sm);
   font-weight: 600;
-  color: var(--color-secondary);
+  color: var(--primary-color);
   margin-bottom: var(--space-6);
+  backdrop-filter: blur(4px);
 }
 
 .hero-title {
@@ -269,7 +271,7 @@
   gap: var(--space-3);
   padding: var(--space-6) var(--space-4);
   background: var(--bg-surface);
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-lg);
   border: 1px solid var(--border-subtle);
   text-decoration: none;
   transition: all var(--transition-fast);
@@ -295,7 +297,7 @@
 
 .category-card:hover {
   transform: translateY(-4px);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-hover);
   border-color: var(--primary-light);
 }
 
@@ -430,7 +432,7 @@
 
 .item-card {
   background: var(--bg-surface);
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-lg);
   overflow: hidden;
   cursor: pointer;
   transition: all var(--transition-normal);
@@ -439,8 +441,8 @@
 }
 
 .item-card:hover {
-  transform: translateY(-8px);
-  box-shadow: var(--shadow-lg);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-hover);
   border-color: var(--primary-light);
 }
 
@@ -532,10 +534,10 @@
 }
 
 .item-price {
-  font-family: var(--font-display);
+  font-family: var(--font-mono);
   font-size: var(--text-lg);
   font-weight: 700;
-  color: var(--primary-color);
+  color: var(--price-color);
 }
 
 .item-original {
@@ -595,7 +597,7 @@
     var(--primary-color),
     var(--primary-dark)
   );
-  border-radius: var(--radius-2xl);
+  border-radius: var(--radius-xl);
   padding: var(--space-10);
   overflow: hidden;
   position: relative;
