@@ -31,18 +31,8 @@ public class CategoryDTO {
     private Integer level;
     @Schema(description = "图标")
     private String icon;
-    @Schema(description = "图片")
-    private String image;
     @Schema(description = "关键词")
     private String keywords;
-    @Schema(description = "Meta描述")
-    private String metaDescription;
-    @Schema(description = "路径")
-    private String path;
-    @Schema(description = "背景颜色")
-    private String backgroundColor;
-    @Schema(description = "创建人")
-    private Long createdBy;
     @Schema(description = "更新人")
     private Long updatedBy;
     @Schema(description = "创建时间")
@@ -65,12 +55,7 @@ public class CategoryDTO {
                 .status(category.getStatus())
                 .level(category.getLevel())
                 .icon(category.getIcon())
-                .image(category.getImage())
                 .keywords(category.getKeywords())
-                .metaDescription(category.getMetaDescription())
-                .path(category.getPath())
-                .backgroundColor(category.getBackgroundColor())
-                .createdBy(category.getCreatedBy())
                 .updatedBy(category.getUpdatedBy())
                 .createdAt(category.getCreatedAt())
                 .updatedAt(category.getUpdatedAt())
@@ -90,12 +75,7 @@ public class CategoryDTO {
                 .status(category.getStatus())
                 .level(category.getLevel())
                 .icon(category.getIcon())
-                .image(category.getImage())
                 .keywords(category.getKeywords())
-                .metaDescription(category.getMetaDescription())
-                .path(category.getPath())
-                .backgroundColor(category.getBackgroundColor())
-                .createdBy(category.getCreatedBy())
                 .updatedBy(category.getUpdatedBy())
                 .createdAt(category.getCreatedAt())
                 .updatedAt(category.getUpdatedAt())

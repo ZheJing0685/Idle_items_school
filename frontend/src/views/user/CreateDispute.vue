@@ -85,25 +85,30 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { ElMessage } from 'element-plus';
+import { ElMessage, type FormInstance } from 'element-plus';
 import { Plus } from '@element-plus/icons-vue';
 import api from '../../api';
+import type { DisputeForm, DisputeItem } from '../../types/dispute';
 
 const router = useRouter();
 const route = useRoute();
 
-const orderId = computed(() => parseInt(route.params.orderId));
+const orderId = computed(() => parseInt(route.params.orderId as string));
 const uploadUrl = '/api/upload/image';
 
-const formRef = ref(null);
+const formRef = ref<FormInstance | null>(null);
 const uploadRef = ref(null);
-const orderInfo = ref(null);
+const orderInfo = ref<{
+  itemTitle: string
+  price: number
+  orderStatus: string
+} | null>(null);
 const submitting = ref(false);
 
-const form = ref({
+const form = ref<DisputeForm>({
   disputeType: 1,
   reason: '',
   description: '',
@@ -111,7 +116,7 @@ const form = ref({
   expectRefundAmount: null,
 });
 
-const evidenceImages = ref([]);
+const evidenceImages = ref<string[]>([]);
 
 const rules = {
   disputeType: [{ required: true, message: '请选择纠纷类型', trigger: 'change' }],
@@ -122,8 +127,8 @@ const rules = {
   expectResult: [{ required: true, message: '请选择期望结果', trigger: 'change' }],
 };
 
-const getOrderStatusLabel = (status) => {
-  const map = {
+const getOrderStatusLabel = (status: string): string => {
+  const map: Record<string, string> = {
     PENDING_PAYMENT: '待付款',
     PENDING_SHIPMENT: '待发货',
     SHIPPED: '已发货',
@@ -135,7 +140,7 @@ const getOrderStatusLabel = (status) => {
   return map[status] || status;
 };
 
-const handleUploadSuccess = (res, file) => {
+const handleUploadSuccess = (res: { code: number; data?: string; message?: string }, _file: unknown): void => {
   if (res.code === 200 && res.data) {
     evidenceImages.value.push(res.data);
     ElMessage.success('上传成功');
@@ -144,16 +149,18 @@ const handleUploadSuccess = (res, file) => {
   }
 };
 
-const handleUploadError = () => {
+const handleUploadError = (): void => {
   ElMessage.error('上传失败，请重试');
 };
 
-const handleRemove = (file, fileList) => {
+const handleRemove = (file: { response?: { data?: string }; url?: string }, _fileList: unknown[]): void => {
   const url = file.response?.data || file.url;
-  evidenceImages.value = evidenceImages.value.filter(img => img !== url);
+  if (url) {
+    evidenceImages.value = evidenceImages.value.filter(img => img !== url);
+  }
 };
 
-const beforeUpload = (file) => {
+const beforeUpload = (file: File): boolean => {
   const isImage = file.type.startsWith('image/');
   const isLt5M = file.size / 1024 / 1024 < 5;
   if (!isImage) {
@@ -167,16 +174,16 @@ const beforeUpload = (file) => {
   return true;
 };
 
-const goBack = () => {
+const goBack = (): void => {
   router.back();
 };
 
-const submitForm = async () => {
+const submitForm = async (): Promise<void> => {
   if (!formRef.value) return;
 
   try {
     await formRef.value.validate();
-  } catch {
+  } catch (_e: unknown) {
     return;
   }
 
@@ -206,14 +213,14 @@ const submitForm = async () => {
     } else {
       ElMessage.error(res.message || '提交失败');
     }
-  } catch {
+  } catch (_e: unknown) {
     ElMessage.error('网络错误，请重试');
   } finally {
     submitting.value = false;
   }
 };
 
-const fetchOrderInfo = async () => {
+const fetchOrderInfo = async (): Promise<void> => {
   try {
     const res = await api.user.disputes.canDispute(orderId.value);
     if (res.code === 200 && res.data) {
@@ -223,7 +230,7 @@ const fetchOrderInfo = async () => {
         orderStatus: res.data.orderStatus,
       };
     }
-  } catch {}
+  } catch (_e: unknown) { /* 静默处理 */ }
 };
 
 onMounted(() => {

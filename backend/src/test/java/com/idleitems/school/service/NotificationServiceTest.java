@@ -1,9 +1,9 @@
 package com.idleitems.school.service;
 
-import com.idleitems.school.entity.Notification;
-import com.idleitems.school.repository.NotificationRepository;
-import com.idleitems.school.service.impl.NotificationServiceImpl;
-import com.idleitems.school.service.impl.WebSocketNotificationSender;
+import com.idleitems.school.module.notification.entity.Notification;
+import com.idleitems.school.module.notification.repository.NotificationRepository;
+import com.idleitems.school.module.notification.service.impl.NotificationServiceImpl;
+import com.idleitems.school.module.notification.service.impl.WebSocketNotificationSender;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;

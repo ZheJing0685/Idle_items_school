@@ -1,13 +1,15 @@
 package com.idleitems.school.service;
 
 import com.idleitems.school.common.BusinessException;
-import com.idleitems.school.dto.ChatDTO;
-import com.idleitems.school.entity.Chat;
-import com.idleitems.school.entity.ChatMessage;
-import com.idleitems.school.entity.User;
-import com.idleitems.school.repository.ChatMessageRepository;
-import com.idleitems.school.repository.ChatRepository;
-import com.idleitems.school.repository.UserRepository;
+import com.idleitems.school.module.chat.dto.ChatDTO;
+import com.idleitems.school.module.chat.entity.Chat;
+import com.idleitems.school.module.chat.entity.ChatMessage;
+import com.idleitems.school.module.chat.repository.ChatMessageRepository;
+import com.idleitems.school.module.chat.repository.ChatRepository;
+import com.idleitems.school.module.chat.service.ChatService;
+import com.idleitems.school.module.notification.service.NotificationService;
+import com.idleitems.school.module.user.entity.User;
+import com.idleitems.school.module.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,6 +41,9 @@ class ChatServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private NotificationService notificationService;
+
     @InjectMocks
     private ChatService chatService;
 
@@ -69,8 +74,7 @@ class ChatServiceTest {
 
     @Test
     void createChat_ExistingChat_ReturnsExisting() {
-        Page<Chat> page = new PageImpl<>(List.of(chat));
-        when(chatRepository.findByBuyerIdOrSellerId(eq(1L), eq(2L), any(Pageable.class))).thenReturn(page);
+        when(chatRepository.findByBuyerIdAndSellerIdAndItemId(1L, 2L, 100L)).thenReturn(Optional.of(chat));
 
         Chat result = chatService.createChat(1L, 2L, 100L);
 
@@ -80,8 +84,7 @@ class ChatServiceTest {
 
     @Test
     void createChat_NewChat_CreatesAndReturns() {
-        when(chatRepository.findByBuyerIdOrSellerId(eq(1L), eq(2L), any(Pageable.class)))
-                .thenReturn(Page.empty());
+        when(chatRepository.findByBuyerIdAndSellerIdAndItemId(1L, 2L, 100L)).thenReturn(Optional.empty());
         when(chatRepository.save(any(Chat.class))).thenReturn(chat);
 
         Chat result = chatService.createChat(1L, 2L, 100L);
@@ -95,6 +98,7 @@ class ChatServiceTest {
     @Test
     void sendMessage_ValidSender_SavesMessage() {
         when(chatRepository.findById(1L)).thenReturn(Optional.of(chat));
+        when(userRepository.findById(1L)).thenReturn(Optional.of(buyer));
 
         ChatMessage saved = new ChatMessage();
         saved.setId(1L);
@@ -111,6 +115,8 @@ class ChatServiceTest {
         assertNotNull(result);
         assertEquals("Hello", result.getContent());
         verify(chatMessageRepository).save(any(ChatMessage.class));
+        verify(notificationService).createNotification(
+                eq(2L), anyInt(), eq("Buyer"), eq("Hello"), eq(1L), eq("CHAT"));
     }
 
     @Test
@@ -136,7 +142,7 @@ class ChatServiceTest {
         msg.setContent("Hello");
         msg.setIsRead(false);
         Page<ChatMessage> messagePage = new PageImpl<>(List.of(msg));
-        when(chatMessageRepository.findByChatIdOrderByCreatedAtAsc(eq(1L), any(Pageable.class)))
+        when(chatMessageRepository.findByChatIdOrderByCreatedAtDesc(eq(1L), any(Pageable.class)))
                 .thenReturn(messagePage);
 
         Page<ChatMessage> result = chatService.getMessagesByChatId(1L, 1L, Pageable.unpaged());
@@ -176,7 +182,7 @@ class ChatServiceTest {
         sentMsg.setIsRead(false);
 
         Page<ChatMessage> messagePage = new PageImpl<>(List.of(receivedMsg, sentMsg));
-        when(chatMessageRepository.findByChatIdOrderByCreatedAtAsc(eq(1L), any(Pageable.class)))
+        when(chatMessageRepository.findByChatIdOrderByCreatedAtDesc(eq(1L), any(Pageable.class)))
                 .thenReturn(messagePage);
 
         Page<ChatMessage> result = chatService.getMessagesByChatId(1L, 1L, Pageable.unpaged());
@@ -195,10 +201,11 @@ class ChatServiceTest {
 
         ChatMessage lastMsg = new ChatMessage();
         lastMsg.setId(1L);
+        lastMsg.setChatId(1L);
         lastMsg.setContent("最后一条消息");
         lastMsg.setSenderId(2L);
         lastMsg.setCreatedAt(LocalDateTime.now());
-        when(chatMessageRepository.findByChatIdOrderByCreatedAtDesc(eq(1L), any(PageRequest.class)))
+        when(chatMessageRepository.findLastMessagesByChatIds(anyList()))
                 .thenReturn(List.of(lastMsg));
 
         List<ChatDTO> result = chatService.getChatsByUserIdListWithUserInfo(1L);

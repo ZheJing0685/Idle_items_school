@@ -1,6 +1,7 @@
 package com.idleitems.school.controller;
 
-import com.idleitems.school.service.DictService;
+import com.idleitems.school.module.system.service.DictService;
+import com.idleitems.school.module.system.controller.DictController;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

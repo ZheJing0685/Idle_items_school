@@ -1,4 +1,7 @@
 :root {
+  /* ============================================
+     Element Plus 主题变量
+     ============================================ */
   --el-color-primary: oklch(56% 0.15 150);
   --el-color-primary-light-3: oklch(68% 0.11 150);
   --el-color-primary-light-5: oklch(75% 0.09 150);
@@ -79,12 +82,176 @@
   --el-input-bg-color: var(--el-fill-color-blank);
   --el-input-text-color: var(--el-text-color-regular);
   --el-input-border-color: var(--el-border-color);
-  --el-input-hover-border-color: oklch(56% 0.15 150);
-  --el-input-focus-border-color: oklch(56% 0.15 150);
+  --el-input-hover-border-color: var(--el-border-color-dark);
+  --el-input-focus-border-color: var(--el-border-color-dark);
   --el-input-border-radius: 8px;
   --el-input-height: 40px;
   --el-input-placeholder-color: var(--el-text-color-placeholder);
   --el-input-icon-color: var(--el-text-color-placeholder);
   --el-input-clear-icon-color: var(--el-text-color-secondary);
-  --el-input-focus-box-shadow: 0 0 0 3px oklch(56% 0.15 150 / 0.12);
+  --el-input-focus-box-shadow: none;
+
+  /* ============================================
+     设计令牌 — 亮色模式 (Light tokens)
+     中性色调采用 hue-155，强调色采用 hue-150
+     ============================================ */
+  --bg: oklch(97.5% 0.005 150);
+  --bg-elevated: oklch(99% 0.003 150);
+  --surface: oklch(100% 0 0);
+  --surface-alt: oklch(96.5% 0.008 150);
+  --surface-hover: oklch(95% 0.01 150);
+  --fg: oklch(16% 0.012 155);
+  --fg-secondary: oklch(38% 0.012 155);
+  --muted: oklch(55% 0.012 155);
+  --border: oklch(91% 0.008 150);
+  --border-light: oklch(95% 0.005 150);
+
+  --accent: oklch(56% 0.15 150);
+  --accent-hover: oklch(48% 0.16 150);
+  --accent-light: oklch(93% 0.05 150);
+  --accent-subtle: oklch(96.5% 0.025 150);
+  --accent-glow: oklch(56% 0.15 150 / 0.12);
+  --accent-glow-strong: oklch(56% 0.15 150 / 0.35);
+
+  --price: oklch(62% 0.14 55);
+  --price-light: oklch(94% 0.035 55);
+  --success: oklch(55% 0.14 150);
+  --warning: oklch(72% 0.14 80);
+  --danger: oklch(55% 0.18 25);
+  --danger-light: oklch(93% 0.05 25);
+
+  --shadow-sm: 0 1px 3px oklch(0% 0 0 / 0.06);
+  --shadow-md: 0 4px 16px oklch(0% 0 0 / 0.08);
+  --shadow-lg: 0 8px 32px oklch(0% 0 0 / 0.10);
+  --shadow-hover: 0 8px 24px oklch(0% 0 0 / 0.12);
+
+  --hero-from: oklch(92% 0.06 155);
+  --hero-mid: oklch(88% 0.08 170);
+  --hero-to: oklch(85% 0.10 150);
+  --hero-stat-bg: oklch(100% 0 0 / 0.7);
+  --eco-bar-bg: oklch(96% 0.03 150);
+  --eco-bar-border: oklch(56% 0.15 150 / 0.12);
+
+  --nav-bg: oklch(100% 0 0 / 0.95);
+  --nav-counter-bg: oklch(10% 0.02 240 / 0.92);
+  --nav-counter-fg: var(--text-inverse);
+
+  --img-bg: var(--surface-alt);
+  --shell: var(--bg);
+
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 20px;
+  --r-full: 9999px;
+
+  --font-display: 'PingFang SC', 'Hiragino Sans GB', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+
+  --nav-h: 64px;
+  --bottom-h: 68px;
+  --max-w: 1200px;
+
+  --transition-theme: 0.3s ease;
+
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 400ms;
+
+  /* ============================================
+     后向兼容 — 映射旧变量到新令牌
+     ============================================ */
+  --bg-base: var(--bg);
+  --bg-surface: var(--surface);
+  --bg-elevated: var(--bg-elevated);
+  --bg-muted: var(--surface-alt);
+  --text-primary: var(--fg);
+  --text-secondary: var(--fg-secondary);
+  --text-muted: var(--muted);
+  --text-inverse: oklch(100% 0 0);
+  --border-subtle: var(--border-light);
+  --border-default: var(--border);
+  --primary-color: var(--accent);
+  --primary-light: var(--accent-light);
+  --primary-dark: var(--accent-hover);
+  --error-color: var(--danger);
+  --success-color: var(--success);
+  --warning-color: var(--warning);
+
+  --color-primary: var(--accent);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-info: oklch(62% 0.14 250);
+
+  --surface-ground: var(--bg);
+  --surface-card: var(--surface);
+  --surface-overlay: var(--bg-elevated);
+  --content-primary: var(--fg);
+  --content-secondary: var(--fg-secondary);
+  --content-tertiary: var(--muted);
+
+  --color-primary-alpha-10: oklch(56% 0.15 150 / 0.10);
+  --color-primary-alpha-15: oklch(56% 0.15 150 / 0.15);
+  --color-success-alpha-10: oklch(55% 0.14 150 / 0.10);
+  --color-warning-alpha-10: oklch(72% 0.14 80 / 0.10);
+  --color-danger-alpha-10: oklch(55% 0.18 25 / 0.10);
+
+  /* ============================================
+     按钮系统变量
+     ============================================ */
+  --btn-primary-bg: var(--accent);
+  --btn-primary-text: var(--text-inverse);
+  --btn-primary-hover-bg: var(--accent-hover);
+  --btn-primary-shadow: 0 4px 12px var(--accent-glow-strong);
+
+  --btn-default-bg: var(--surface);
+  --btn-default-text: var(--text-primary);
+  --btn-default-border: var(--border);
+  --btn-default-hover-border: var(--accent);
+
+  --btn-ghost-bg: transparent;
+  --btn-ghost-text: var(--text-secondary);
+  --btn-ghost-hover-bg: var(--surface-alt);
+
+  --btn-danger-bg: var(--danger);
+  --btn-danger-text: var(--text-inverse);
+  --btn-danger-hover-bg: oklch(45% 0.20 25);
+
+  --btn-warning-bg: var(--warning);
+  --btn-warning-text: var(--text-inverse);
+
+  --btn-success-bg: var(--success);
+  --btn-success-text: var(--text-inverse);
+
+  --btn-radius: 10px;
+  --btn-radius-sm: 8px;
+  --btn-radius-lg: 12px;
+
+  --btn-font-weight: 600;
+  --btn-transition: all 0.2s ease;
+}
+
+/* ============================================
+   全局焦点样式
+   ============================================ */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Element Plus inputs draw focus on their wrapper; do not add a second inner outline. */
+.el-button:focus-visible,
+.el-input__wrapper:focus-visible,
+.el-select__wrapper:focus-visible,
+.el-input__inner:focus,
+.el-input__inner:focus-visible,
+.el-textarea__inner:focus,
+.el-textarea__inner:focus-visible,
+.el-select__input:focus,
+.el-select__input:focus-visible,
+.el-range-input:focus,
+.el-range-input:focus-visible {
+  outline: none;
 }

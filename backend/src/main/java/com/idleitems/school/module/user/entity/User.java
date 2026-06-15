@@ -66,32 +66,14 @@ public class User {
     @Column(name = "is_deleted", nullable = false)
     private Boolean isDeleted = false;
 
-    @Column(name = "create_by")
-    private Long createBy;
-
-    @Column(name = "update_by")
-    private Long updateBy;
-
     @Column(name = "last_login_time")
     private LocalDateTime lastLoginTime;
-
-    @Column(name = "last_login_ip", length = 50)
-    private String lastLoginIp;
 
     @Column(name = "login_count", nullable = false)
     private Integer loginCount = 0;
 
     @Column(name = "credit_score", nullable = false)
     private Integer creditScore = 100;
-
-    @Column(name = "total_transactions", nullable = false)
-    private Integer totalTransactions = 0;
-
-    @Column(name = "total_sales", nullable = false)
-    private Integer totalSales = 0;
-
-    @Column(name = "total_purchases", nullable = false)
-    private Integer totalPurchases = 0;
 
     @Column(name = "gender")
     private Integer gender;
@@ -104,6 +86,15 @@ public class User {
 
     @Column(name = "school_name", length = 100)
     private String schoolName;
+
+    @Column(name = "department", length = 100)
+    private String department;
+
+    @Column(name = "major", length = 100)
+    private String major;
+
+    @Column(name = "grade", length = 50)
+    private String grade;
 
     public enum Role {
         STUDENT, ADMIN

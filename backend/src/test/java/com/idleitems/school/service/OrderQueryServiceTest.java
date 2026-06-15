@@ -1,13 +1,14 @@
 package com.idleitems.school.service;
 
 import com.idleitems.school.common.BusinessException;
-import com.idleitems.school.dto.order.AdminOrderResponse;
-import com.idleitems.school.dto.order.OrderSummaryResponse;
-import com.idleitems.school.entity.Item;
-import com.idleitems.school.entity.Order;
-import com.idleitems.school.repository.ItemRepository;
-import com.idleitems.school.repository.OrderRepository;
-import com.idleitems.school.repository.ReviewRepository;
+import com.idleitems.school.module.item.entity.Item;
+import com.idleitems.school.module.item.repository.ItemRepository;
+import com.idleitems.school.module.order.dto.AdminOrderResponse;
+import com.idleitems.school.module.order.dto.OrderSummaryResponse;
+import com.idleitems.school.module.order.entity.Order;
+import com.idleitems.school.module.order.repository.OrderRepository;
+import com.idleitems.school.module.order.repository.ReviewRepository;
+import com.idleitems.school.module.order.service.OrderQueryService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

@@ -1,10 +1,12 @@
 package com.idleitems.school.task;
 
-import com.idleitems.school.entity.Order;
-import com.idleitems.school.repository.OrderRepository;
-import com.idleitems.school.service.ConfigService;
-import com.idleitems.school.service.NotificationService;
-import com.idleitems.school.service.OrderTimeoutService;
+import com.idleitems.school.module.order.entity.Order;
+import com.idleitems.school.module.order.repository.OrderRepository;
+import com.idleitems.school.module.system.service.ConfigService;
+import com.idleitems.school.module.notification.service.NotificationService;
+import com.idleitems.school.module.order.service.OrderTimeoutService;
+import com.idleitems.school.shared.task.AutoConfirmReceiveTask;
+import com.idleitems.school.shared.task.OrderTimeoutTask;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

@@ -124,9 +124,18 @@ public class JwtUtil {
     }
 
     public String getTokenFromRequest(HttpServletRequest request) {
+        // 1. 优先从 Authorization 头读取
         String bearerToken = request.getHeader("Authorization");
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
             return bearerToken.substring(7);
+        }
+        // 2. 从 HttpOnly Cookie 读取
+        if (request.getCookies() != null) {
+            for (jakarta.servlet.http.Cookie cookie : request.getCookies()) {
+                if ("access_token".equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
         }
         return null;
     }

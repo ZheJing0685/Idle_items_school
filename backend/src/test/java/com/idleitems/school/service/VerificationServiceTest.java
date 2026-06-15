@@ -1,12 +1,13 @@
 package com.idleitems.school.service;
 
 import com.idleitems.school.common.BusinessException;
-import com.idleitems.school.dto.SubmitVerificationRequest;
-import com.idleitems.school.entity.User;
-import com.idleitems.school.entity.VerificationRecord;
-import com.idleitems.school.repository.UserRepository;
-import com.idleitems.school.repository.VerificationRecordRepository;
-import com.idleitems.school.service.impl.VerificationServiceImpl;
+import com.idleitems.school.module.user.dto.SubmitVerificationRequest;
+import com.idleitems.school.module.user.entity.User;
+import com.idleitems.school.module.user.entity.VerificationRecord;
+import com.idleitems.school.module.user.repository.UserRepository;
+import com.idleitems.school.module.user.repository.VerificationRecordRepository;
+import com.idleitems.school.module.notification.service.NotificationService;
+import com.idleitems.school.module.user.service.impl.VerificationServiceImpl;
 import com.idleitems.school.util.DataEncryptionUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,6 +36,9 @@ class VerificationServiceTest {
     @Mock
     private DataEncryptionUtil dataEncryptionUtil;
 
+    @Mock
+    private NotificationService notificationService;
+
     @InjectMocks
     private VerificationServiceImpl verificationService;
 
@@ -55,6 +59,7 @@ class VerificationServiceTest {
     void testSubmitIdCardVerification() {
         SubmitVerificationRequest req = buildIdCardRequest();
         when(userRepository.existsById(1L)).thenReturn(true);
+        when(userRepository.findByRole(any(), any())).thenReturn(new org.springframework.data.domain.PageImpl<>(List.of()));
         when(verificationRecordRepository.findByUserId(1L)).thenReturn(Optional.empty());
         when(verificationRecordRepository.save(any(VerificationRecord.class)))
                 .thenAnswer(inv -> inv.getArgument(0));
@@ -79,6 +84,7 @@ class VerificationServiceTest {
         req.setStudentCard("http://img/student.jpg");
 
         when(userRepository.existsById(1L)).thenReturn(true);
+        when(userRepository.findByRole(any(), any())).thenReturn(new org.springframework.data.domain.PageImpl<>(List.of()));
         when(verificationRecordRepository.findByUserId(1L)).thenReturn(Optional.empty());
         when(verificationRecordRepository.save(any(VerificationRecord.class)))
                 .thenAnswer(inv -> inv.getArgument(0));
@@ -166,6 +172,7 @@ class VerificationServiceTest {
         existing.setStatus(VerificationRecord.Status.REJECTED);
 
         when(userRepository.existsById(1L)).thenReturn(true);
+        when(userRepository.findByRole(any(), any())).thenReturn(new org.springframework.data.domain.PageImpl<>(List.of()));
         when(verificationRecordRepository.findByUserIdOrderByCreatedAtDesc(1L))
                 .thenReturn(List.of(existing));
         when(verificationRecordRepository.save(any(VerificationRecord.class)))

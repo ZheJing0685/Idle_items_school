@@ -2,9 +2,10 @@ package com.idleitems.school.controller;
 
 import com.idleitems.school.common.BusinessException;
 import com.idleitems.school.common.ErrorCode;
-import com.idleitems.school.dto.FavoriteDTO;
-import com.idleitems.school.entity.Favorite;
-import com.idleitems.school.service.FavoriteService;
+import com.idleitems.school.module.item.dto.FavoriteDTO;
+import com.idleitems.school.module.item.entity.Favorite;
+import com.idleitems.school.module.item.service.FavoriteService;
+import com.idleitems.school.module.item.controller.FavoriteController;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

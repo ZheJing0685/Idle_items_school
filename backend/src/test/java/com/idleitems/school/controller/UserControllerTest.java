@@ -3,11 +3,14 @@ package com.idleitems.school.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.idleitems.school.common.BusinessException;
 import com.idleitems.school.common.ErrorCode;
-import com.idleitems.school.dto.UpdateProfileRequest;
-import com.idleitems.school.dto.UserDTO;
-import com.idleitems.school.dto.UserStatsDTO;
-import com.idleitems.school.entity.User;
-import com.idleitems.school.service.UserService;
+import com.idleitems.school.module.user.dto.UpdateProfileRequest;
+import com.idleitems.school.module.user.dto.UserDTO;
+import com.idleitems.school.module.user.dto.UserStatsDTO;
+import com.idleitems.school.module.user.entity.User;
+import com.idleitems.school.module.item.service.ItemQueryService;
+import com.idleitems.school.module.order.service.ReviewService;
+import com.idleitems.school.module.user.service.UserService;
+import com.idleitems.school.module.user.controller.UserController;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -42,6 +45,12 @@ class UserControllerTest {
 
     @MockitoBean
     private UserService userService;
+
+    @MockitoBean
+    private ItemQueryService itemQueryService;
+
+    @MockitoBean
+    private ReviewService reviewService;
 
     private User testUser;
     private UserDTO testUserDTO;

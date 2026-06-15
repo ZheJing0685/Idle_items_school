@@ -2,16 +2,23 @@ package com.idleitems.school.module.item.service;
 
 import com.idleitems.school.common.BusinessException;
 import com.idleitems.school.common.ErrorCode;
+import com.idleitems.school.module.category.entity.Category;
+import com.idleitems.school.module.category.repository.CategoryRepository;
 import com.idleitems.school.module.item.dto.CreateItemRequest;
 import com.idleitems.school.module.item.dto.UpdateItemRequest;
 import com.idleitems.school.module.item.entity.Item;
 import com.idleitems.school.module.item.entity.ItemImage;
 import com.idleitems.school.module.item.repository.ItemImageRepository;
 import com.idleitems.school.module.item.repository.ItemRepository;
+import com.idleitems.school.module.notification.entity.Notification;
+import com.idleitems.school.module.notification.service.NotificationService;
+import com.idleitems.school.module.user.entity.User;
+import com.idleitems.school.module.user.repository.UserRepository;
 import com.idleitems.school.shared.cache.CacheService;
 import com.idleitems.school.util.SensitiveWordFilter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,7 +32,10 @@ public class ItemCommandService {
 
     private final ItemRepository itemRepository;
     private final ItemImageRepository itemImageRepository;
+    private final CategoryRepository categoryRepository;
     private final CacheService cacheService;
+    private final NotificationService notificationService;
+    private final UserRepository userRepository;
 
     @Transactional
     public Item createItem(Long userId, CreateItemRequest req) {
@@ -39,6 +49,7 @@ public class ItemCommandService {
         item.setPrice(req.getPrice());
         item.setOriginalPrice(req.getOriginalPrice());
         item.setMinPrice(req.getMinPrice());
+        validateCategory(req.getCategoryId());
         item.setCategoryId(req.getCategoryId());
         item.setCondition(req.getCondition() != null ? Item.ItemCondition.valueOf(req.getCondition()) : Item.ItemCondition.GOOD);
         item.setDeliveryMethod(req.getDeliveryMethod());
@@ -63,6 +74,22 @@ public class ItemCommandService {
             saveItemImages(savedItem.getId(), images, req.getCoverImage());
         }
 
+        try {
+            List<User> admins = userRepository.findByRole(User.Role.ADMIN, Pageable.unpaged()).getContent();
+            for (User admin : admins) {
+                notificationService.createNotification(
+                        admin.getId(),
+                        Notification.NotificationType.ITEM.getCode(),
+                        "新物品待审核",
+                        "用户发布了新物品《" + savedItem.getTitle() + "》，等待审核",
+                        savedItem.getId(),
+                        "ITEM"
+                );
+            }
+        } catch (Exception e) {
+            log.warn("发送物品审核通知失败: itemId={}, error={}", savedItem.getId(), e.getMessage());
+        }
+
         clearItemCache();
         return savedItem;
     }
@@ -85,7 +112,10 @@ public class ItemCommandService {
         if (req.getPrice() != null) existingItem.setPrice(req.getPrice());
         if (req.getOriginalPrice() != null) existingItem.setOriginalPrice(req.getOriginalPrice());
         if (req.getMinPrice() != null) existingItem.setMinPrice(req.getMinPrice());
-        if (req.getCategoryId() != null) existingItem.setCategoryId(req.getCategoryId());
+        if (req.getCategoryId() != null) {
+            validateCategory(req.getCategoryId());
+            existingItem.setCategoryId(req.getCategoryId());
+        }
         if (req.getCondition() != null) existingItem.setCondition(Item.ItemCondition.valueOf(req.getCondition()));
         if (req.getDeliveryMethod() != null) existingItem.setDeliveryMethod(req.getDeliveryMethod());
         if (req.getContactType() != null) existingItem.setContactType(req.getContactType());
@@ -186,5 +216,21 @@ public class ItemCommandService {
     private void clearItemCache() {
         // 仅清除热点缓存，列表缓存依赖自然 TTL 过期，避免 deletePattern 导致缓存雪崩
         cacheService.delete("item:hot");
+    }
+
+    private void validateCategory(Long categoryId) {
+        Category category = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.BAD_REQUEST, "分类不存在"));
+
+        if (!category.getStatus()) {
+            throw new BusinessException(ErrorCode.OPERATION_NOT_ALLOWED, "该分类目前不可用");
+        }
+
+        // 强制叶子节点：如果该分类有子分类，则不允许选它
+        List<Category> children = categoryRepository.findByParentId(categoryId);
+        if (!children.isEmpty()) {
+            throw new BusinessException(ErrorCode.BAD_REQUEST,
+                    "请选择具体子分类而非「" + category.getName() + "」");
+        }
     }
 }

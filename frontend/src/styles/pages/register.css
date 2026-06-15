@@ -15,13 +15,13 @@
   width: 100%;
   background: var(--bg-surface);
   border-radius: 20px;
-  box-shadow: 0 8px 32px oklch(0% 0 0 / 0.10);
+  box-shadow: var(--shadow-lg);
   overflow: hidden;
 }
 
 /* Left Visual Panel */
 .register-visual {
-  background: linear-gradient(135deg, oklch(92% 0.06 155), oklch(88% 0.08 170), oklch(85% 0.10 150));
+  background: linear-gradient(135deg, var(--hero-from), var(--hero-mid), var(--hero-to));
   padding: 48px 40px;
   display: flex;
   align-items: center;
@@ -147,18 +147,6 @@
   gap: 16px;
 }
 
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.form-label {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
 .form-input {
   width: 100%;
   height: 48px;
@@ -177,7 +165,7 @@
 
 .form-input:focus {
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px oklch(56% 0.15 150 / 0.10);
+  box-shadow: var(--accent-glow);
 }
 
 .form-input::placeholder {
@@ -224,17 +212,17 @@
   font-size: 16px;
   font-weight: 600;
   background: var(--primary-color);
-  color: #fff;
+  color: var(--text-inverse);
   border: none;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all 150ms ease;
   margin-top: 8px;
 }
 
 .submit-btn:hover:not(:disabled) {
   background: var(--primary-dark);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px oklch(56% 0.15 150 / 0.35);
+  box-shadow: var(--accent-glow-strong);
 }
 
 .submit-btn:disabled {

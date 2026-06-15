@@ -1,10 +1,11 @@
 package com.idleitems.school.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.idleitems.school.dto.SubmitFeedbackRequest;
-import com.idleitems.school.entity.CategoryFeedback;
-import com.idleitems.school.service.CategoryFeedbackService;
-import com.idleitems.school.service.CategoryQueryService;
+import com.idleitems.school.module.category.dto.SubmitFeedbackRequest;
+import com.idleitems.school.module.category.entity.CategoryFeedback;
+import com.idleitems.school.module.category.service.CategoryFeedbackService;
+import com.idleitems.school.module.category.service.CategoryQueryService;
+import com.idleitems.school.module.category.controller.CategoryController;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

@@ -42,6 +42,8 @@ public class ApiPaths {
         public static final String UPLOAD_COMPLETE_PATH = "/upload/complete";
         public static final String UPLOAD_CHECK_PATH = "/upload/check";
         public static final String USER_ITEMS_PATH = "/user";
+        public static final String RELATED_PATH = "/{id}/related";
+        public static final String RECOMMENDED_PATH = "/recommended";
         // 完整路径（保留用于需要完整路径的场景）
         public static final String LIST = BASE + LIST_PATH;
         public static final String HOT = BASE + HOT_PATH;
@@ -55,6 +57,8 @@ public class ApiPaths {
         public static final String UPLOAD_COMPLETE = BASE + UPLOAD_COMPLETE_PATH;
         public static final String UPLOAD_CHECK = BASE + UPLOAD_CHECK_PATH;
         public static final String USER_ITEMS = BASE + USER_ITEMS_PATH;
+        public static final String RELATED = BASE + RELATED_PATH;
+        public static final String RECOMMENDED = BASE + RECOMMENDED_PATH;
     }
 
     // 分类相关
@@ -63,9 +67,13 @@ public class ApiPaths {
         // 相对于BASE的路径
         public static final String LIST_PATH = "";
         public static final String TREE_PATH = "/tree";
+        public static final String SUGGEST_PATH = "/suggest";
+        public static final String BREADCRUMB_PATH = "/{id}/breadcrumb";
         // 完整路径
         public static final String LIST = BASE + LIST_PATH;
         public static final String TREE = BASE + TREE_PATH;
+        public static final String SUGGEST = BASE + SUGGEST_PATH;
+        public static final String BREADCRUMB = BASE + BREADCRUMB_PATH;
     }
 
     // 收藏相关
@@ -117,7 +125,7 @@ public class ApiPaths {
         public static final String USER_REVIEWS = BASE + USER_REVIEWS_PATH;
     }
 
-    // 用户相关
+    // 用户相关（含卖家公开端点）
     public static class User {
         public static final String BASE = API_BASE + "/user";
         // 相对于BASE的路径
@@ -125,11 +133,19 @@ public class ApiPaths {
         public static final String UPDATE_PATH = "/profile";
         public static final String VERIFICATION_PATH = "/verification";
         public static final String STATS_PATH = "/stats";
+        // 卖家公开端点路径
+        public static final String SELLER_PROFILE_PATH = "/{id}/profile";
+        public static final String SELLER_ITEMS_PATH = "/{id}/items";
+        public static final String SELLER_REVIEWS_PATH = "/{id}/reviews";
         // 完整路径
         public static final String PROFILE = BASE + PROFILE_PATH;
         public static final String UPDATE = BASE + UPDATE_PATH;
         public static final String VERIFICATION = BASE + VERIFICATION_PATH;
         public static final String STATS = BASE + STATS_PATH;
+        // 卖家公开端点完整路径
+        public static final String SELLER_PROFILE = BASE + SELLER_PROFILE_PATH;
+        public static final String SELLER_ITEMS = BASE + SELLER_ITEMS_PATH;
+        public static final String SELLER_REVIEWS = BASE + SELLER_REVIEWS_PATH;
     }
 
     // 管理员相关
@@ -214,5 +230,12 @@ public class ApiPaths {
     // 实名认证
     public static class Verification {
         public static final String BASE = API_BASE + "/verification";
+    }
+
+    // 碳减排统计
+    public static class Carbon {
+        public static final String BASE = API_BASE + "/carbon";
+        public static final String STATS_PATH = "/stats";
+        public static final String STATS = BASE + STATS_PATH;
     }
 }

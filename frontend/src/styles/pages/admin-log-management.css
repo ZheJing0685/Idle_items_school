@@ -9,7 +9,7 @@
 }
 
 .section-title {
-  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+  font-family: var(--font-display);
   font-size: 24px;
   font-weight: 600;
   color: var(--content-primary);
@@ -51,7 +51,7 @@
 }
 
 .card-title {
-  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+  font-family: var(--font-display);
   font-size: 16px;
   font-weight: 600;
   color: var(--content-primary);
@@ -94,14 +94,14 @@
 }
 
 .btn-primary {
-  background: var(--color-primary);
-  color: var(--text-inverse);
-  border-color: var(--color-primary);
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+  border-color: var(--btn-primary-bg);
 }
 
 .btn-primary:hover {
-  background: oklch(52% 0.14 195);
-  border-color: oklch(52% 0.14 195);
+  background: var(--btn-primary-hover-bg);
+  border-color: var(--btn-primary-hover-bg);
 }
 
 .btn-sm {
@@ -264,27 +264,27 @@
 }
 
 .badge-primary {
-  background: oklch(62% 0.14 195 / 0.1);
+  background: var(--color-primary-alpha-10);
   color: var(--color-primary);
 }
 
 .badge-success {
-  background: oklch(55% 0.15 158 / 0.1);
+  background: var(--color-success-alpha-10);
   color: var(--color-success);
 }
 
 .badge-warning {
-  background: oklch(70% 0.15 85 / 0.1);
+  background: var(--color-warning-alpha-10);
   color: var(--color-warning);
 }
 
 .badge-info {
-  background: oklch(53% 0.12 250 / 0.1);
+  background: var(--color-info-alpha-10);
   color: var(--color-info);
 }
 
 .badge-secondary {
-  background: oklch(57% 0.03 220 / 0.1);
+  background: var(--surface-section);
   color: var(--color-secondary);
 }
 

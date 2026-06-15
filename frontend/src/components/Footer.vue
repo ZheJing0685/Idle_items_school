@@ -14,10 +14,10 @@
           <div class="footer-links-group">
             <h4 class="footer-heading">帮助与支持</h4>
             <nav class="footer-links">
-              <a href="#">常见问题</a>
-              <a href="#">交易指南</a>
-              <a href="#">联系客服</a>
-              <a href="#">意见反馈</a>
+              <a href="#" @click.prevent="showComingSoon('常见问题')">常见问题</a>
+              <a href="#" @click.prevent="showComingSoon('交易指南')">交易指南</a>
+              <a href="#" @click.prevent="showComingSoon('联系客服')">联系客服</a>
+              <a href="#" @click.prevent="showComingSoon('意见反馈')">意见反馈</a>
             </nav>
           </div>
         </div>
@@ -48,6 +48,11 @@
 
 <script setup lang="ts">
 import { Package, Mail, Phone } from 'lucide-vue-next';
+import { ElMessage } from 'element-plus';
+
+const showComingSoon = (name: string) => {
+  ElMessage.info(`「${name}」功能即将开放`);
+};
 </script>
 
 <style scoped>

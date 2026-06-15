@@ -407,6 +407,26 @@
         <el-form-item label="学校">
           <el-input v-model="editForm.schoolName" placeholder="请输入学校" />
         </el-form-item>
+        <el-form-item label="学院">
+          <el-input v-model="editForm.department" placeholder="请输入学院/系" />
+        </el-form-item>
+        <el-form-item label="专业">
+          <el-input v-model="editForm.major" placeholder="请输入专业" />
+        </el-form-item>
+        <el-form-item label="年级">
+          <el-select v-model="editForm.grade" placeholder="选择年级">
+            <el-option label="大一" value="大一" />
+            <el-option label="大二" value="大二" />
+            <el-option label="大三" value="大三" />
+            <el-option label="大四" value="大四" />
+            <el-option label="研一" value="研一" />
+            <el-option label="研二" value="研二" />
+            <el-option label="研三" value="研三" />
+            <el-option label="博士" value="博士" />
+            <el-option label="教职工" value="教职工" />
+            <el-option label="其他" value="其他" />
+          </el-select>
+        </el-form-item>
         <el-form-item label="简介">
           <el-input v-model="editForm.bio" type="textarea" :rows="3" placeholder="请输入简介" />
         </el-form-item>
@@ -485,7 +505,7 @@ const currentUser = ref<any>(null);
 
 // 编辑用户相关
 const editDialogVisible = ref(false);
-const editForm = ref<{ id?: number; username?: string; email?: string; password?: string; phone?: string; nickname?: string; role?: string; status?: string; studentId?: string; gender?: number; schoolName?: string; bio?: string }>({});
+const editForm = ref<{ id?: number; username?: string; email?: string; password?: string; phone?: string; nickname?: string; role?: string; status?: string; studentId?: string; gender?: number; schoolName?: string; department?: string; major?: string; grade?: string; bio?: string }>({});
 const editLoading = ref(false);
 
 // 添加用户相关
@@ -637,6 +657,9 @@ const handleEdit = (user: any) => {
     gender: user.gender,
     bio: user.bio || '',
     schoolName: user.schoolName || '',
+    department: user.department || '',
+    major: user.major || '',
+    grade: user.grade || '',
   };
   editDialogVisible.value = true;
 };
@@ -820,6 +843,9 @@ const submitEdit = async () => {
       gender: editForm.value.gender,
       bio: editForm.value.bio,
       schoolName: editForm.value.schoolName,
+      department: editForm.value.department,
+      major: editForm.value.major,
+      grade: editForm.value.grade,
     } as any);
     if (response.code === 200) {
       ElMessage.success('更新成功');

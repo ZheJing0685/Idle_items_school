@@ -123,8 +123,8 @@
 }
 
 .tag-eco {
-  background: var(--eco-light);
-  color: var(--eco-color);
+  background: var(--accent-light);
+  color: var(--accent);
 }
 
 .tag-eco::before {
@@ -143,7 +143,7 @@
   color: var(--text-secondary);
   cursor: pointer;
   border: 1px solid transparent;
-  transition: all 0.15s;
+  transition: all 150ms ease;
 }
 
 .tag-category:hover {
@@ -266,64 +266,6 @@
 
 .detail-actions .btn {
   flex: 1;
-}
-
-/* Buttons */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 10px 20px;
-  border-radius: 12px;
-  font-size: 14px;
-  font-weight: 600;
-  transition: all 0.15s;
-  border: none;
-  cursor: pointer;
-}
-
-.btn-primary {
-  background: var(--primary-color);
-  color: #fff;
-}
-
-.btn-primary:hover {
-  background: var(--primary-dark);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
-}
-
-.btn-secondary {
-  background: var(--bg-surface);
-  color: var(--text-primary);
-  border: 1px solid var(--border-default);
-}
-
-.btn-secondary:hover {
-  border-color: var(--primary-color);
-  color: var(--primary-color);
-}
-
-.btn-ghost {
-  background: transparent;
-  color: var(--text-secondary);
-}
-
-.btn-ghost:hover {
-  background: var(--primary-alpha-10);
-  color: var(--primary-color);
-}
-
-.btn-lg {
-  padding: 14px 28px;
-  font-size: 16px;
-  border-radius: 16px;
-}
-
-.btn-sm {
-  padding: 6px 14px;
-  font-size: 13px;
 }
 
 /* Loading State */
@@ -517,4 +459,14 @@
     width: 40px;
     height: 40px;
   }
+}
+
+/* Reduced Motion — 动效降级 */
+@media (prefers-reduced-motion: reduce) {
+  .loading-skeleton { animation: none; }
+  .lightbox { animation: none; }
+  .detail-back { transition: none; }
+  .detail-thumb { transition: none; }
+  .lightbox-prev { transition: none; }
+  .lightbox-next { transition: none; }
 }

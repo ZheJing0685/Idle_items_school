@@ -17,8 +17,6 @@ import java.time.LocalDateTime;
 public class ChatDTO {
     @Schema(description = "聊天ID")
     private Long id;
-    @Schema(description = "订单ID")
-    private Long orderId;
     @Schema(description = "物品ID")
     private Long itemId;
     @Schema(description = "买家ID")
@@ -57,7 +55,6 @@ public class ChatDTO {
                                       String lastMessage, Long lastMessageSenderId, Long lastMessageTime) {
         return ChatDTO.builder()
                 .id(chat.getId())
-                .orderId(chat.getOrderId())
                 .itemId(chat.getItemId())
                 .buyerId(chat.getBuyerId())
                 .sellerId(chat.getSellerId())

@@ -65,23 +65,20 @@ public class ChatController {
         return Result.success(messages);
     }
 
-    @Operation(summary = "发送消息", description = "向指定聊天会话发送文本消息并通过WebSocket推送")
+    @Operation(summary = "发送消息", description = "向指定聊天会话发送消息并通过WebSocket推送")
     @PostMapping("/{chatId}/messages")
     public Result<ChatMessage> sendMessage(
             @RequestAttribute("userId") Long userId,
             @PathVariable Long chatId,
             @RequestParam Long receiverId,
-            @RequestParam String content) {
+            @RequestParam String content,
+            @RequestParam(required = false, defaultValue = "TEXT") ChatMessage.MessageType messageType) {
         if (content == null || content.trim().isEmpty()) {
             throw new BusinessException(ErrorCode.BAD_REQUEST, "消息内容不能为空");
         }
-        if (content.length() > MAX_MESSAGE_LENGTH) {
-            throw new BusinessException(ErrorCode.BAD_REQUEST,
-                    "消息内容不能超过" + MAX_MESSAGE_LENGTH + "个字符");
-        }
 
         ChatMessage message = chatService.sendMessage(
-                chatId, userId, receiverId, content, ChatMessage.MessageType.TEXT
+                chatId, userId, receiverId, content, messageType
         );
 
         // 发送WebSocket消息给接收者
@@ -90,7 +87,7 @@ public class ChatController {
                 message
         );
 
-        // 发送WebSocket消息给发送者（确认）
+        // 发送WebSocket消息给发送者（确保发送者也能实时收到）
         messagingTemplate.convertAndSend(
                 "/topic/chat/" + userId,
                 message

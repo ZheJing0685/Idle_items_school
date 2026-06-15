@@ -46,6 +46,15 @@ onMounted(async () => {
   background-color: var(--bg-base);
 }
 
+/* 顶部强调色条 */
+.app::before {
+  content: '';
+  display: block;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent), oklch(65% 0.10 170), var(--accent));
+  flex-shrink: 0;
+}
+
 .main-content {
   flex: 1;
   max-width: 1200px;
@@ -104,10 +113,12 @@ onMounted(async () => {
 @media (max-width: 767px) {
   .main-content {
     padding: 0 12px;
+    padding-bottom: calc(var(--bottom-h) + env(safe-area-inset-bottom));
   }
 
   .main-content.no-padding {
     padding: 0;
+    padding-bottom: 0;
   }
 }
 </style>

@@ -3,15 +3,16 @@ package com.idleitems.school.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.idleitems.school.common.BusinessException;
 import com.idleitems.school.common.ErrorCode;
-import com.idleitems.school.dto.LoginRequest;
-import com.idleitems.school.dto.RegisterRequest;
-import com.idleitems.school.dto.ForgotPasswordRequest;
-import com.idleitems.school.dto.VerifyCodeRequest;
-import com.idleitems.school.dto.ResetPasswordRequest;
-import com.idleitems.school.dto.ChangePasswordRequest;
-import com.idleitems.school.entity.User;
-import com.idleitems.school.service.AuthService;
-import com.idleitems.school.service.PasswordResetService;
+import com.idleitems.school.module.auth.dto.LoginRequest;
+import com.idleitems.school.module.auth.dto.RegisterRequest;
+import com.idleitems.school.module.auth.dto.ForgotPasswordRequest;
+import com.idleitems.school.module.auth.dto.VerifyCodeRequest;
+import com.idleitems.school.module.auth.dto.ResetPasswordRequest;
+import com.idleitems.school.module.auth.dto.ChangePasswordRequest;
+import com.idleitems.school.module.user.entity.User;
+import com.idleitems.school.module.auth.service.AuthService;
+import com.idleitems.school.module.auth.service.PasswordResetService;
+import com.idleitems.school.module.auth.controller.AuthController;
 import com.idleitems.school.security.JwtUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -214,8 +215,8 @@ class AuthControllerTest {
     void testVerifyCodeSuccess() throws Exception {
         VerifyCodeRequest request = new VerifyCodeRequest();
         request.setEmail("test@example.com");
-        request.setCode("12345678");
-        when(passwordResetService.verifyCode("test@example.com", "12345678")).thenReturn(true);
+        request.setCode("123456");
+        when(passwordResetService.verifyCode("test@example.com", "123456")).thenReturn(true);
 
         mockMvc.perform(post("/api/auth/verify-code")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -230,8 +231,8 @@ class AuthControllerTest {
     void testVerifyCodeFailure() throws Exception {
         VerifyCodeRequest request = new VerifyCodeRequest();
         request.setEmail("test@example.com");
-        request.setCode("00000000");
-        when(passwordResetService.verifyCode("test@example.com", "00000000")).thenReturn(false);
+        request.setCode("000000");
+        when(passwordResetService.verifyCode("test@example.com", "000000")).thenReturn(false);
 
         mockMvc.perform(post("/api/auth/verify-code")
                         .contentType(MediaType.APPLICATION_JSON)

@@ -1,13 +1,13 @@
 package com.idleitems.school.service;
 
 import com.idleitems.school.common.BusinessException;
-import com.idleitems.school.entity.User;
-import com.idleitems.school.repository.UserRepository;
+import com.idleitems.school.module.auth.service.impl.PasswordResetServiceImpl;
+import com.idleitems.school.module.notification.service.EmailService;
+import com.idleitems.school.module.user.entity.User;
+import com.idleitems.school.module.user.repository.UserRepository;
 import com.idleitems.school.security.JwtTokenBlacklistService;
-import com.idleitems.school.service.impl.PasswordResetServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -38,7 +38,9 @@ class PasswordResetServiceTest {
     @Mock
     private JwtTokenBlacklistService jwtTokenBlacklistService;
 
-    @InjectMocks
+    @Mock
+    private EmailService emailService;
+
     private PasswordResetServiceImpl passwordResetService;
 
     private User testUser;
@@ -47,6 +49,9 @@ class PasswordResetServiceTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        passwordResetService = new PasswordResetServiceImpl(
+                userRepository, passwordEncoder, redisTemplate,
+                jwtTokenBlacklistService, Optional.of(emailService));
 
         testUser = new User();
         testUser.setId(1L);
@@ -79,7 +84,7 @@ class PasswordResetServiceTest {
     @Test
     void testSendResetCode_RateLimited() {
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(testUser));
-        when(valueOperations.get("password_reset:count:test@example.com")).thenReturn("3");
+        when(valueOperations.get("password_reset:count:test@example.com")).thenReturn("10");
 
         assertThrows(BusinessException.class, () ->
             passwordResetService.sendResetCode("test@example.com"));

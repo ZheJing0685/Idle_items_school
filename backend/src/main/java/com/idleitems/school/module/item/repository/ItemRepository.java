@@ -13,6 +13,7 @@ import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -22,30 +23,35 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
     Page<Item> findByStatus(Item.ItemStatus status, Pageable pageable);
     long countByStatus(Item.ItemStatus status);
     Page<Item> findByUserIdAndStatus(Long userId, Item.ItemStatus status, Pageable pageable);
+    long countByUserIdAndStatus(Long userId, Item.ItemStatus status);
     Page<Item> findByUserId(Long userId, Pageable pageable);
     Page<Item> findByCategoryIdAndStatus(Long categoryId, Item.ItemStatus status, Pageable pageable);
     Page<Item> findByCategoryIdInAndStatus(List<Long> categoryIds, Item.ItemStatus status, Pageable pageable);
     
-    // 带条件筛选的查询方法
+    // 带条件筛选的查询方法（支持关键字搜索）
     @Query("SELECT i FROM Item i WHERE i.status = :status " +
            "AND (:categoryId IS NULL OR i.categoryId = :categoryId) " +
            "AND (:condition IS NULL OR i.condition = :condition) " +
-           "AND (:deliveryMethod IS NULL OR i.deliveryMethod = :deliveryMethod)")
+           "AND (:deliveryMethod IS NULL OR i.deliveryMethod = :deliveryMethod) " +
+           "AND (:keyword IS NULL OR i.title LIKE %:keyword% OR i.description LIKE %:keyword% OR i.tags LIKE %:keyword% OR i.brand LIKE %:keyword%)")
     Page<Item> findByFilters(@Param("status") Item.ItemStatus status,
                               @Param("categoryId") Long categoryId,
                               @Param("condition") Item.ItemCondition condition,
                               @Param("deliveryMethod") String deliveryMethod,
+                              @Param("keyword") String keyword,
                               Pageable pageable);
     
     @Query("SELECT i FROM Item i WHERE i.status = :status " +
            "AND (:categoryIds IS NULL OR i.categoryId IN :categoryIds) " +
            "AND (:condition IS NULL OR i.condition = :condition) " +
-           "AND (:deliveryMethod IS NULL OR i.deliveryMethod = :deliveryMethod)")
+           "AND (:deliveryMethod IS NULL OR i.deliveryMethod = :deliveryMethod) " +
+           "AND (:keyword IS NULL OR i.title LIKE %:keyword% OR i.description LIKE %:keyword% OR i.tags LIKE %:keyword% OR i.brand LIKE %:keyword%)")
     Page<Item> findByCategoryIdsAndFilters(@Param("status") Item.ItemStatus status,
-                                             @Param("categoryIds") List<Long> categoryIds,
-                                             @Param("condition") Item.ItemCondition condition,
-                                             @Param("deliveryMethod") String deliveryMethod,
-                                             Pageable pageable);
+                                              @Param("categoryIds") List<Long> categoryIds,
+                                              @Param("condition") Item.ItemCondition condition,
+                                              @Param("deliveryMethod") String deliveryMethod,
+                                              @Param("keyword") String keyword,
+                                              Pageable pageable);
 
     @Query("SELECT i FROM Item i WHERE i.status = :status AND (i.title LIKE %:keyword% OR i.description LIKE %:keyword%)")
     Page<Item> searchByKeyword(@Param("keyword") String keyword, @Param("status") Item.ItemStatus status, Pageable pageable);
@@ -60,6 +66,10 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
 
     @Query("SELECT i.categoryId, COUNT(i) FROM Item i WHERE i.status = 'ON_SALE' AND i.categoryId IN :categoryIds GROUP BY i.categoryId")
     List<Object[]> countByCategoryIdsGrouped(@Param("categoryIds") List<Long> categoryIds);
+
+    @Query("SELECT i.categoryId, COUNT(i) FROM Item i WHERE i.status = 'ON_SALE' " +
+           "GROUP BY i.categoryId ORDER BY COUNT(i) DESC")
+    List<Object[]> countItemsByCategory();
 
     List<Item> findByStatusAndCreatedAtBetween(Item.ItemStatus status, LocalDateTime startDate, LocalDateTime endDate);
 
@@ -101,4 +111,18 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
     @Modifying
     @Query("UPDATE Item i SET i.viewCount = i.viewCount + 1 WHERE i.id = :itemId")
     void incrementViewCount(@Param("itemId") Long itemId);
+
+    @Query("SELECT i FROM Item i WHERE i.status = 'ON_SALE' AND i.categoryId = :categoryId AND i.id != :excludeId AND i.price BETWEEN :minPrice AND :maxPrice")
+    List<Item> findRelatedByCategoryAndPriceRange(
+            @Param("categoryId") Long categoryId,
+            @Param("excludeId") Long excludeItemId,
+            @Param("minPrice") BigDecimal minPrice,
+            @Param("maxPrice") BigDecimal maxPrice,
+            Pageable pageable);
+
+    @Query("SELECT i FROM Item i WHERE i.status = 'ON_SALE' AND i.userId = :userId AND i.id != :excludeId")
+    List<Item> findOtherItemsBySeller(
+            @Param("userId") Long userId,
+            @Param("excludeId") Long excludeItemId,
+            Pageable pageable);
 }

@@ -33,7 +33,7 @@
         <div class="info-section">
           <h3 class="section-title">商品信息</h3>
           <div class="item-card" @click="$router.push(`/item/${order.itemId}`)">
-            <img :src="order.itemImage || fallbackCover" :alt="order.itemTitle" class="item-image" />
+            <img :src="order.itemImage || fallbackCover" :alt="order.itemTitle" class="item-image" loading="lazy" />
             <div class="item-details">
               <h4 class="item-title">{{ order.itemTitle }}</h4>
               <p class="item-price">¥{{ formatPrice(order.price) }}</p>
@@ -91,13 +91,15 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import api from '../../api';
 import PageHeader from '../../components/user/PageHeader.vue';
 import { ChevronRight } from 'lucide-vue-next';
+import type { OrderDetail, OrderStatusValue } from '../../types/order';
+import type { DisputeItem, DisputeStatus, CanDisputeResult } from '../../types/dispute';
 
 const fallbackCover = 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=placeholder&image_size=square';
 
@@ -105,11 +107,11 @@ const route = useRoute();
 const router = useRouter();
 
 const loading = ref(true);
-const order = ref(null);
-const dispute = ref(null);
-const canDispute = ref(null);
+const order = ref<OrderDetail | null>(null);
+const dispute = ref<DisputeItem | null>(null);
+const canDispute = ref<CanDisputeResult | null>(null);
 
-const statusTextMap = {
+const statusTextMap: Record<OrderStatusValue, string> = {
   PENDING_PAYMENT: '待付款',
   PENDING_SHIPMENT: '待发货',
   SHIPPED: '已发货',
@@ -119,7 +121,7 @@ const statusTextMap = {
   REFUNDED: '已退款',
 };
 
-const disputeStatusTextMap = {
+const disputeStatusTextMap: Record<DisputeStatus, string> = {
   PENDING: '待处理',
   ASSIGNED: '已分配',
   PROCESSING: '处理中',
@@ -129,7 +131,7 @@ const disputeStatusTextMap = {
   CANCELLED: '已取消',
 };
 
-const statusClassMap = {
+const statusClassMap: Record<string, string> = {
   PENDING_PAYMENT: 'status-pending',
   PENDING_SHIPMENT: 'status-processing',
   SHIPPED: 'status-shipped',
@@ -139,7 +141,7 @@ const statusClassMap = {
   REFUNDED: 'status-refunded',
 };
 
-const disputeStatusClassMap = {
+const disputeStatusClassMap: Record<DisputeStatus, string> = {
   PENDING: 'badge-warning',
   ASSIGNED: 'badge-info',
   PROCESSING: 'badge-primary',
@@ -149,12 +151,12 @@ const disputeStatusClassMap = {
   CANCELLED: 'badge-secondary',
 };
 
-const statusText = computed(() => statusTextMap[order.value?.orderStatus] || '未知状态');
-const statusClass = computed(() => statusClassMap[order.value?.orderStatus] || '');
-const disputeStatusText = computed(() => disputeStatusTextMap[dispute.value?.disputeStatus] || '');
-const disputeStatusClass = computed(() => disputeStatusClassMap[dispute.value?.disputeStatus] || '');
+const statusText = computed(() => (order.value ? (statusTextMap[order.value.orderStatus as OrderStatusValue] || '未知状态') : ''));
+const statusClass = computed(() => (order.value ? (statusClassMap[order.value.orderStatus] || '') : ''));
+const disputeStatusText = computed(() => (dispute.value ? (disputeStatusTextMap[dispute.value.disputeStatus] || '') : ''));
+const disputeStatusClass = computed(() => (dispute.value ? (disputeStatusClassMap[dispute.value.disputeStatus] || '') : ''));
 
-const formatTime = (time) => {
+const formatTime = (time: string): string => {
   if (!time) return '';
   return new Date(time).toLocaleDateString('zh-CN', {
     year: 'numeric',
@@ -165,13 +167,13 @@ const formatTime = (time) => {
   });
 };
 
-const formatPrice = (price) => {
+const formatPrice = (price: number | string): string => {
   const numericPrice = Number(price || 0);
   return Number.isInteger(numericPrice) ? numericPrice.toString() : numericPrice.toFixed(2);
 };
 
-const handleCreateDispute = () => {
-  router.push(`/user/create-dispute/${order.value.id}`);
+const handleCreateDispute = (): void => {
+  router.push(`/user/create-dispute/${order.value!.id}`);
 };
 
 onMounted(async () => {
@@ -184,15 +186,15 @@ onMounted(async () => {
   try {
     const [orderRes, disputeRes, canDisputeRes] = await Promise.all([
       api.order.getOrder(orderId),
-      api.user.disputes.getByOrder(orderId).catch(() => null),
-      api.user.disputes.canDispute(orderId).catch(() => null),
+      (api.user.disputes.getByOrder(orderId) as Promise<any>).catch(() => null),
+      (api.user.disputes.canDispute(orderId) as Promise<any>).catch(() => null),
     ]);
 
-    order.value = orderRes.data || orderRes;
+    order.value = (orderRes.data || orderRes) as OrderDetail;
     dispute.value = disputeRes?.data || null;
     canDispute.value = canDisputeRes?.data || null;
-  } catch (error) {
-    ElMessage.error(error.message || '获取订单详情失败');
+  } catch (error: unknown) {
+    ElMessage.error(error instanceof Error ? error.message : '获取订单详情失败');
   } finally {
     loading.value = false;
   }

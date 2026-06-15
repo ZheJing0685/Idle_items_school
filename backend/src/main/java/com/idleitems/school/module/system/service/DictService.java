@@ -162,15 +162,6 @@ public class DictService {
         Map<String, Object> map = new LinkedHashMap<>();
         map.put("value", item.getItemValue());
         map.put("label", item.getItemLabel());
-        if (item.getItemLabelEn() != null) {
-            map.put("labelEn", item.getItemLabelEn());
-        }
-        if (item.getCssClass() != null) {
-            map.put("cssClass", item.getCssClass());
-        }
-        if (item.getExtraData() != null) {
-            map.put("extraData", item.getExtraData());
-        }
         return map;
     }
 }

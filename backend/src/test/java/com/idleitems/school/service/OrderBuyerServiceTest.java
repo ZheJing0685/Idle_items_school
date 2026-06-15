@@ -1,11 +1,12 @@
 package com.idleitems.school.service;
 
 import com.idleitems.school.common.BusinessException;
-import com.idleitems.school.dto.order.CancelOrderRequest;
-import com.idleitems.school.entity.Item;
-import com.idleitems.school.entity.Order;
-import com.idleitems.school.repository.ItemRepository;
-import com.idleitems.school.repository.OrderRepository;
+import com.idleitems.school.module.item.entity.Item;
+import com.idleitems.school.module.item.repository.ItemRepository;
+import com.idleitems.school.module.order.dto.CancelOrderRequest;
+import com.idleitems.school.module.order.entity.Order;
+import com.idleitems.school.module.order.repository.OrderRepository;
+import com.idleitems.school.module.order.service.OrderBuyerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

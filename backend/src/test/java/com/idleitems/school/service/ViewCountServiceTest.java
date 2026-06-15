@@ -1,7 +1,8 @@
 package com.idleitems.school.service;
 
-import com.idleitems.school.cache.CacheService;
-import com.idleitems.school.repository.ItemRepository;
+import com.idleitems.school.module.item.repository.ItemRepository;
+import com.idleitems.school.module.item.service.ViewCountService;
+import com.idleitems.school.shared.cache.CacheService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

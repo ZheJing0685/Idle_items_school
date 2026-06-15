@@ -31,6 +31,16 @@ const item = {
         cacheExpiry: CACHE_EXPIRY.LONG,
       },
     ),
+  getRecommendedItems: () =>
+    requestManager.request(
+      API_PATHS.ITEM.RECOMMENDED,
+      () => get<ItemSummary[]>(API_PATHS.ITEM.RECOMMENDED),
+      {
+        useCache: false,
+        useMerge: true,
+        cacheExpiry: CACHE_EXPIRY.SHORT,
+      },
+    ),
   searchItems: (keyword: string, page?: number, size?: number, sortBy?: string) =>
     requestManager.request(
       API_PATHS.ITEM.SEARCH,
@@ -68,6 +78,17 @@ const item = {
     get<{ uploadedChunks: number[] }>(API_PATHS.ITEM.UPLOAD_CHECK, {
       params: { fileHash, uploadId },
     }),
+  getRelatedItems: (id: number | string) =>
+    requestManager.request(
+      API_PATHS.ITEM.RELATED(id),
+      () => get<{ similarItems: any[]; sellerItems: any[] }>(API_PATHS.ITEM.RELATED(id)),
+      {
+        useCache: true,
+        useMerge: true,
+        params: { id },
+        cacheExpiry: CACHE_EXPIRY.SHORT,
+      },
+    ),
   getItemOrders: (id: number | string) => get<any[]>(API_PATHS.ITEM.ORDERS(id)),
   getItemActiveOrders: (id: number | string) => get<any[]>(API_PATHS.ITEM.ACTIVE_ORDERS(id)),
   deleteItem: (id: number | string) => del<null>(API_PATHS.ITEM.DETAIL(id)),

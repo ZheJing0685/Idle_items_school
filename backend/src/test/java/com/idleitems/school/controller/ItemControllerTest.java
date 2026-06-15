@@ -3,17 +3,18 @@ package com.idleitems.school.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.idleitems.school.common.BusinessException;
 import com.idleitems.school.common.ErrorCode;
-import com.idleitems.school.dto.CreateItemRequest;
-import com.idleitems.school.dto.ItemDTO;
-import com.idleitems.school.dto.ItemSummaryDTO;
-import com.idleitems.school.dto.UpdateItemRequest;
-import com.idleitems.school.entity.Item;
-import com.idleitems.school.entity.Order;
-import com.idleitems.school.service.FileService;
-import com.idleitems.school.service.ItemCommandService;
-import com.idleitems.school.service.ItemQueryService;
-import com.idleitems.school.service.OrderQueryService;
-import com.idleitems.school.service.UserService;
+import com.idleitems.school.module.item.dto.CreateItemRequest;
+import com.idleitems.school.module.item.dto.ItemDTO;
+import com.idleitems.school.module.item.dto.ItemSummaryDTO;
+import com.idleitems.school.module.item.dto.UpdateItemRequest;
+import com.idleitems.school.module.item.entity.Item;
+import com.idleitems.school.module.order.entity.Order;
+import com.idleitems.school.module.file.service.FileService;
+import com.idleitems.school.module.item.service.ItemCommandService;
+import com.idleitems.school.module.item.service.ItemQueryService;
+import com.idleitems.school.module.order.service.OrderQueryService;
+import com.idleitems.school.module.user.service.UserService;
+import com.idleitems.school.module.item.controller.ItemController;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -96,7 +97,7 @@ class ItemControllerTest {
     @DisplayName("获取物品列表 - 成功")
     void testGetItemsSuccess() throws Exception {
         Page<ItemSummaryDTO> emptyPage = new PageImpl<>(Collections.emptyList(), PageRequest.of(0, 20), 0);
-        when(itemQueryService.getItems(eq(1), eq(20), eq(null), eq("createdAt"), eq(null), eq(null)))
+        when(itemQueryService.getItems(eq(1), eq(20), eq(null), eq("createdAt"), eq(null), eq(null), eq(null)))
                 .thenReturn(emptyPage);
 
         mockMvc.perform(get("/api/items")

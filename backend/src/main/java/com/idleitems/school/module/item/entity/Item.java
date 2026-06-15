@@ -15,12 +15,10 @@ import java.util.List;
     @Index(name = "idx_items_status", columnList = "status"),
     @Index(name = "idx_items_user_id", columnList = "user_id"),
     @Index(name = "idx_items_category_id", columnList = "category_id"),
-    @Index(name = "idx_items_view_count", columnList = "view_count"),
     @Index(name = "idx_items_user_id_status", columnList = "user_id, status"),
     @Index(name = "idx_items_category_id_status", columnList = "category_id, status"),
     @Index(name = "idx_items_status_view_count", columnList = "status, view_count"),
-    @Index(name = "idx_items_status_created_at", columnList = "status, created_at"),
-    @Index(name = "idx_items_status_price", columnList = "status, price")
+    @Index(name = "idx_items_status_created_at", columnList = "status, created_at")
 })
 public class Item {
 
@@ -60,9 +58,6 @@ public class Item {
 
     @Column(length = 100)
     private String brand;
-
-    @Column(name = "purchase_date")
-    private LocalDateTime purchaseDate;
 
     @Column(name = "warranty_info", length = 255)
     private String warrantyInfo;

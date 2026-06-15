@@ -12,6 +12,9 @@ import chat from './services/chat';
 import notification from './services/notification';
 import dict from './services/dict';
 import config from './services/config';
+import carbon from './services/carbon';
+import seller from './services/seller';
+import dispute from './services/dispute';
 import { setUnauthorizedHandler } from './config/axios';
 
 const api = {
@@ -28,6 +31,9 @@ const api = {
   notification,
   dict,
   config,
+  carbon,
+  seller,
+  dispute,
   setUnauthorizedHandler,
   clearCache: (url: string, params?: Record<string, unknown>) => requestManager.clearCache(url, params),
   clearAllCache: () => requestManager.clearAllCache(),

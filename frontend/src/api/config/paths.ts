@@ -26,6 +26,8 @@ export const API_PATHS = {
     UPLOAD_CHECK: '/items/upload/check',
     ORDERS: (id: number | string) => `/items/${id}/orders`,
     ACTIVE_ORDERS: (id: number | string) => `/items/${id}/active-orders`,
+    RELATED: (id: number | string) => `/items/${id}/related`,
+    RECOMMENDED: '/items/recommended',
   },
 
   CATEGORY: {
@@ -64,6 +66,10 @@ export const API_PATHS = {
     UPDATE: '/user/profile',
     VERIFICATION: '/user/verification',
     STATS: '/user/stats',
+  },
+
+  CARBON: {
+    STATS: '/carbon/stats',
   },
 
   ADMIN: {

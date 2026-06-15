@@ -1,7 +1,8 @@
 package com.idleitems.school.controller;
 
-import com.idleitems.school.entity.SystemConfig;
-import com.idleitems.school.service.ConfigService;
+import com.idleitems.school.module.system.entity.SystemConfig;
+import com.idleitems.school.module.system.service.ConfigService;
+import com.idleitems.school.module.system.controller.ConfigController;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

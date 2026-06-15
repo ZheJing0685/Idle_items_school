@@ -1,8 +1,9 @@
 package com.idleitems.school.service;
 
-import com.idleitems.school.dto.analytics.LogAnalysisResponse;
-import com.idleitems.school.repository.AdminLogRepository;
-import com.idleitems.school.repository.UserRepository;
+import com.idleitems.school.module.admin.dto.LogAnalysisResponse;
+import com.idleitems.school.module.admin.repository.AdminLogRepository;
+import com.idleitems.school.module.admin.service.LogAnalysisService;
+import com.idleitems.school.module.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;

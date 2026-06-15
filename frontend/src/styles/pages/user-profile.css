@@ -76,7 +76,7 @@
   align-items: center;
   justify-content: center;
   background: oklch(0% 0 0 / 0.5);
-  color: #fff;
+  color: var(--text-inverse);
   opacity: 0;
   transition: opacity 0.2s ease;
   border-radius: 50%;
@@ -328,4 +328,281 @@
     min-width: 0;
     height: 48px;
   }
+}
+
+/* ============================================
+   全屏头像裁剪弹窗 — 替换 Element Plus el-dialog
+   灵感：Instagram / Telegram / WeChat 裁剪体验
+   ============================================ */
+
+/* ---------- 遮罩层 ---------- */
+.crop-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: oklch(0% 0 0 / 0.88);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+/* ---------- 弹窗内容容器 ---------- */
+.crop-modal-content {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  background: var(--surface);
+  overflow: hidden;
+}
+
+/* ---------- 过渡动画 ---------- */
+.crop-modal-enter-active {
+  transition: opacity 0.25s ease;
+}
+.crop-modal-enter-active .crop-modal-content {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.crop-modal-leave-active {
+  transition: opacity 0.2s ease;
+}
+.crop-modal-leave-active .crop-modal-content {
+  transition: transform 0.2s ease;
+}
+.crop-modal-enter-from {
+  opacity: 0;
+}
+.crop-modal-enter-from .crop-modal-content {
+  transform: translateY(12px) scale(0.98);
+}
+.crop-modal-leave-to {
+  opacity: 0;
+}
+.crop-modal-leave-to .crop-modal-content {
+  transform: translateY(12px) scale(0.98);
+}
+
+/* ---------- 顶部操作栏 ---------- */
+.crop-toolbar {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+  flex-shrink: 0;
+  padding: 0 12px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.crop-toolbar-title {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.crop-toolbar-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.crop-toolbar-action:hover:not(:disabled) {
+  background: var(--surface-alt);
+  color: var(--text-primary);
+}
+
+.crop-toolbar-action:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.crop-toolbar-action:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.crop-toolbar-done {
+  color: var(--accent) !important;
+  font-weight: 600;
+}
+
+.crop-toolbar-done:hover:not(:disabled) {
+  background: var(--accent-subtle) !important;
+  color: var(--accent-hover) !important;
+}
+
+/* ---------- 裁剪区域 ---------- */
+.crop-area {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #000;
+  min-height: 0;
+}
+
+.crop-area .crop-image {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+/* ---------- 上传进度遮罩层 ---------- */
+.crop-area.is-uploading {
+  pointer-events: none;
+}
+
+.crop-progress-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: oklch(0% 0 0 / 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation: crop-progress-in 0.3s ease;
+}
+
+@keyframes crop-progress-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.crop-progress-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 32px 40px;
+  background: var(--surface);
+  border-radius: 16px;
+  box-shadow: var(--shadow-lg);
+}
+
+.crop-progress-ring {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.crop-progress-svg {
+  width: 80px;
+  height: 80px;
+  transform: rotate(-90deg);
+}
+
+.crop-progress-track {
+  stroke: var(--border-subtle);
+  stroke-width: 4;
+}
+
+.crop-progress-fill-ring {
+  stroke: var(--accent);
+  stroke-width: 4;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.2s ease;
+}
+
+.crop-progress-pct {
+  position: absolute;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.crop-progress-label {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+  text-align: center;
+  font-family: var(--font-body);
+}
+
+/* ---------- 底部操作提示 ---------- */
+.crop-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  height: 52px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.crop-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  user-select: none;
+}
+
+/* ---------- 桌面端适配：居中卡片 ---------- */
+@media (min-width: 640px) {
+  .crop-modal-overlay {
+    background: oklch(0% 0 0 / 0.75);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+
+  .crop-modal-content {
+    width: 480px;
+    height: 600px;
+    border-radius: 16px;
+    box-shadow: var(--shadow-lg);
+  }
+
+  .crop-toolbar {
+    border-radius: 16px 16px 0 0;
+  }
+
+  .crop-footer {
+    border-radius: 0 0 16px 16px;
+  }
+}
+
+/* ---------- 暗色模式微调 ---------- */
+html.dark .crop-progress-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+html.dark .crop-toolbar {
+  border-bottom-color: var(--border);
+}
+
+html.dark .crop-footer {
+  border-top-color: var(--border);
 }

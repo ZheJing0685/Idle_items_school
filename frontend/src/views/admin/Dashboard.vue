@@ -159,7 +159,9 @@
       <!-- 待办事项 -->
       <div class="todo-section">
         <h3 class="section-subtitle">待办事项</h3>
-        <div class="todo-list">
+        <div v-if="todoLoading" class="loading-placeholder">加载中...</div>
+        <div v-else-if="todoItems.length === 0" class="loading-placeholder">暂无待办事项</div>
+        <div v-else class="todo-list">
           <div v-for="item in todoItems" :key="item.id" class="todo-item">
             <div class="todo-priority" :class="item.priority"></div>
             <div class="todo-content">
@@ -175,7 +177,9 @@
       <!-- 最近活动 -->
       <div class="activity-section">
         <h3 class="section-subtitle">最近活动</h3>
-        <div class="activity-list">
+        <div v-if="activityLoading" class="loading-placeholder">加载中...</div>
+        <div v-else-if="recentActivities.length === 0" class="loading-placeholder">暂无最新活动</div>
+        <div v-else class="activity-list">
           <div
             v-for="activity in recentActivities"
             :key="activity.id"
@@ -205,6 +209,8 @@ import api from '../../api';
 import { Users, Package, ClipboardList, DollarSign, CheckCircle, ChevronRight, Menu, MessageSquare, TrendingUp, FileText } from 'lucide-vue-next';
 
 const loading = ref(false);
+const todoLoading = ref(false);
+const activityLoading = ref(false);
 
 const stats = ref({
   totalUsers: 0,
@@ -217,77 +223,11 @@ const stats = ref({
   amountToday: 0,
 });
 
-const todoItems = ref([
-  {
-    id: 1,
-    title: '待审核用户认证',
-    description: '需要审核新用户的实名认证申请',
-    time: '10分钟前',
-    count: 5,
-    priority: 'high',
-    type: 'warning',
-  },
-  {
-    id: 2,
-    title: '待审核物品',
-    description: '需要审核新发布的物品信息',
-    time: '30分钟前',
-    count: 12,
-    priority: 'medium',
-    type: 'primary',
-  },
-  {
-    id: 3,
-    title: '待处理退款',
-    description: '需要处理用户退款申请',
-    time: '1小时前',
-    count: 3,
-    priority: 'high',
-    type: 'danger',
-  },
-  {
-    id: 4,
-    title: '待回复反馈',
-    description: '需要回复用户分类反馈',
-    time: '2小时前',
-    count: 8,
-    priority: 'low',
-    type: 'info',
-  },
-]);
+// 待办事项数据（从 API 加载）
+const todoItems = ref<Array<{ id: number; title: string; description: string; time: string; count: number; priority: string; type: string }>>([]);
 
-const recentActivities = ref([
-  {
-    id: 1,
-    type: 'user',
-    text: '新用户 张三 完成注册',
-    time: '5分钟前',
-  },
-  {
-    id: 2,
-    type: 'item',
-    text: '用户 李四 发布了新物品"二手笔记本电脑"',
-    time: '15分钟前',
-  },
-  {
-    id: 3,
-    type: 'order',
-    text: '订单 #20240515001 已完成交易',
-    time: '30分钟前',
-  },
-  {
-    id: 4,
-    type: 'user',
-    text: '用户 王五 通过实名认证',
-    time: '1小时前',
-  },
-  {
-    id: 5,
-    type: 'item',
-    text: '物品 #10234 已上架审核通过',
-    time: '2小时前',
-  },
-]);
+// 最近活动数据（从 API 加载）
+const recentActivities = ref<Array<{ id: number; type: string; text: string; time: string }>>([]);
 
 const formatNumber = (num: number) => {
   if (num === null || num === undefined) return '0';
@@ -327,8 +267,33 @@ const fetchStats = async () => {
   }
 };
 
+/** 加载 Dashboard 数据（todo, activities） */
+const fetchDashboardData = async () => {
+  todoLoading.value = true;
+  activityLoading.value = true;
+  try {
+    const res = await api.admin.statistics.getDashboard();
+    if (res.code === 200 && res.data) {
+      if (res.data.todoItems) {
+        todoItems.value = res.data.todoItems;
+      }
+      if (res.data.recentActivities) {
+        recentActivities.value = res.data.recentActivities;
+      }
+    }
+  } catch {
+    // 网络异常，显示降级提示
+    todoItems.value = [];
+    recentActivities.value = [];
+  } finally {
+    todoLoading.value = false;
+    activityLoading.value = false;
+  }
+};
+
 onMounted(() => {
   fetchStats();
+  fetchDashboardData();
 });
 </script>
 

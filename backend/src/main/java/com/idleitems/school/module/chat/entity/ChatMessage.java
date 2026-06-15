@@ -31,9 +31,6 @@ public class ChatMessage {
     @Column(name = "content", nullable = false, columnDefinition = "TEXT")
     private String content;
 
-    @Column(name = "is_anonymous")
-    private Boolean isAnonymous = false;
-
     @Column(name = "is_read")
     private Boolean isRead = false;
 
@@ -45,6 +42,6 @@ public class ChatMessage {
     private LocalDateTime createdAt;
 
     public enum MessageType {
-        TEXT, IMAGE, SYSTEM
+        TEXT, IMAGE, VIDEO, SYSTEM
     }
 }

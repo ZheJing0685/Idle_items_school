@@ -1,5 +1,6 @@
 package com.idleitems.school.common.event;
 
+import com.idleitems.school.module.carbon.service.CarbonService;
 import com.idleitems.school.module.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Component;
 public class OrderEventListener {
 
     private final NotificationService notificationService;
+    private final CarbonService carbonService;
 
     @Async("notificationExecutor")
     @EventListener
@@ -93,6 +95,9 @@ public class OrderEventListener {
                 event.getOrderId()
             );
             log.debug("Order completed notification sent: orderId={}", event.getOrderId());
+
+            // 异步记录碳减排（使用独立的 carbonExecutor）
+            carbonService.recordCarbonSaving(event);
         } catch (Exception e) {
             log.error("Failed to send order completed notification: orderId={}", event.getOrderId(), e);
         }

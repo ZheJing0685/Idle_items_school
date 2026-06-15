@@ -1,7 +1,8 @@
 package com.idleitems.school.service;
 
-import com.idleitems.school.entity.SystemConfig;
-import com.idleitems.school.repository.SystemConfigRepository;
+import com.idleitems.school.module.system.entity.SystemConfig;
+import com.idleitems.school.module.system.repository.SystemConfigRepository;
+import com.idleitems.school.module.system.service.ConfigService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -277,4 +278,335 @@ class ConfigServiceTest {
         assertEquals(3600L, result.get("auth.token_expire"));
         verify(valueOperations, times(1)).set(eq("config:group:auth"), anyMap(), eq(1L), eq(TimeUnit.HOURS));
     }
+
+    @Test
+    void getConfigInt_whenValueIsInteger_returnsValue() {
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.get("config:test.int")).thenReturn(42);
+
+        Integer result = configService.getConfigInt("test.int");
+
+        assertEquals(42, result);
+        verify(systemConfigRepository, never()).findByConfigKey(anyString());
+    }
+
+    @Test
+    void getConfigInt_whenValueIsString_parsesSuccess() {
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.get("config:test.int")).thenReturn("100");
+
+        Integer result = configService.getConfigInt("test.int");
+
+        assertEquals(100, result);
+    }
+
+    @Test
+    void getConfigInt_whenValueIsString_parseFails() {
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.get("config:test.int")).thenReturn("not_a_number");
+
+        Integer result = configService.getConfigInt("test.int");
+
+        assertNull(result);
+    }
+
+    @Test
+    void getConfigInt_whenValueIsOtherType_returnsNull() {
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.get("config:test.int")).thenReturn(3.14);
+
+        Integer result = configService.getConfigInt("test.int");
+
+        assertNull(result);
+    }
+
+    @Test
+    void getConfigInt_whenValueIsNull_returnsNull() {
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.get("config:test.int")).thenReturn(null);
+        when(systemConfigRepository.findByConfigKey("test.int")).thenReturn(Optional.empty());
+
+        Integer result = configService.getConfigInt("test.int");
+
+        assertNull(result);
+    }
+
+    @Test
+    void getConfigLong_whenValueIsLong_returnsValue() {
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.get("config:test.long")).thenReturn(100L);
+
+        Long result = configService.getConfigLong("test.long");
+
+        assertEquals(100L, result);
+    }
+
+    @Test
+    void getConfigLong_whenValueIsInteger_convertsToLong() {
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.get("config:test.long")).thenReturn(50);
+
+        Long result = configService.getConfigLong("test.long");
+
+        assertEquals(50L, result);
+    }
+
+    @Test
+    void getConfigLong_whenValueIsString_parsesSuccess() {
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.get("config:test.long")).thenReturn("200");
+
+        Long result = configService.getConfigLong("test.long");
+
+        assertEquals(200L, result);
+    }
+
+    @Test
+    void getConfigLong_whenValueIsString_parseFails() {
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.get("config:test.long")).thenReturn("bad");
+
+        Long result = configService.getConfigLong("test.long");
+
+        assertNull(result);
+    }
+
+    @Test
+    void getConfigLong_whenValueIsOtherType_returnsNull() {
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.get("config:test.long")).thenReturn(true);
+
+        Long result = configService.getConfigLong("test.long");
+
+        assertNull(result);
+    }
+
+    @Test
+    void getConfigBoolean_whenValueIsBooleanTrue_returnsTrue() {
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.get("config:test.bool")).thenReturn(true);
+
+        Boolean result = configService.getConfigBoolean("test.bool");
+
+        assertTrue(result);
+    }
+
+    @Test
+    void getConfigBoolean_whenValueIsBooleanFalse_returnsFalse() {
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.get("config:test.bool")).thenReturn(false);
+
+        Boolean result = configService.getConfigBoolean("test.bool");
+
+        assertFalse(result);
+    }
+
+    @Test
+    void getConfigBoolean_whenValueIsStringTrue_returnsTrue() {
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.get("config:test.bool")).thenReturn("true");
+
+        Boolean result = configService.getConfigBoolean("test.bool");
+
+        assertTrue(result);
+    }
+
+    @Test
+    void getConfigBoolean_whenValueIsStringFalse_returnsFalse() {
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.get("config:test.bool")).thenReturn("false");
+
+        Boolean result = configService.getConfigBoolean("test.bool");
+
+        assertFalse(result);
+    }
+
+    @Test
+    void getConfigBoolean_whenValueIsOther_returnsNull() {
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.get("config:test.bool")).thenReturn(123);
+
+        Boolean result = configService.getConfigBoolean("test.bool");
+
+        assertNull(result);
+    }
+
+    @Test
+    void getConfigFloat_whenValueIsFloat_returnsValue() {
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.get("config:test.float")).thenReturn(1.5f);
+
+        Float result = configService.getConfigFloat("test.float");
+
+        assertEquals(1.5f, result, 0.001f);
+    }
+
+    @Test
+    void getConfigFloat_whenValueIsDouble_convertsToFloat() {
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.get("config:test.float")).thenReturn(2.5);
+
+        Float result = configService.getConfigFloat("test.float");
+
+        assertEquals(2.5f, result, 0.001f);
+    }
+
+    @Test
+    void getConfigFloat_whenValueIsString_parsesSuccess() {
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.get("config:test.float")).thenReturn("3.14");
+
+        Float result = configService.getConfigFloat("test.float");
+
+        assertEquals(3.14f, result, 0.001f);
+    }
+
+    @Test
+    void getConfigFloat_whenValueIsString_parseFails() {
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.get("config:test.float")).thenReturn("not_float");
+
+        Float result = configService.getConfigFloat("test.float");
+
+        assertNull(result);
+    }
+
+    @Test
+    void getConfigFloat_whenValueIsOtherType_returnsNull() {
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.get("config:test.float")).thenReturn(true);
+
+        Float result = configService.getConfigFloat("test.float");
+
+        assertNull(result);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void saveConfig_newConfig_withDescriptionNull() {
+        when(systemConfigRepository.findByConfigKey("new.key")).thenReturn(Optional.empty());
+
+        SystemConfig savedConfig = new SystemConfig();
+        savedConfig.setId(10L);
+        savedConfig.setConfigKey("new.key");
+        savedConfig.setConfigValue("val");
+        when(systemConfigRepository.save(any(SystemConfig.class))).thenReturn(savedConfig);
+
+        Cursor<String> cursor = mock(Cursor.class);
+        when(cursor.hasNext()).thenReturn(false);
+        when(redisTemplate.scan(any(ScanOptions.class))).thenReturn(cursor);
+
+        SystemConfig result = configService.saveConfig("new.key", "val", null);
+
+        assertNotNull(result);
+        assertNull(result.getDescription());
+        verify(redisTemplate, times(1)).delete("config:all");
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void saveConfig_existingConfig_withDescriptionNull_keepsOldDescription() {
+        SystemConfig existing = new SystemConfig();
+        existing.setId(1L);
+        existing.setConfigKey("key");
+        existing.setConfigValue("old");
+        existing.setDescription("原始描述");
+        when(systemConfigRepository.findByConfigKey("key")).thenReturn(Optional.of(existing));
+
+        SystemConfig updated = new SystemConfig();
+        updated.setId(1L);
+        updated.setConfigKey("key");
+        updated.setConfigValue("new");
+        updated.setDescription("原始描述");
+        when(systemConfigRepository.save(any(SystemConfig.class))).thenReturn(updated);
+
+        Cursor<String> cursor = mock(Cursor.class);
+        when(cursor.hasNext()).thenReturn(false);
+        when(redisTemplate.scan(any(ScanOptions.class))).thenReturn(cursor);
+
+        SystemConfig result = configService.saveConfig("key", "new", null);
+
+        assertEquals("原始描述", result.getDescription());
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void getConfigsByGroup_fromDb_withMatchingGroup() {
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.get("config:group:auth")).thenReturn(null);
+        when(systemConfigRepository.findAll()).thenReturn(List.of(textConfig, numberConfig, booleanConfig));
+
+        Map<String, Object> result = configService.getConfigsByGroup("auth");
+
+        assertNotNull(result);
+        assertTrue(result.containsKey("site.registration_open"));
+        assertTrue((Boolean) result.get("site.registration_open"));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void getAllConfigs_fromDb_parsesMultipleTypes() {
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.get("config:all")).thenReturn(null);
+        when(systemConfigRepository.findAll()).thenReturn(List.of(textConfig, numberConfig, booleanConfig));
+
+        Map<String, Object> result = configService.getAllConfigs();
+
+        assertNotNull(result);
+        assertEquals("闲鱼校园版", result.get("site.name"));
+        assertEquals(100L, result.get("site.max_items"));
+        assertTrue((Boolean) result.get("site.registration_open"));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void parseConfigValue_numberWithDecimal() {
+        SystemConfig config = new SystemConfig();
+        config.setConfigKey("decimal.val");
+        config.setConfigValue("3.14");
+        config.setConfigType(2);
+
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.get("config:all")).thenReturn(null);
+        when(systemConfigRepository.findAll()).thenReturn(List.of(config));
+
+        Map<String, Object> result = configService.getAllConfigs();
+
+        assertEquals(3.14, (Double) result.get("decimal.val"), 0.001);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void parseConfigValue_numberParseFails_returnsRawString() {
+        SystemConfig config = new SystemConfig();
+        config.setConfigKey("bad.num");
+        config.setConfigValue("12xyz");
+        config.setConfigType(2);
+
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.get("config:all")).thenReturn(null);
+        when(systemConfigRepository.findAll()).thenReturn(List.of(config));
+
+        Map<String, Object> result = configService.getAllConfigs();
+
+        assertEquals("12xyz", result.get("bad.num"));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void parseConfigValue_jsonType() {
+        SystemConfig config = new SystemConfig();
+        config.setConfigKey("json.data");
+        config.setConfigValue("{\"key\":\"val\"}");
+        config.setConfigType(4);
+
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.get("config:all")).thenReturn(null);
+        when(systemConfigRepository.findAll()).thenReturn(List.of(config));
+
+        Map<String, Object> result = configService.getAllConfigs();
+
+        assertEquals("{\"key\":\"val\"}", result.get("json.data"));
+    }
+
 }

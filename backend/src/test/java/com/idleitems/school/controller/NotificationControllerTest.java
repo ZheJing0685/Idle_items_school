@@ -2,8 +2,9 @@ package com.idleitems.school.controller;
 
 import com.idleitems.school.common.BusinessException;
 import com.idleitems.school.common.ErrorCode;
-import com.idleitems.school.entity.Notification;
-import com.idleitems.school.service.NotificationService;
+import com.idleitems.school.module.notification.entity.Notification;
+import com.idleitems.school.module.notification.service.NotificationService;
+import com.idleitems.school.module.notification.controller.NotificationController;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

@@ -20,7 +20,7 @@
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all 150ms ease;
 }
 
 .view-btn:hover {
@@ -29,7 +29,7 @@
 
 .view-btn.active {
   background: var(--primary-color);
-  color: #fff;
+  color: var(--text-inverse);
   box-shadow: var(--shadow-sm);
 }
 
@@ -89,23 +89,23 @@
 }
 
 .status-pending {
-  background: var(--warning-alpha-10);
+  background: var(--color-warning-alpha-10);
   color: var(--warning-color);
 }
 
 .status-waiting {
-  background: var(--info-alpha-10);
+  background: var(--color-info-alpha-10);
   color: var(--info-color);
 }
 
 .status-shipped {
-  background: var(--info-alpha-15);
+  background: var(--color-info-alpha-15);
   color: var(--info-color);
 }
 
 .status-completed {
-  background: var(--eco-light);
-  color: var(--eco-color);
+  background: var(--color-success-alpha-10);
+  color: var(--color-success);
 }
 
 .status-cancelled {
@@ -115,7 +115,7 @@
 
 .status-refund,
 .status-refunded {
-  background: var(--error-alpha-10);
+  background: var(--color-danger-alpha-10);
   color: var(--error-color);
 }
 
@@ -221,17 +221,17 @@
   gap: 8px;
   padding: 12px 24px;
   background: var(--primary-color);
-  color: #fff;
+  color: var(--text-inverse);
   font-weight: 600;
   font-size: 14px;
   border-radius: 12px;
   text-decoration: none;
-  transition: all 0.15s;
+  transition: all 150ms ease;
 }
 
 .empty-action-btn:hover {
   background: var(--primary-dark);
-  color: #fff;
+  color: var(--text-inverse);
 }
 
 .pagination-wrap {

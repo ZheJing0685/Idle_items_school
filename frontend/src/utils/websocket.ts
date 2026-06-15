@@ -1,93 +1,206 @@
+/**
+ * WebSocket 管理器
+ * 单例模式，提供 subscribe/unsubscribe 接口
+ * 支持自动重连（指数退避，最多 5 次）
+ */
+
 interface StompHeaders {
   [key: string]: string
 }
 
-interface StompFrame {
-  command: string
-  headers: StompHeaders
-  body: string
-}
-
 type MessageHandler = (message: any) => void
 
-class WebSocketService {
+/** 订阅记录 */
+interface Subscription {
+  topic: string
+  handler: MessageHandler
+}
+
+class WebSocketManager {
+  private static instance: WebSocketManager;
+
   private ws: WebSocket | null = null;
-  private connected: boolean = false;
-  private subscriptions: Map<string, string> = new Map();
-  private messageHandlers: Map<string, MessageHandler> = new Map();
-  private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
-  private userId: string | null = null;
-  private reconnectAttempt: number = 0;
-  private maxReconnectAttempts: number = 10;
-  private baseDelay: number = 1000;
-  private maxDelay: number = 30000;
+  private connected = false;
+  private token = '';
+  private userId = '';
   private connectionState: 'connecting' | 'connected' | 'disconnected' | 'reconnecting' = 'disconnected';
 
-  async connect(token: string, userId: string): Promise<void> {
-    this.connectionState = 'connecting';
-    return new Promise((resolve, reject) => {
-      this.userId = userId;
+  /** 订阅列表（topic -> handler[]） */
+  private subscriptions = new Map<string, Set<MessageHandler>>();
+  /** 已发送的 STOMP 订阅 ID 集合（用于去重） */
+  private stompSubscribedTopics = new Set<string>();
 
+  // 重连相关
+  private reconnectAttempt = 0;
+  private maxReconnectAttempts = 5;
+  private baseDelay = 1000;
+  private timer: ReturnType<typeof setTimeout> | null = null;
+
+  private constructor() {}
+
+  static getInstance(): WebSocketManager {
+    if (!WebSocketManager.instance) {
+      WebSocketManager.instance = new WebSocketManager();
+    }
+    return WebSocketManager.instance;
+  }
+
+  /** 建立 WebSocket 连接 */
+  connect(token: string, userId?: string): Promise<void> {
+    this.token = token;
+    if (userId) this.userId = userId;
+    this.connectionState = 'connecting';
+
+    return new Promise((resolve, reject) => {
       const hostname = window.location.hostname;
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
       const wsPort = import.meta.env.VITE_WS_PORT || '7000';
       const wsUrl = `${protocol}//${hostname}:${wsPort}/ws-native`;
 
-      console.log('Connecting to WebSocket:', wsUrl);
-
       try {
         this.ws = new WebSocket(wsUrl);
 
         this.ws.onopen = () => {
-          console.log('WebSocket已连接，发送STOMP CONNECT...');
           this.connected = true;
           this.connectionState = 'connected';
+          this.reconnectAttempt = 0;
 
-          const connectHeaders: StompHeaders = {
+          const headers: StompHeaders = {
             'accept-version': '1.1,1.0',
             'heart-beat': '4000,4000',
           };
-          // 如果有 token（非空），添加 Authorization header
-          // 如果没有 token，依赖后端从其他方式验证（如同源 cookie）
           if (token) {
-            connectHeaders['Authorization'] = `Bearer ${token}`;
+            headers['Authorization'] = `Bearer ${token}`;
           }
-
-          this.sendStompFrame('CONNECT', connectHeaders);
+          this.sendFrame('CONNECT', headers);
         };
 
         this.ws.onmessage = (event: MessageEvent) => {
-          this.handleMessage(event.data, token, userId, resolve);
+          this.handleIncoming(event.data, resolve);
         };
 
         this.ws.onclose = () => {
-          console.log('WebSocket已断开');
           this.connected = false;
-          this.scheduleReconnect(token, userId);
+          this.connectionState = 'disconnected';
+          this.stompSubscribedTopics.clear();
+          this.scheduleReconnect();
         };
 
-        this.ws.onerror = (error: Event) => {
-          console.error('WebSocket错误:', error);
+        this.ws.onerror = () => {
           this.connectionState = 'disconnected';
-          reject(error);
+          reject(new Error('WebSocket connection error'));
         };
-      } catch (error) {
-        reject(error);
+      } catch (err) {
+        reject(err);
       }
     });
   }
 
-  handleMessage(
-    data: string,
-    token: string,
-    userId: string,
-    connectResolve?: (value: void | PromiseLike<void>) => void,
-  ): void {
+  /** 订阅主题 */
+  subscribe(topic: string, handler: MessageHandler): void {
+    if (!this.subscriptions.has(topic)) {
+      this.subscriptions.set(topic, new Set());
+    }
+    this.subscriptions.get(topic)!.add(handler);
+
+    // 如果已连接且未发送过该主题的 STOMP SUBSCRIBE，立即发送
+    if (this.connected && this.userId && !this.stompSubscribedTopics.has(topic)) {
+      this.sendStompSubscribe(topic);
+    }
+  }
+
+  /** 取消订阅 */
+  unsubscribe(topic: string, handler: MessageHandler): void {
+    const handlers = this.subscriptions.get(topic);
+    if (handlers) {
+      handlers.delete(handler);
+      if (handlers.size === 0) {
+        this.subscriptions.delete(topic);
+      }
+    }
+  }
+
+  /** 发送消息 */
+  send(chatId: string, senderId: string, receiverId: string, content: string, messageType: string = 'TEXT'): boolean {
+    if (!this.connected) return false;
+
+    const payload = JSON.stringify({
+      chatId, senderId, receiverId, content,
+      messageType,
+    });
+
+    this.sendFrame('SEND', {
+      'destination': '/app/chat/send',
+      'content-type': 'application/json',
+    }, payload);
+
+    return true;
+  }
+
+  /** 断开连接 */
+  disconnect(): void {
+    this.clearTimer();
+    if (this.ws) {
+      this.ws.close();
+      this.ws = null;
+    }
+    this.connected = false;
+    this.connectionState = 'disconnected';
+    this.subscriptions.clear();
+    this.stompSubscribedTopics.clear();
+    this.reconnectAttempt = 0;
+  }
+
+  isConnected(): boolean {
+    return this.connected;
+  }
+
+  getConnectionState(): string {
+    return this.connectionState;
+  }
+
+  // ==================== 内部方法 ====================
+
+  private sendFrame(command: string, headers: StompHeaders = {}, body = ''): void {
+    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
+
+    let frame = command + '\n';
+    for (const [k, v] of Object.entries(headers)) {
+      frame += `${k}:${v}\n`;
+    }
+    frame += '\n';
+    if (body) frame += body;
+    frame += '\0';
+
+    this.ws.send(frame);
+  }
+
+  /** 发送 STOMP SUBSCRIBE 帧 */
+  private sendStompSubscribe(topic: string): void {
+    const dest = this.getDestinationForTopic(topic);
+    if (!dest) return;
+
+    this.sendFrame('SUBSCRIBE', {
+      'id': `sub-${topic}-${this.userId}`,
+      'destination': dest,
+    });
+    this.stompSubscribedTopics.add(topic);
+  }
+
+  /** 根据主题获取 STOMP 目标地址 */
+  private getDestinationForTopic(topic: string): string {
+    if (topic === 'chat' && this.userId) return `/topic/chat/${this.userId}`;
+    if (topic === 'notification' && this.userId) return `/topic/notifications/${this.userId}`;
+    return '';
+  }
+
+  /** 处理收到的消息 */
+  private handleIncoming(data: string, connectResolve?: (value: void) => void): void {
     const lines = data.split('\n');
     const headers: StompHeaders = {};
+    let command = '';
     let body = '';
     let headerEnd = false;
-    let command = '';
 
     if (lines.length > 0) {
       command = lines[0].trim();
@@ -100,11 +213,9 @@ class WebSocketService {
         continue;
       }
       if (!headerEnd) {
-        const colonIndex = line.indexOf(':');
-        if (colonIndex > 0) {
-          const key = line.substring(0, colonIndex).trim();
-          const value = line.substring(colonIndex + 1).trim();
-          headers[key] = value;
+        const idx = line.indexOf(':');
+        if (idx > 0) {
+          headers[line.substring(0, idx).trim()] = line.substring(idx + 1).trim();
         }
       } else {
         body += line;
@@ -114,8 +225,10 @@ class WebSocketService {
     body = body.replace(/\0/g, '');
 
     if (command === 'CONNECTED') {
-      console.log('STOMP连接成功，准备订阅...');
-      this.subscribeToUserChannel(userId);
+      // STOMP 连接成功，重新订阅所有本地订阅
+      this.subscriptions.forEach((_handlers, topic) => {
+        this.sendStompSubscribe(topic);
+      });
       if (connectResolve) connectResolve();
       return;
     }
@@ -124,138 +237,68 @@ class WebSocketService {
       try {
         const message = JSON.parse(body);
         const destination = headers['destination'] || '';
-        console.log('收到WebSocket消息:', destination, message);
 
-        if (destination.includes('/topic/chat/')) {
-          const handler = this.messageHandlers.get('chat');
-          if (handler) handler(message);
-        } else if (destination.includes('/topic/notifications/')) {
-          const handler = this.messageHandlers.get('notification');
-          if (handler) handler(message);
+        // 根据 destination 路由到对应的 topic
+        let matchedTopic = '';
+        if (destination.includes('/topic/chat/')) matchedTopic = 'chat';
+        else if (destination.includes('/topic/notifications/')) matchedTopic = 'notification';
+
+        if (matchedTopic) {
+          const handlers = this.subscriptions.get(matchedTopic);
+          if (handlers) {
+            handlers.forEach(h => {
+              try { h(message); } catch (e) { console.error('WebSocket 处理器异常:', e); }
+            });
+          }
         }
-      } catch (e) {
-        console.error('解析消息失败:', e);
+      } catch {
+        // 解析失败，忽略
       }
     }
   }
 
-  sendStompFrame(command: string, headers: StompHeaders = {}, body: string = ''): void {
-    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
-      console.error('WebSocket未连接');
-      return;
-    }
-
-    let frame = command + '\n';
-    for (const [key, value] of Object.entries(headers)) {
-      frame += `${key}:${value}\n`;
-    }
-    frame += '\n';
-    if (body) {
-      frame += body;
-    }
-    frame += '\0';
-
-    this.ws.send(frame);
-  }
-
-  subscribeToUserChannel(userId: string): void {
-    if (!this.connected) return;
-
-    this.sendStompFrame('SUBSCRIBE', {
-      'id': 'sub-chat-' + userId,
-      'destination': `/topic/chat/${userId}`,
-    });
-
-    this.sendStompFrame('SUBSCRIBE', {
-      'id': 'sub-notifications-' + userId,
-      'destination': `/topic/notifications/${userId}`,
-    });
-  }
-
-  sendMessage(chatId: string, senderId: string, receiverId: string, content: string): boolean {
-    if (!this.connected) {
-      console.error('WebSocket未连接');
-      return false;
-    }
-
-    const message = JSON.stringify({
-      chatId,
-      senderId,
-      receiverId,
-      content,
-      messageType: 'TEXT',
-    });
-
-    this.sendStompFrame('SEND', {
-      'destination': '/app/chat/send',
-      'content-type': 'application/json',
-    }, message);
-
-    return true;
-  }
-
-  onMessage(type: string, handler: MessageHandler): void {
-    this.messageHandlers.set(type, handler);
-  }
-
-  scheduleReconnect(token: string, userId: string): void {
-    if (this.reconnectTimer) {
-      clearTimeout(this.reconnectTimer);
-      this.reconnectTimer = null;
-    }
+  /** 自动重连（指数退避，最多 5 次） */
+  private scheduleReconnect(): void {
+    this.clearTimer();
 
     if (this.reconnectAttempt >= this.maxReconnectAttempts) {
-      console.error('WebSocket重连次数超过限制，停止重连');
+      console.error('WebSocket 重连已达上限，停止重连');
       return;
     }
 
     const delay = Math.min(
       this.baseDelay * Math.pow(2, this.reconnectAttempt) + Math.random() * 1000,
-      this.maxDelay,
+      30000,
     );
 
-    console.log(`WebSocket将在${delay}ms后重连，第${this.reconnectAttempt + 1}次尝试`);
+    console.log(`WebSocket 将在 ${Math.round(delay)}ms 后重连（第 ${this.reconnectAttempt + 1}/${this.maxReconnectAttempts} 次）`);
 
-    this.reconnectTimer = setTimeout(() => {
+    this.timer = setTimeout(() => {
       this.reconnectAttempt++;
-
-      this.connect(token, userId)
+      this.connectionState = 'reconnecting';
+      this.connect(this.token, this.userId)
         .then(() => {
-          console.log('WebSocket重连成功');
+          console.log('WebSocket 重连成功');
           this.reconnectAttempt = 0;
         })
-        .catch((error) => {
-          console.error('WebSocket重连失败:', error);
-          this.scheduleReconnect(token, userId);
+        .catch(() => {
+          this.scheduleReconnect();
         });
     }, delay);
   }
 
-  disconnect(): void {
-    if (this.reconnectTimer) {
-      clearTimeout(this.reconnectTimer);
+  private clearTimer(): void {
+    if (this.timer) {
+      clearTimeout(this.timer);
+      this.timer = null;
     }
-
-    if (this.ws) {
-      this.ws.close();
-      this.ws = null;
-    }
-
-    this.connected = false;
-    this.connectionState = 'disconnected';
-    this.subscriptions.clear();
-    this.messageHandlers.clear();
-    this.reconnectAttempt = 0;
-  }
-
-  isConnected(): boolean {
-    return this.connected;
-  }
-
-  getConnectionState(): string {
-    return this.connectionState;
   }
 }
 
-export const wsService = new WebSocketService();
-export default wsService;
+/** 单例导出 */
+export const wsManager = WebSocketManager.getInstance();
+
+/** 向后兼容：保留旧的 wsService 导出 */
+export const wsService = wsManager;
+
+export default wsManager;

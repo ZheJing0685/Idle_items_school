@@ -1,9 +1,10 @@
 package com.idleitems.school.controller.admin;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.idleitems.school.entity.Dispute;
-import com.idleitems.school.service.DisputeCommandService;
-import com.idleitems.school.service.DisputeQueryService;
+import com.idleitems.school.module.admin.controller.AdminDisputeController;
+import com.idleitems.school.module.dispute.entity.Dispute;
+import com.idleitems.school.module.dispute.service.DisputeCommandService;
+import com.idleitems.school.module.dispute.service.DisputeQueryService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

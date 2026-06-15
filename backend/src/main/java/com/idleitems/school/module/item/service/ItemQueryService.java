@@ -3,11 +3,13 @@ package com.idleitems.school.module.item.service;
 import com.idleitems.school.common.BusinessException;
 import com.idleitems.school.common.ErrorCode;
 import com.idleitems.school.module.item.dto.ItemSummaryDTO;
+import com.idleitems.school.module.item.dto.RelatedItemDTO;
 import com.idleitems.school.module.category.entity.Category;
 import com.idleitems.school.module.item.entity.Item;
 import com.idleitems.school.module.user.entity.User;
 import com.idleitems.school.module.category.repository.CategoryRepository;
 import com.idleitems.school.module.item.repository.ItemRepository;
+import com.idleitems.school.module.order.repository.OrderRepository;
 import com.idleitems.school.module.user.repository.UserRepository;
 import com.idleitems.school.shared.cache.CacheService;
 import com.idleitems.school.util.ItemDTOConverter;
@@ -20,6 +22,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -35,6 +38,7 @@ public class ItemQueryService {
     private final CacheService cacheService;
     private final UserRepository userRepository;
     private final ViewCountService viewCountService;
+    private final OrderRepository orderRepository;
     private final ItemDTOConverter dtoConverter;
 
     public int getSellerItemCount(Long userId) {
@@ -78,12 +82,13 @@ public class ItemQueryService {
         return result;
     }
 
-    public Page<ItemSummaryDTO> getItems(int page, int size, String categoryIdStr, String sortBy, String condition, String deliveryMethod) {
+    public Page<ItemSummaryDTO> getItems(int page, int size, String categoryIdStr, String sortBy, String condition, String deliveryMethod, String keyword) {
         Long categoryId = parseCategoryId(categoryIdStr);
 
         String cacheKey = CacheService.getItemListKey(page, size,
                 categoryId != null ? categoryId.toString() : "all", sortBy, condition,
-                deliveryMethod != null && !deliveryMethod.isEmpty() ? Integer.valueOf(deliveryMethod) : null);
+                deliveryMethod != null && !deliveryMethod.isEmpty() ? Integer.valueOf(deliveryMethod) : null,
+                keyword);
 
         Object cachedObject = cacheService.get(cacheKey);
         if (cachedObject instanceof Page) {
@@ -94,7 +99,7 @@ public class ItemQueryService {
 
         Item.ItemCondition itemCondition = parseCondition(condition);
         Pageable pageable = createPageable(page, size, sortBy);
-        Page<Item> itemsPage = queryItems(categoryId, itemCondition, deliveryMethod, pageable);
+        Page<Item> itemsPage = queryItems(categoryId, itemCondition, deliveryMethod, keyword, pageable);
 
         Page<ItemSummaryDTO> result = convertToSummaryPage(itemsPage);
         cacheService.set(cacheKey, result, 300, TimeUnit.SECONDS);
@@ -116,15 +121,61 @@ public class ItemQueryService {
         List<Item> recentItems = itemRepository.findByStatusAndCreatedAtBetween(
                 Item.ItemStatus.ON_SALE, thirtyDaysAgo, LocalDateTime.now());
 
+        Map<Long, Long> categoryItemCounts = computeCategoryItemCounts(recentItems);
+        long maxCategoryCount = categoryItemCounts.values().stream().mapToLong(Long::longValue).max().orElse(1);
+
         double now = System.currentTimeMillis();
         List<Item> sorted = recentItems.stream()
-                .sorted((a, b) -> Double.compare(calculateHotScore(b, now), calculateHotScore(a, now)))
+                .sorted((a, b) -> Double.compare(calculateHotScore(b, now, categoryItemCounts, maxCategoryCount),
+                                                  calculateHotScore(a, now, categoryItemCounts, maxCategoryCount)))
                 .limit(10)
                 .toList();
 
         List<ItemSummaryDTO> result = convertToSummaryDTOListWithRatings(sorted);
         cacheService.set(cacheKey, result, 600, TimeUnit.SECONDS);
         return result;
+    }
+
+    public Map<String, Object> getRelatedItems(Long itemId) {
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.ITEM_NOT_FOUND));
+
+        Long categoryId = item.getCategoryId();
+        BigDecimal price = item.getPrice();
+        BigDecimal minPrice = price.multiply(BigDecimal.valueOf(0.7));
+        BigDecimal maxPrice = price.multiply(BigDecimal.valueOf(1.3));
+
+        List<RelatedItemDTO> similarItems = itemRepository
+                .findRelatedByCategoryAndPriceRange(categoryId, itemId, minPrice, maxPrice,
+                        PageRequest.of(0, 6))
+                .stream()
+                .map(this::toRelatedItemDTO)
+                .toList();
+
+        List<RelatedItemDTO> sellerItems = itemRepository
+                .findOtherItemsBySeller(item.getUserId(), itemId,
+                        PageRequest.of(0, 4))
+                .stream()
+                .map(this::toRelatedItemDTO)
+                .toList();
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("similarItems", similarItems);
+        result.put("sellerItems", sellerItems);
+        return result;
+    }
+
+    private RelatedItemDTO toRelatedItemDTO(Item item) {
+        enrichItemWithSellerInfo(item);
+        RelatedItemDTO dto = new RelatedItemDTO();
+        dto.setId(item.getId());
+        dto.setTitle(item.getTitle());
+        dto.setPrice(item.getPrice());
+        dto.setCoverImage(item.getCoverImage());
+        dto.setCondition(item.getCondition().name());
+        dto.setCreatedAt(item.getCreatedAt());
+        dto.setSellerNickname(item.getSellerNickname() != null ? item.getSellerNickname() : "未知卖家");
+        return dto;
     }
 
     public Page<ItemSummaryDTO> searchItems(String keyword, int page, int size, String sortBy) {
@@ -190,7 +241,7 @@ public class ItemQueryService {
         }
     }
 
-    private Page<Item> queryItems(Long categoryId, Item.ItemCondition itemCondition, String deliveryMethod, Pageable pageable) {
+    private Page<Item> queryItems(Long categoryId, Item.ItemCondition itemCondition, String deliveryMethod, String keyword, Pageable pageable) {
         if (categoryId != null) {
             Category category = categoryRepository.findById(categoryId).orElse(null);
             if (category != null && category.getParentId() == null) {
@@ -198,14 +249,14 @@ public class ItemQueryService {
                 List<Long> categoryIds = new ArrayList<>();
                 categoryIds.add(categoryId);
                 subCategories.forEach(sub -> categoryIds.add(sub.getId()));
-                return itemRepository.findByCategoryIdsAndFilters(Item.ItemStatus.ON_SALE, categoryIds, itemCondition, deliveryMethod, pageable);
+                return itemRepository.findByCategoryIdsAndFilters(Item.ItemStatus.ON_SALE, categoryIds, itemCondition, deliveryMethod, keyword, pageable);
             }
-            return itemRepository.findByFilters(Item.ItemStatus.ON_SALE, categoryId, itemCondition, deliveryMethod, pageable);
+            return itemRepository.findByFilters(Item.ItemStatus.ON_SALE, categoryId, itemCondition, deliveryMethod, keyword, pageable);
         }
-        return itemRepository.findByFilters(Item.ItemStatus.ON_SALE, null, itemCondition, deliveryMethod, pageable);
+        return itemRepository.findByFilters(Item.ItemStatus.ON_SALE, null, itemCondition, deliveryMethod, keyword, pageable);
     }
 
-    private Page<ItemSummaryDTO> convertToSummaryPage(Page<Item> itemsPage) {
+    public Page<ItemSummaryDTO> convertToSummaryPage(Page<Item> itemsPage) {
         Set<Long> userIds = itemsPage.getContent().stream().map(Item::getUserId).collect(Collectors.toSet());
         Map<Long, User> userMap = loadUserMap(userIds);
         Map<Long, Integer> sellerItemCounts = getSellerItemCounts(new ArrayList<>(userIds));
@@ -243,14 +294,33 @@ public class ItemQueryService {
         }
     }
 
-    private double calculateHotScore(Item item, double nowMs) {
+    private double calculateHotScore(Item item, double nowMs, Map<Long, Long> categoryItemCounts, long maxCategoryCount) {
         long createdMillis = item.getCreatedAt() != null
                 ? item.getCreatedAt().atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
                 : 0L;
         double daysSinceCreation = (nowMs - createdMillis) / (1000.0 * 60 * 60 * 24);
-        double timeDecay = 1.0 / (1.0 + daysSinceCreation / 7.0);
+        double timeDecay = 1.0 / (1.0 + daysSinceCreation / 14.0);
+
         int viewCount = item.getViewCount() != null ? item.getViewCount() : 0;
         int favoriteCount = item.getFavoriteCount() != null ? item.getFavoriteCount() : 0;
-        return viewCount * timeDecay + favoriteCount * 5.0;
+        double qualityFactor = viewCount > 0 ? (double) favoriteCount / (viewCount + 1) : 0;
+
+        Long orderCount = orderRepository.countCompletedByItemId(item.getId());
+
+        double categoryPenalty = 1.0;
+        if (maxCategoryCount > 0) {
+            long catCount = categoryItemCounts.getOrDefault(item.getCategoryId(), 0L);
+            categoryPenalty = 1.0 - 0.3 * ((double) catCount / maxCategoryCount);
+        }
+
+        return (viewCount * 0.3 * timeDecay * (1 + qualityFactor * 20))
+                + (favoriteCount * 5.0 * timeDecay)
+                + (orderCount * 15.0 * timeDecay)
+                * categoryPenalty;
+    }
+
+    private Map<Long, Long> computeCategoryItemCounts(List<Item> items) {
+        return items.stream()
+                .collect(Collectors.groupingBy(Item::getCategoryId, Collectors.counting()));
     }
 }

@@ -29,20 +29,11 @@ public class DictItem {
     @Column(name = "item_label", nullable = false, length = 200)
     private String itemLabel;
 
-    @Column(name = "item_label_en", length = 200)
-    private String itemLabelEn;
-
     @Column(name = "sort_order")
     private Integer sortOrder = 0;
 
     @Column(nullable = false)
     private Boolean status = true;
-
-    @Column(name = "css_class", length = 100)
-    private String cssClass;
-
-    @Column(name = "extra_data", length = 500)
-    private String extraData;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

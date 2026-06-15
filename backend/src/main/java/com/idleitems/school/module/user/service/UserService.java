@@ -2,6 +2,7 @@ package com.idleitems.school.module.user.service;
 
 import com.idleitems.school.common.BusinessException;
 import com.idleitems.school.common.ErrorCode;
+import com.idleitems.school.module.user.dto.SellerProfileDTO;
 import com.idleitems.school.module.user.dto.UpdateProfileRequest;
 import com.idleitems.school.module.user.dto.UserStatsDTO;
 import com.idleitems.school.module.item.entity.Item;
@@ -107,6 +108,15 @@ public class UserService {
         if (request.getSchoolName() != null) {
             user.setSchoolName(request.getSchoolName());
         }
+        if (request.getDepartment() != null) {
+            user.setDepartment(request.getDepartment());
+        }
+        if (request.getMajor() != null) {
+            user.setMajor(request.getMajor());
+        }
+        if (request.getGrade() != null) {
+            user.setGrade(request.getGrade());
+        }
 
         return userRepository.save(user);
     }
@@ -136,9 +146,6 @@ public class UserService {
         user.setStudentId(studentId);
         user.setVerified(false);
         user.setCreditScore(100);
-        user.setTotalTransactions(0);
-        user.setTotalSales(0);
-        user.setTotalPurchases(0);
         user.setLoginCount(0);
         user.setIsDeleted(false);
 
@@ -147,7 +154,8 @@ public class UserService {
 
     public User updateUserAdmin(Long userId, String email, String phone, User.Role role,
                                User.UserStatus status, String nickname, String studentId,
-                               Integer gender, String bio, String schoolName) {
+                               Integer gender, String bio, String schoolName,
+                               String department, String major, String grade) {
         User user = getUserById(userId);
 
         if (email != null && !email.equals(user.getEmail())) {
@@ -171,6 +179,9 @@ public class UserService {
         if (gender != null) user.setGender(gender);
         if (bio != null) user.setBio(bio);
         if (schoolName != null) user.setSchoolName(schoolName);
+        if (department != null) user.setDepartment(department);
+        if (major != null) user.setMajor(major);
+        if (grade != null) user.setGrade(grade);
 
         return userRepository.save(user);
     }
@@ -198,13 +209,46 @@ public class UserService {
         }
     }
 
+    // ========== 卖家公开信息 ==========
+
+    public SellerProfileDTO getSellerProfile(Long userId) {
+        User user = getUserById(userId);
+        long totalItems = itemRepository.countByUserIdAndStatus(userId, com.idleitems.school.module.item.entity.Item.ItemStatus.ON_SALE);
+        long soldItems = Optional.ofNullable(orderRepository.countBySellerIdAndStatus(userId, com.idleitems.school.module.order.entity.Order.OrderStatus.COMPLETED)).orElse(0L);
+        long completedDeals = Optional.ofNullable(orderRepository.countByBuyerIdAndStatus(userId, com.idleitems.school.module.order.entity.Order.OrderStatus.COMPLETED)).orElse(0L)
+                + soldItems;
+        double rating = Optional.ofNullable(reviewRepository.getAverageRatingByUserId(userId))
+                .orElse(BigDecimal.ZERO).doubleValue();
+        long reviewCount = Optional.ofNullable(reviewRepository.countByReviewedUserId(userId)).orElse(0L);
+
+        return SellerProfileDTO.builder()
+                .id(user.getId())
+                .nickname(user.getNickname() != null ? user.getNickname() : user.getUsername())
+                .avatar(user.getAvatar())
+                .schoolName(user.getSchoolName())
+                .department(user.getDepartment())
+                .major(user.getMajor())
+                .grade(user.getGrade())
+                .bio(user.getBio())
+                .verified(user.getVerified() != null ? user.getVerified() : false)
+                .creditScore(user.getCreditScore() != null ? user.getCreditScore() : 100)
+                .memberSince(user.getCreatedAt())
+                .totalItems(totalItems)
+                .soldItems(soldItems)
+                .completedDeals(completedDeals)
+                .rating(rating)
+                .reviewCount(reviewCount)
+                .build();
+    }
+
     // ========== 统计方法 ==========
 
     public UserStatsDTO getUserStats(Long userId) {
         User user = getUserById(userId);
         long totalItems = itemRepository.countByUserId(userId);
         long soldItems = orderRepository.countBySellerIdAndStatus(userId, com.idleitems.school.module.order.entity.Order.OrderStatus.COMPLETED);
-        long completedDeals = user.getTotalTransactions() != null ? user.getTotalTransactions().longValue() : 0L;
+        long completedDeals = orderRepository.countByBuyerIdAndStatus(userId, com.idleitems.school.module.order.entity.Order.OrderStatus.COMPLETED)
+                + orderRepository.countBySellerIdAndStatus(userId, com.idleitems.school.module.order.entity.Order.OrderStatus.COMPLETED);
         int creditScore = user.getCreditScore() != null ? user.getCreditScore() : 100;
         double rating = Optional.ofNullable(reviewRepository.getAverageRatingByUserId(userId))
                 .orElse(BigDecimal.valueOf(creditScore)).doubleValue();

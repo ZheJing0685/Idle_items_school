@@ -1,7 +1,7 @@
 package com.idleitems.school.config;
 
-import com.idleitems.school.filter.RateLimitFilter;
-import com.idleitems.school.filter.XssFilter;
+import com.idleitems.school.security.filter.RateLimitFilter;
+import com.idleitems.school.security.filter.XssFilter;
 import com.idleitems.school.security.JwtTokenBlacklistService;
 import com.idleitems.school.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
@@ -69,6 +69,7 @@ public class SecurityConfig {
                 .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/doc.html", "/webjars/**", "/swagger-resources/**").permitAll()
                 .requestMatchers("/actuator/**").permitAll()
                 .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/refresh", "/api/auth/me", "/api/auth/forgot-password", "/api/auth/verify-code", "/api/auth/reset-password", "/api/items/search", "/api/items/hot", "/api/items/{id}", "/api/categories", "/api/categories/tree", "/api/home/**", "/api/test/**").permitAll()
+                .requestMatchers("/api/user/*/profile", "/api/user/*/items", "/api/user/*/reviews").permitAll()
                 .requestMatchers("/uploads/**").permitAll()
                 .requestMatchers("/ws/**", "/ws-native/**").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/items").permitAll()
@@ -128,13 +129,14 @@ public class SecurityConfig {
                 if (token != null) {
                     // 检查Token是否在黑名单中
                     if (jwtTokenBlacklistService.isBlacklisted(token)) {
-                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                        response.setContentType("application/json;charset=UTF-8");
-                        response.getWriter().write("{\"code\":40101,\"message\":\"Token已失效，请重新登录\",\"data\":null}");
-                        return;
-                    }
-                    
-                    if (jwtUtil.validateToken(token)) {
+                        String uri = request.getRequestURI();
+                        if (!isPermitAll(uri)) {
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.setContentType("application/json;charset=UTF-8");
+                            response.getWriter().write("{\"code\":40101,\"message\":\"Token已失效，请重新登录\",\"data\":null}");
+                            return;
+                        }
+                    } else if (jwtUtil.validateToken(token)) {
                         String userIdStr = jwtUtil.getUserIdFromToken(token);
                         Long userId = Long.parseLong(userIdStr);
                         String username = jwtUtil.getUsernameFromToken(token);
@@ -150,13 +152,32 @@ public class SecurityConfig {
                         request.setAttribute("username", username);
                         request.setAttribute("role", role);
                     } else {
-                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                        response.setContentType("application/json;charset=UTF-8");
-                        response.getWriter().write("{\"code\":40101,\"message\":\"token已过期或无效\",\"data\":null}");
-                        return;
+                        // Token无效/过期，但如果是permitAll端点则不拦截
+                        String uri = request.getRequestURI();
+                        if (!isPermitAll(uri)) {
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.setContentType("application/json;charset=UTF-8");
+                            response.getWriter().write("{\"code\":40101,\"message\":\"token已过期或无效\",\"data\":null}");
+                            return;
+                        }
                     }
                 }
                 filterChain.doFilter(request, response);
+            }
+
+            private boolean isPermitAll(String uri) {
+                return uri.startsWith("/api/auth/")
+                        || uri.equals("/api/items/search")
+                        || uri.equals("/api/items/hot")
+                        || uri.matches("/api/items/\\d+")
+                        || uri.startsWith("/api/categories")
+                        || uri.startsWith("/api/home")
+                        || uri.startsWith("/api/test")
+                        || uri.matches("/api/user/\\d+/profile")
+                        || uri.matches("/api/user/\\d+/items")
+                        || uri.matches("/api/user/\\d+/reviews")
+                        || uri.startsWith("/uploads/")
+                        || uri.startsWith("/ws");
             }
         };
     }

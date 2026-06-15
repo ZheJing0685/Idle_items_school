@@ -119,12 +119,13 @@ public class CacheService {
         return PREFIX_ITEM + itemId + SUFFIX_DETAIL;
     }
 
-    public static String getItemListKey(int page, int size, String category, String sortBy, String condition, Integer deliveryMethod) {
+    public static String getItemListKey(int page, int size, String category, String sortBy, String condition, Integer deliveryMethod, String keyword) {
         return PREFIX_ITEM + SUFFIX_LIST + ":" + page + ":" + size + ":"
                + (category != null ? category : "all") + ":"
                + (sortBy != null ? sortBy : "createdAt") + ":"
                + (condition != null ? condition : "none") + ":"
-               + (deliveryMethod != null ? deliveryMethod : "none");
+               + (deliveryMethod != null ? deliveryMethod : "none") + ":"
+               + (keyword != null ? keyword : "");
     }
 
     public static String getHotItemsKey() {

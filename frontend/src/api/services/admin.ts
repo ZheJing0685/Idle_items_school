@@ -109,7 +109,7 @@ const admin = {
     approveVerification: (verificationId: number | string) =>
       post<null>(`/admin/verifications/${verificationId}/approve`),
     rejectVerification: (verificationId: number | string, reason: string) =>
-      post<null>(`/admin/verifications/${verificationId}/reject`, { reason }),
+      post<null>(`/admin/verifications/${verificationId}/reject`, null, { params: { reason } }),
     batchApprove: (verificationIds: number[]) =>
       post<null>('/admin/verifications/batch/approve', verificationIds),
     batchReject: (verificationIds: number[], reason: string) =>

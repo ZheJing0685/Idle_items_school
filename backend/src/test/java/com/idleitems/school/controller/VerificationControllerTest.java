@@ -1,10 +1,11 @@
 package com.idleitems.school.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.idleitems.school.dto.SubmitVerificationRequest;
-import com.idleitems.school.entity.VerificationRecord;
-import com.idleitems.school.service.FileService;
-import com.idleitems.school.service.VerificationService;
+import com.idleitems.school.module.user.dto.SubmitVerificationRequest;
+import com.idleitems.school.module.user.entity.VerificationRecord;
+import com.idleitems.school.module.file.service.FileService;
+import com.idleitems.school.module.user.service.VerificationService;
+import com.idleitems.school.module.user.controller.VerificationController;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

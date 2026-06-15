@@ -163,7 +163,8 @@ docs/
 scripts/
 .githooks/
 GIT_WORKFLOW.md
-
+chapters/
+finish/
 # Spec/plan/report files (not source code)
 .specs/
 .playwright-mcp/
@@ -187,3 +188,5 @@ sql/idle_items_school.sql
 feature-review.html
 skills-lock.json
 nul
+毕业设计说明书.docx
+.gitignore

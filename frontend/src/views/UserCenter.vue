@@ -1,15 +1,16 @@
 <template>
   <div class="user-center-page">
     <div class="container">
+      <BreadcrumbNav />
       <!-- Profile Header -->
       <div class="profile-header">
         <div class="profile-avatar">
-          <img v-if="userInfo?.avatar" :src="userInfo.avatar" alt="头像" class="avatar-img" />
+          <img v-if="userInfo?.avatar" :src="userInfo.avatar" alt="头像" class="avatar-img" loading="lazy" />
           <span v-else>{{ userInfo?.nickname?.charAt(0) || '陈' }}</span>
         </div>
         <div class="profile-user-info">
           <div class="profile-name">{{ userInfo?.nickname || '陈同学' }}</div>
-          <div class="profile-school">{{ userInfo?.school || '计算机科学与技术学院 · 大三' }}</div>
+          <div class="profile-school">{{ [userInfo?.schoolName, userInfo?.department].filter(Boolean).join(' · ') || userInfo?.school || '未知学校' }}{{ userInfo?.grade ? ' · ' + userInfo.grade : '' }}</div>
           <div class="profile-bio">{{ userInfo?.bio || '热爱环保的码农，闲置物品换新主人 ♻️' }}</div>
         </div>
         <a v-if="store.isAdmin" href="/admin" class="admin-btn">
@@ -43,67 +44,36 @@
       </div>
 
       <!-- Profile Tabs -->
-      <div class="profile-tabs">
-        <button
+      <div class="profile-tabs" role="tablist" aria-label="个人中心导航">
+        <router-link
           v-for="tab in tabs"
           :key="tab.id"
+          :to="`/user/${tab.route}`"
           class="profile-tab"
-          :class="{ active: activeTab === tab.id }"
-          @click="activeTab = tab.id"
+          :class="{ active: route.path === `/user/${tab.route}` }"
+          role="tab"
+          :aria-selected="route.path === `/user/${tab.route}`"
         >
           {{ tab.name }}
-        </button>
+        </router-link>
       </div>
 
-      <!-- Tab Content: 个人信息 -->
-      <div v-if="activeTab === 'profile'" class="tab-content">
-        <Profile @change-tab="activeTab = $event" />
-      </div>
-
-      <!-- Tab Content: 实名认证 -->
-      <div v-else-if="activeTab === 'verification'" class="tab-content">
-        <Verification />
-      </div>
-
-      <!-- Tab Content: 我的发布 -->
-      <div v-else-if="activeTab === 'my-items'" class="tab-content">
-        <UserItems />
-      </div>
-
-      <!-- Tab Content: 我的订单 -->
-      <div v-else-if="activeTab === 'orders'" class="tab-content">
-        <OrderList />
-      </div>
-
-      <!-- Tab Content: 收藏夹 -->
-      <div v-else-if="activeTab === 'favorites'" class="tab-content">
-        <Favorites />
-      </div>
-
-      <!-- Tab Content: 消息中心 -->
-      <div v-else-if="activeTab === 'chat'" class="tab-content">
-        <Chat />
-      </div>
-
-      <!-- Tab Content: 消息通知 -->
-      <div v-else-if="activeTab === 'notifications'" class="tab-content">
-        <Notifications />
-      </div>
-
-      <!-- Tab Content: 修改密码 -->
-      <div v-else-if="activeTab === 'change-password'" class="tab-content">
-        <ChangePassword />
+      <!-- Tab Content via Router -->
+      <div class="tab-content">
+        <router-view />
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue';
+import { ref, reactive, computed, onMounted, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { userStore } from '../store';
 import api from '../api';
 
 // Import child components
+import BreadcrumbNav from '../components/common/BreadcrumbNav.vue';
 import Profile from './user/Profile.vue';
 import Verification from './user/Verification.vue';
 import UserItems from './user/Items.vue';
@@ -114,37 +84,43 @@ import Notifications from './user/Notifications.vue';
 import ChangePassword from './user/ChangePassword.vue';
 
 const store = userStore();
+const route = useRoute();
+const router = useRouter();
 const userInfo = computed(() => store.user);
-const activeTab = ref('profile');
 
 const tabs = [
-  { id: 'profile', name: '个人信息' },
-  { id: 'verification', name: '实名认证' },
-  { id: 'my-items', name: '我的发布' },
-  { id: 'orders', name: '我的订单' },
-  { id: 'favorites', name: '收藏夹' },
-  { id: 'chat', name: '消息中心' },
-  { id: 'notifications', name: '消息通知' },
+  { id: 'profile', name: '个人信息', route: 'profile' },
+  { id: 'verification', name: '实名认证', route: 'verification' },
+  { id: 'my-items', name: '我的发布', route: 'items' },
+  { id: 'orders', name: '我的订单', route: 'orders' },
+  { id: 'favorites', name: '收藏夹', route: 'favorites' },
+  { id: 'chat', name: '消息中心', route: 'chat' },
+  { id: 'notifications', name: '消息通知', route: 'notifications' },
+  { id: 'change-password', name: '修改密码', route: 'change-password' },
 ];
 
 const stats = reactive({
-  totalItems: 12,
-  soldItems: 8,
-  favorites: 24,
-  rating: 4.9,
+  totalItems: 0,
+  soldItems: 0,
+  favorites: 0,
+  rating: 0,
 });
+const statsLoading = ref(true);
 
 onMounted(async () => {
+  statsLoading.value = true;
   try {
     const res = await api.user.getStats();
     if (res.code === 200) {
-      stats.totalItems = res.data.totalItems ?? 12;
-      stats.soldItems = res.data.soldItems ?? 8;
-      stats.favorites = res.data.favorites ?? 24;
-      stats.rating = res.data.rating ?? 4.9;
+      stats.totalItems = res.data.totalItems ?? 0;
+      stats.soldItems = res.data.soldItems ?? 0;
+      stats.favorites = res.data.favorites ?? 0;
+      stats.rating = res.data.rating ?? 0;
     }
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('获取统计数据失败', error);
+  } finally {
+    statsLoading.value = false;
   }
 });
 </script>

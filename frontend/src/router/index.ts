@@ -45,12 +45,30 @@ const routes: RouteRecordRaw[] = [
     },
   },
   {
+    path: '/seller/:id',
+    name: 'SellerStore',
+    component: () => import('../views/SellerStore.vue'),
+    meta: {
+      requiresAuth: false,
+      title: '卖家店铺',
+    },
+  },
+  {
     path: '/items',
     name: 'Items',
     component: () => import('../views/Items.vue'),
     meta: {
       requiresAuth: false,
       title: '浏览闲置',
+    },
+  },
+  {
+    path: '/items/category/:categoryName',
+    name: 'ItemsByCategory',
+    component: () => import('../views/Items.vue'),
+    meta: {
+      requiresAuth: false,
+      title: '分类浏览',
     },
   },
   {
@@ -329,9 +347,22 @@ const routes: RouteRecordRaw[] = [
 const router = createRouter({
   history: createWebHistory(),
   routes,
+  scrollBehavior(to, _from, savedPosition) {
+    if (savedPosition) {
+      return savedPosition;
+    }
+    return { top: 0 };
+  },
 });
 
+// 滚动位置缓存
+const scrollPositions = new Map<string, number>();
+
 router.beforeEach(async (to, from, next) => {
+  // 离开前缓存当前页面滚动位置
+  if (from.fullPath && from.matched.length > 0) {
+    scrollPositions.set(from.fullPath, window.scrollY);
+  }
   const brandName = '闲置物品交易平台';
   const pageTitle = to.meta.title as string;
   document.title = pageTitle ? `${pageTitle} - ${brandName}` : brandName;
@@ -382,8 +413,16 @@ router.beforeEach(async (to, from, next) => {
   }
 });
 
-router.afterEach((_to, _from) => {
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+router.afterEach((to, _from) => {
+  const savedPosition = scrollPositions.get(to.fullPath);
+  if (savedPosition !== undefined) {
+    // 使用 nextTick 确保 DOM 渲染完成后再恢复滚动
+    setTimeout(() => {
+      window.scrollTo({ top: savedPosition, behavior: 'auto' });
+    }, 50);
+  } else {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 });
 
 export default router;

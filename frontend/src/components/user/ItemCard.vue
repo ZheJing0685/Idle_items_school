@@ -69,6 +69,12 @@ const statusClass = computed(() => {
   transform: translateY(-4px);
 }
 
+.item-card:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  box-shadow: var(--shadow-lg);
+}
+
 .card-image {
   position: relative;
   aspect-ratio: 16/9;

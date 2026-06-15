@@ -1,9 +1,9 @@
 package com.idleitems.school.integration;
 
 import com.idleitems.school.BaseIntegrationTest;
-import com.idleitems.school.dto.LoginRequest;
-import com.idleitems.school.entity.User;
-import com.idleitems.school.repository.UserRepository;
+import com.idleitems.school.module.auth.dto.LoginRequest;
+import com.idleitems.school.module.user.entity.User;
+import com.idleitems.school.module.user.repository.UserRepository;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;

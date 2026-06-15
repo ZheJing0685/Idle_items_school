@@ -46,7 +46,7 @@ import { ref, onMounted, onUnmounted } from 'vue';
 import { ElMessage } from 'element-plus';
 import { useRouter } from 'vue-router';
 import notificationApi from '@/api/services/notification';
-import { wsService } from '@/utils/websocket';
+import { wsManager } from '@/utils/websocket';
 import { useUserStore } from '@/store';
 import PageHeader from '@/components/user/PageHeader.vue';
 import NotificationCard from '@/components/user/NotificationCard.vue';
@@ -123,19 +123,19 @@ const handleNewNotification = (notification: any) => {
 
 onMounted(() => {
   loadNotifications();
-  wsService.onMessage('notification', handleNewNotification);
+  wsManager.subscribe('notification', handleNewNotification);
 
   const userId = userStore.user?.id;
   if (userId) {
-    // WebSocket 使用 access_token cookie 认证
-    wsService.connect('', String(userId)).catch((err) => {
+    wsManager.connect('', String(userId)).catch((err) => {
       console.error('WebSocket连接失败:', err);
     });
   }
 });
 
 onUnmounted(() => {
-  wsService.disconnect();
+  wsManager.unsubscribe('notification', handleNewNotification);
+  wsManager.disconnect();
 });
 </script>
 

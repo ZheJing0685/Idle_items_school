@@ -11,6 +11,8 @@ public interface FileService {
 
     Map<String, Object> uploadImage(MultipartFile file) throws Exception;
 
+    Map<String, Object> uploadChatMedia(MultipartFile file) throws Exception;
+
     String uploadFile(MultipartFile file, String directory) throws IOException;
 
     boolean deleteFile(String filePath);

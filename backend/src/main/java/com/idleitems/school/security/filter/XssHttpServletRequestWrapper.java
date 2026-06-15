@@ -21,7 +21,7 @@ public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private Map<String, String[]> filteredParameterMap;
 
-    public XssHttpServletRequestWrapper(HttpServletRequest request) throws IOException {
+    public XssHttpServletRequestWrapper(HttpServletRequest request) {
         this(request, true);
     }
 
@@ -29,20 +29,23 @@ public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
      * @param request       原始请求
      * @param readBody      是否读取并过滤请求体（POST/PUT/PATCH 为 true，GET 为 false）
      */
-    public XssHttpServletRequestWrapper(HttpServletRequest request, boolean readBody) throws IOException {
+    public XssHttpServletRequestWrapper(HttpServletRequest request, boolean readBody) {
         super(request);
         if (readBody) {
             String bodyString = getBodyString(request);
             String contentType = request.getContentType();
             if (contentType != null && contentType.contains("application/json")) {
-                body = filterJsonXss(bodyString);
+                try {
+                    body = filterJsonXss(bodyString);
+                } catch (IOException e) {
+                    body = bodyString.getBytes(StandardCharsets.UTF_8);
+                }
             } else {
                 body = XssFilter.filterXss(bodyString).getBytes(StandardCharsets.UTF_8);
             }
         } else {
             body = null;
         }
-        // 预过滤查询参数
         filterParameters();
     }
 
@@ -76,17 +79,22 @@ public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
         return Collections.unmodifiableMap(filteredParameterMap);
     }
 
-    private String getBodyString(HttpServletRequest request) throws IOException {
-        StringBuilder stringBuilder = new StringBuilder();
-        try (BufferedReader bufferedReader = new BufferedReader(
-                new InputStreamReader(request.getInputStream(), StandardCharsets.UTF_8))) {
-            char[] chars = new char[128];
-            int len;
-            while ((len = bufferedReader.read(chars)) > 0) {
-                stringBuilder.append(chars, 0, len);
+    private String getBodyString(HttpServletRequest request) {
+        try {
+            StringBuilder stringBuilder = new StringBuilder();
+            try (BufferedReader bufferedReader = new BufferedReader(
+                    new InputStreamReader(request.getInputStream(), StandardCharsets.UTF_8))) {
+                char[] chars = new char[128];
+                int len;
+                while ((len = bufferedReader.read(chars)) > 0) {
+                    stringBuilder.append(chars, 0, len);
+                }
             }
+            return stringBuilder.toString();
+        } catch (IOException e) {
+            // 流已关闭（例如 Tomcat 错误页面转发），返回空字符串
+            return "";
         }
-        return stringBuilder.toString();
     }
 
     private byte[] filterJsonXss(String jsonString) throws IOException {
@@ -129,7 +137,8 @@ public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
 
     @Override
     public ServletInputStream getInputStream() throws IOException {
-        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(body);
+        byte[] content = (body != null) ? body : new byte[0];
+        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(content);
         return new ServletInputStream() {
             @Override
             public boolean isFinished() {

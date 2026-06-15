@@ -5,13 +5,17 @@ import com.idleitems.school.common.ErrorCode;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.idleitems.school.module.dispute.entity.Dispute;
+import com.idleitems.school.module.notification.entity.Notification;
 import com.idleitems.school.module.order.entity.Order;
 import com.idleitems.school.module.dispute.repository.DisputeRepository;
 import com.idleitems.school.module.notification.service.NotificationService;
 import com.idleitems.school.module.order.repository.OrderRepository;
+import com.idleitems.school.module.user.entity.User;
+import com.idleitems.school.module.user.repository.UserRepository;
 import com.idleitems.school.util.SensitiveWordFilter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +34,7 @@ public class DisputeCommandService {
     private final OrderRepository orderRepository;
     private final NotificationService notificationService;
     private final ObjectMapper objectMapper;
+    private final UserRepository userRepository;
 
     private static final List<Dispute.DisputeStatus> ACTIVE_STATUSES = List.of(
             Dispute.DisputeStatus.PENDING,
@@ -84,6 +89,22 @@ public class DisputeCommandService {
 
         notificationService.createNotification(respondentId, 3, "New dispute",
                 "A dispute has been submitted for your order", savedDispute.getId(), "DISPUTE");
+
+        try {
+            List<User> admins = userRepository.findByRole(User.Role.ADMIN, Pageable.unpaged()).getContent();
+            for (User admin : admins) {
+                notificationService.createNotification(
+                        admin.getId(),
+                        Notification.NotificationType.SYSTEM.getCode(),
+                        "新纠纷待处理",
+                        "订单 " + savedDispute.getDisputeNo() + " 有新的纠纷申请，等待管理员处理",
+                        savedDispute.getId(),
+                        "DISPUTE"
+                );
+            }
+        } catch (Exception e) {
+            log.warn("发送纠纷管理员通知失败: disputeId={}", savedDispute.getId(), e);
+        }
 
         log.info("Dispute created: id={}, no={}", savedDispute.getId(), savedDispute.getDisputeNo());
         return savedDispute;

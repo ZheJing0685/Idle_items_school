@@ -47,12 +47,6 @@ public class UserDTO {
     private Integer loginCount;
     @Schema(description = "信用分")
     private Integer creditScore;
-    @Schema(description = "交易总数")
-    private Integer totalTransactions;
-    @Schema(description = "卖出总数")
-    private Integer totalSales;
-    @Schema(description = "购买总数")
-    private Integer totalPurchases;
     @Schema(description = "性别（0-未知，1-男，2-女）")
     private Integer gender;
     @Schema(description = "生日")
@@ -61,6 +55,12 @@ public class UserDTO {
     private String bio;
     @Schema(description = "学校名称")
     private String schoolName;
+    @Schema(description = "学院/系")
+    private String department;
+    @Schema(description = "专业")
+    private String major;
+    @Schema(description = "年级")
+    private String grade;
 
     /**
      * 从实体转换为DTO
@@ -99,13 +99,13 @@ public class UserDTO {
                 .lastLoginTime(user.getLastLoginTime())
                 .loginCount(user.getLoginCount())
                 .creditScore(user.getCreditScore())
-                .totalTransactions(user.getTotalTransactions())
-                .totalSales(user.getTotalSales())
-                .totalPurchases(user.getTotalPurchases())
                 .gender(user.getGender())
                 .birthday(user.getBirthday())
                 .bio(user.getBio())
                 .schoolName(user.getSchoolName())
+                .department(user.getDepartment())
+                .major(user.getMajor())
+                .grade(user.getGrade())
                 .build();
     }
 

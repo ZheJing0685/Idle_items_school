@@ -25,7 +25,7 @@ public class VerificationRecord {
     @Column(name = "student_id", length = 50)
     private String studentId;
 
-    @Column(name = "id_card", length = 18)
+    @Column(name = "id_card", length = 512)
     private String idCard;
 
     @Column(name = "teacher_id", length = 50)
@@ -34,16 +34,16 @@ public class VerificationRecord {
     @Column(name = "school", length = 100)
     private String school;
 
-    @Column(name = "student_card", length = 255)
+    @Column(name = "student_card", length = 512)
     private String studentCard;
 
-    @Column(name = "id_card_front", length = 255)
+    @Column(name = "id_card_front", length = 512)
     private String idCardFront;
 
-    @Column(name = "id_card_back", length = 255)
+    @Column(name = "id_card_back", length = 512)
     private String idCardBack;
 
-    @Column(name = "teacher_card", length = 255)
+    @Column(name = "teacher_card", length = 512)
     private String teacherCard;
 
     @Enumerated(EnumType.STRING)

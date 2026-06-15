@@ -19,15 +19,15 @@
           </p>
           <div class="visual-stats">
             <div class="visual-stat">
-              <strong>2,847</strong>
-              件物品在流转
+              <strong>{{ carbonStats.transactionCount }}</strong>
+              笔交易已完成
             </div>
             <div class="visual-stat">
-              <strong>128kg</strong>
+              <strong>{{ carbonStats.monthlySavingKg }}kg</strong>
               本月减碳量
             </div>
             <div class="visual-stat">
-              <strong>1,206</strong>
+              <strong>{{ carbonStats.participantCount }}</strong>
               位同学参与
             </div>
           </div>
@@ -42,30 +42,29 @@
             <p class="card-subtitle">登录账号，开始闲置交易之旅</p>
           </div>
 
-          <form class="login-form" @submit.prevent="handleLogin">
-            <div class="form-group">
-              <label class="form-label" for="login-username">用户名</label>
-              <input
-                id="login-username"
+          <el-form
+            ref="loginFormRef"
+            :model="loginForm"
+            :rules="loginRules"
+            class="login-form"
+            label-position="top"
+            @submit.prevent="handleLogin"
+          >
+            <el-form-item label="用户名" prop="username" class="form-group">
+              <el-input
                 v-model="loginForm.username"
-                type="text"
                 placeholder="请输入用户名"
-                class="form-input"
-                required
               />
-            </div>
+            </el-form-item>
 
-            <div class="form-group">
-              <label class="form-label" for="login-password">密码</label>
-              <input
-                id="login-password"
+            <el-form-item label="密码" prop="password" class="form-group">
+              <el-input
                 v-model="loginForm.password"
                 type="password"
+                show-password
                 placeholder="请输入密码"
-                class="form-input"
-                required
               />
-            </div>
+            </el-form-item>
 
             <div class="form-options">
               <label class="remember-check">
@@ -75,14 +74,16 @@
               <router-link to="/forgot-password" class="forgot-link">忘记密码？</router-link>
             </div>
 
-            <button
-              type="submit"
+            <el-button
+              type="primary"
+              native-type="submit"
               class="submit-btn"
-              :disabled="loading"
+              :loading="loading"
+              size="large"
             >
               {{ loading ? '登录中...' : '登录' }}
-            </button>
-          </form>
+            </el-button>
+          </el-form>
 
           <div class="card-footer">
             <span class="footer-text">还没有账号？</span>
@@ -95,31 +96,60 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue';
+import { ref, reactive, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { ElMessage } from 'element-plus';
+import { ElMessage, type FormInstance } from 'element-plus';
 import { userStore } from '../store';
+import api from '../api';
+import type { CarbonStats } from '../api/services/carbon';
+import { formRules } from '../utils/validator';
 
 const router = useRouter();
 const loading = ref(false);
 const rememberMe = ref(false);
 const store = userStore();
+const carbonStats = ref<CarbonStats>({
+  monthlySavingKg: 0,
+  totalSavingKg: 0,
+  treeEquivalent: 0,
+  transactionCount: 0,
+  participantCount: 0,
+});
+const loginFormRef = ref<FormInstance>();
 
 const loginForm = reactive({
   username: '',
   password: '',
 });
 
+const loginRules = {
+  username: [
+    { required: true, message: '请输入用户名', trigger: 'blur' },
+    { min: 3, max: 20, message: '用户名长度3-20个字符', trigger: 'blur' },
+  ],
+  password: [
+    { required: true, message: '请输入密码', trigger: 'blur' },
+  ],
+};
+
 const handleLogin = async () => {
-  if (!loginForm.username || !loginForm.password) {
-    ElMessage.warning('请输入用户名和密码');
-    return;
-  }
+  const valid = await loginFormRef.value?.validate().catch(() => false);
+  if (!valid) return;
 
   try {
     loading.value = true;
     await store.login(loginForm.username, loginForm.password, rememberMe.value);
     ElMessage.success('登录成功');
+
+    // 检测是否有待处理的购买意图
+    const pendingPurchase = sessionStorage.getItem('pendingPurchase');
+    if (pendingPurchase) {
+      sessionStorage.removeItem('pendingPurchase');
+      const purchaseData = JSON.parse(pendingPurchase);
+      ElMessage.info('请重新下单');
+      router.push(`/item/${purchaseData.itemId}`);
+      return;
+    }
 
     const redirectPath = localStorage.getItem('redirectPath');
     if (redirectPath) {
@@ -135,6 +165,23 @@ const handleLogin = async () => {
     loading.value = false;
   }
 };
+
+onMounted(async () => {
+  try {
+    const res = await api.carbon.getStats();
+    if (res.data) {
+      carbonStats.value = {
+        monthlySavingKg: res.data.monthlySavingKg ?? 0,
+        totalSavingKg: res.data.totalSavingKg ?? 0,
+        treeEquivalent: res.data.treeEquivalent ?? 0,
+        transactionCount: res.data.transactionCount ?? 0,
+        participantCount: res.data.participantCount ?? 0,
+      };
+    }
+  } catch (error) {
+    console.error('获取碳减排统计失败，使用默认值', error);
+  }
+});
 </script>
 
 <style scoped src="../styles/pages/login.css"></style>

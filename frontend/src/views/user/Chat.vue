@@ -15,7 +15,7 @@
             @click="selectChat(chat)"
           >
             <div class="chat-avatar">
-              <img v-if="getOtherUser(chat).avatar" :src="getOtherUser(chat).avatar" alt="" />
+              <img v-if="getOtherUser(chat).avatar" :src="getOtherUser(chat).avatar" alt="" loading="lazy" />
               <el-avatar v-else :size="40">{{ getOtherUser(chat).nickname?.charAt(0) || getOtherUser(chat).username?.charAt(0) || '用' }}</el-avatar>
             </div>
             <div class="chat-info">
@@ -39,25 +39,58 @@
             </div>
           </div>
 
-          <div class="message-list" ref="messageList">
-            <div
-              v-for="msg in messages"
-              :key="msg.id"
-              class="message-item"
-              :class="{ 'is-mine': msg.senderId === currentUserId }"
-            >
-              <div class="message-avatar">
-                <img v-if="getMessageAvatar(msg)" :src="getMessageAvatar(msg)" alt="" />
-                <el-avatar v-else :size="40">{{ msg.senderId === currentUserId ? (userStore.user?.nickname?.charAt(0) || userStore.user?.username?.charAt(0) || '我') : (getOtherUser(currentChat)?.nickname?.charAt(0) || getOtherUser(currentChat)?.username?.charAt(0) || '对') }}</el-avatar>
+          <div class="message-list" ref="messageList" @scroll="handleScroll">
+            <div v-if="loadingMore" class="loading-more">加载中...</div>
+            <template v-for="item in messagesWithSeparators" :key="item.key">
+              <div v-if="item.type === 'separator'" class="date-separator">
+                <span class="date-separator-text">{{ formatDateSeparator(item.date) }}</span>
               </div>
-              <div class="message-content">
-                <div class="message-text">{{ msg.content }}</div>
-                <div class="message-time">{{ formatMessageTime(msg.createdAt) }}</div>
+              <div
+                v-else
+                class="message-item"
+                :class="{ 'is-mine': item.msg.senderId === currentUserId }"
+              >
+                <div class="message-avatar">
+                  <img v-if="getMessageAvatar(item.msg)" :src="getMessageAvatar(item.msg)" alt="" loading="lazy" />
+                  <el-avatar v-else :size="40">{{ item.msg.senderId === currentUserId ? (userStore.user?.nickname?.charAt(0) || userStore.user?.username?.charAt(0) || '我') : (getOtherUser(currentChat)?.nickname?.charAt(0) || getOtherUser(currentChat)?.username?.charAt(0) || '对') }}</el-avatar>
+                </div>
+                <div class="message-content">
+                  <div v-if="item.msg.messageType === 'IMAGE'" class="message-image">
+                    <img :src="item.msg.content" alt="图片" loading="lazy" @click="previewImage(item.msg.content)" />
+                  </div>
+                  <div v-else-if="item.msg.messageType === 'VIDEO'" class="message-video">
+                    <video :src="item.msg.content" controls preload="metadata"></video>
+                  </div>
+                  <div v-else class="message-text">{{ item.msg.content }}</div>
+                  <div class="message-time">{{ formatMessageTime(item.msg.createdAt) }}</div>
+                </div>
               </div>
-            </div>
+            </template>
           </div>
 
           <div class="message-input">
+            <div class="input-toolbar">
+              <el-upload
+                :show-file-list="false"
+                :before-upload="handleImageUpload"
+                accept="image/jpeg,image/png,image/webp"
+                :auto-upload="false"
+              >
+                <el-button class="toolbar-btn" title="发送图片">
+                  <ImageIcon :size="18" stroke-width="1.5" />
+                </el-button>
+              </el-upload>
+              <el-upload
+                :show-file-list="false"
+                :before-upload="handleVideoUpload"
+                accept="video/mp4,video/quicktime,video/webm"
+                :auto-upload="false"
+              >
+                <el-button class="toolbar-btn" title="发送视频">
+                  <VideoIcon :size="18" stroke-width="1.5" />
+                </el-button>
+              </el-upload>
+            </div>
             <el-input v-model="newMessage" placeholder="输入消息..." @keyup.enter="sendMessage">
               <template #append>
                 <el-button @click="sendMessage" :disabled="!newMessage.trim()">发送</el-button>
@@ -77,13 +110,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, onUnmounted, nextTick } from 'vue';
+import { ref, reactive, computed, onMounted, onUnmounted, nextTick } from 'vue';
 import { useRoute } from 'vue-router';
 import { ElMessage } from 'element-plus';
-import { MessageSquare } from 'lucide-vue-next';
+import { MessageSquare, Image as ImageIcon, Video as VideoIcon } from 'lucide-vue-next';
 import { useUserStore } from '@/store';
-import { wsService } from '@/utils/websocket';
-import { getCookieValue } from '@/api/config/axios';
+import { wsManager } from '@/utils/websocket';
 import chatApi from '@/api/services/chat';
 
 const route = useRoute();
@@ -95,6 +127,12 @@ const currentChat = ref<any>(null);
 const messages = ref<any[]>([]);
 const newMessage = ref('');
 const messageList = ref<HTMLDivElement | null>(null);
+
+// 分页状态
+const messagePage = ref(0);
+const hasMoreMessages = ref(false);
+const loadingMore = ref(false);
+const PAGE_SIZE = 50;
 
 // 消息缓存：chatId -> messages[]
 const messageCache = reactive<Map<string, any[]>>(new Map());
@@ -143,48 +181,106 @@ const loadChatList = async () => {
 };
 
 const selectChat = async (chat: any) => {
-  // 如果点击的是当前已选中的聊天，不重复请求
   if (currentChat.value && currentChat.value.id === chat.id) {
-    console.log('点击的是当前聊天，跳过请求');
     return;
   }
+
+  // 重置分页状态
+  messagePage.value = 0;
+  hasMoreMessages.value = true;
+  loadingMore.value = false;
 
   currentChat.value = chat;
   const chatId = String(chat.id);
 
-  // 检查缓存中是否已有该聊天的消息
   if (messageCache.has(chatId) && loadedChatIds.has(chatId)) {
-    console.log('从缓存加载消息:', chatId);
     messages.value = messageCache.get(chatId) || [];
     scrollToBottom();
     return;
   }
 
-  // 缓存中没有，加载消息
   await loadMessages(chatId);
 };
 
 const loadMessages = async (chatId: string) => {
   try {
-    console.log('请求加载消息:', chatId);
-    const res = await chatApi.getMessages(chatId, { page: 0, size: 50 });
+    messagePage.value = 0;
+    hasMoreMessages.value = true;
+
+    const res = await chatApi.getMessages(chatId, { page: 0, size: PAGE_SIZE });
     let msgData: any[] = [];
 
     if (Array.isArray(res.data)) {
       msgData = res.data;
-    } else {
-      msgData = res.data.content || [];
+    } else if (res.data?.content && Array.isArray(res.data.content)) {
+      msgData = res.data.content;
+    } else if (Array.isArray(res)) {
+      msgData = res as any;
     }
 
-    messages.value = msgData;
+    // DESC（最新在前）→ 翻转后 ASC（最旧在前，最新在底）
+    const reversed = [...msgData].reverse();
+    messages.value = reversed;
+    hasMoreMessages.value = msgData.length === PAGE_SIZE;
 
-    // 缓存消息
-    messageCache.set(chatId, msgData);
+    messageCache.set(chatId, reversed);
     loadedChatIds.add(chatId);
 
     scrollToBottom();
   } catch (error) {
     console.error('加载消息失败:', error);
+  }
+};
+
+const loadMoreMessages = async () => {
+  if (loadingMore.value || !hasMoreMessages.value || !currentChat.value) return;
+
+  loadingMore.value = true;
+  try {
+    const nextPage = messagePage.value + 1;
+    const chatId = String(currentChat.value.id);
+    const res = await chatApi.getMessages(chatId, { page: nextPage, size: PAGE_SIZE });
+    let olderMsgs: any[] = [];
+
+    if (Array.isArray(res.data)) {
+      olderMsgs = res.data;
+    } else if (res.data?.content && Array.isArray(res.data.content)) {
+      olderMsgs = res.data.content;
+    } else if (Array.isArray(res)) {
+      olderMsgs = res as any;
+    }
+
+    if (olderMsgs.length === 0) {
+      hasMoreMessages.value = false;
+    } else {
+      const el = messageList.value;
+      const prevScrollHeight = el?.scrollHeight || 0;
+
+      // DESC分页：下一页 = 更早的消息，翻转后前置
+      const reversedOlder = [...olderMsgs].reverse();
+      messages.value = [...reversedOlder, ...messages.value];
+      messagePage.value = nextPage;
+      hasMoreMessages.value = olderMsgs.length === PAGE_SIZE;
+
+      messageCache.set(chatId, messages.value);
+
+      if (el) {
+        await new Promise(r => setTimeout(r, 0));
+        const newScrollHeight = el.scrollHeight;
+        el.scrollTop += newScrollHeight - prevScrollHeight;
+      }
+    }
+  } catch (error) {
+    console.error('加载历史消息失败:', error);
+  } finally {
+    loadingMore.value = false;
+  }
+};
+
+const handleScroll = () => {
+  const el = messageList.value;
+  if (el && el.scrollTop < 100) {
+    loadMoreMessages();
   }
 };
 
@@ -194,35 +290,51 @@ const sendMessage = async () => {
   try {
     await chatApi.sendMessage(currentChat.value.id, String(currentChat.value.buyerId === currentUserId.value ? currentChat.value.sellerId : currentChat.value.buyerId), content);
     newMessage.value = '';
-
-    // 发送成功后，将新消息添加到缓存
-    const chatId = String(currentChat.value.id);
-    const newMsg = {
-      id: Date.now().toString(),
-      chatId: chatId,
-      senderId: currentUserId.value,
-      content: content,
-      createdAt: new Date().toISOString()
-    };
-
-    // 添加到消息列表
-    messages.value.push(newMsg);
-
-    // 更新缓存
-    if (messageCache.has(chatId)) {
-      messageCache.get(chatId)!.push(newMsg);
-    }
-
-    // 更新聊天列表
-    const chatInList = chatList.value.find(c => c.id === currentChat.value.id);
-    if (chatInList) {
-      chatInList.lastMessage = content;
-      chatInList.lastMessageTime = new Date().toISOString();
-      chatInList.lastMessageSenderId = currentUserId.value;
-    }
   } catch (error) {
     ElMessage.error('发送消息失败');
   }
+};
+
+const getReceiverId = () => {
+  if (!currentChat.value) return '';
+  return String(currentChat.value.buyerId === currentUserId.value ? currentChat.value.sellerId : currentChat.value.buyerId);
+};
+
+const sendMediaMessage = async (file: File, messageType: string) => {
+  if (!currentChat.value) return;
+  try {
+    const res = await chatApi.uploadChatMedia(file);
+    const url = (res.data as any).url;
+    if (!url) {
+      ElMessage.error('文件上传失败');
+      return;
+    }
+    await chatApi.sendMessage(currentChat.value.id, getReceiverId(), url, messageType);
+  } catch (error) {
+    ElMessage.error('文件发送失败');
+  }
+};
+
+const handleImageUpload = (file: File) => {
+  if (file.size > 10 * 1024 * 1024) {
+    ElMessage.error('图片大小不能超过 10MB');
+    return false;
+  }
+  sendMediaMessage(file, 'IMAGE');
+  return false;
+};
+
+const handleVideoUpload = (file: File) => {
+  if (file.size > 100 * 1024 * 1024) {
+    ElMessage.error('视频大小不能超过 100MB');
+    return false;
+  }
+  sendMediaMessage(file, 'VIDEO');
+  return false;
+};
+
+const previewImage = (url: string) => {
+  window.open(url, '_blank');
 };
 
 const getOtherUser = (chat: any) => {
@@ -271,22 +383,72 @@ const formatMessageTime = (time: string) => {
   return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
 };
 
-const scrollToBottom = () => {
-  nextTick(() => {
-    if (messageList.value) {
-      messageList.value.scrollTop = messageList.value.scrollHeight;
-    }
+const getMessageDateKey = (time: string): string => {
+  const date = new Date(time);
+  return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+};
+
+const formatDateSeparator = (time: string): string => {
+  const date = new Date(time);
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const msgDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+  if (today.getTime() === msgDay.getTime()) {
+    return '今天';
+  }
+
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  if (msgDay.getTime() === yesterday.getTime()) {
+    return '昨天';
+  }
+
+  if (date.getFullYear() === now.getFullYear()) {
+    return `${date.getMonth() + 1}月${date.getDate()}日`;
+  }
+
+  return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
+};
+
+const messagesWithSeparators = computed(() => {
+  const sorted = [...messages.value].sort((a, b) => {
+    return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
   });
+
+  const result: Array<{ type: 'separator'; date: string; key: string } | { type: 'message'; msg: any; key: string }> = [];
+  let lastDateKey = '';
+
+  for (const msg of sorted) {
+    const dateKey = getMessageDateKey(msg.createdAt);
+    if (dateKey !== lastDateKey) {
+      result.push({ type: 'separator', date: msg.createdAt, key: `sep-${dateKey}` });
+      lastDateKey = dateKey;
+    }
+    result.push({ type: 'message', msg, key: `msg-${msg.id}` });
+  }
+
+  return result;
+});
+
+const scrollToBottom = () => {
+  const doScroll = (retries: number) => {
+    if (!messageList.value) return;
+    const el = messageList.value;
+    el.scrollTop = el.scrollHeight;
+    if (retries > 0) {
+      setTimeout(() => doScroll(retries - 1), 100);
+    }
+  };
+  doScroll(5);
 };
 
 const handleNewMessage = (msg: any) => {
-  // 更新左侧聊天列表的最后一条消息
   const chatInList = chatList.value.find(c => c.id === msg.chatId);
   if (chatInList) {
-    chatInList.lastMessage = msg.content;
+    chatInList.lastMessage = msg.messageType === 'IMAGE' ? '[图片]' : msg.messageType === 'VIDEO' ? '[视频]' : msg.content;
     chatInList.lastMessageTime = msg.createdAt;
     chatInList.lastMessageSenderId = msg.senderId;
-    // 把该会话移到列表顶部
     const idx = chatList.value.indexOf(chatInList);
     if (idx > 0) {
       chatList.value.splice(idx, 1);
@@ -294,43 +456,82 @@ const handleNewMessage = (msg: any) => {
     }
   }
 
-  // 更新消息缓存
   const chatId = String(msg.chatId);
   if (messageCache.has(chatId)) {
     const cachedMessages = messageCache.get(chatId)!;
-    // 防止重复添加
     const exists = cachedMessages.some(m => m.id === msg.id);
     if (!exists) {
       cachedMessages.push(msg);
     }
   }
 
-  // 如果是当前打开的会话，添加到消息列表
   if (currentChat.value && msg.chatId === currentChat.value.id) {
     const exists = messages.value.some(m => m.id === msg.id);
     if (!exists) {
-      messages.value.push(msg);
+      messages.value = [...messages.value, msg];
       scrollToBottom();
     }
   }
 };
 
+let pollingTimer: ReturnType<typeof setInterval> | null = null;
+
+/** 轮询获取最新消息（作为 WebSocket 的 fallback） */
+const startPolling = () => {
+  stopPolling();
+  pollingTimer = setInterval(async () => {
+    // 仅在 WebSocket 断开时使用轮询
+    if (wsManager.isConnected()) return;
+    if (!currentChat.value) return;
+
+    try {
+      const chatId = String(currentChat.value.id);
+      const res = await chatApi.getMessages(chatId, { page: 0, size: 10 });
+      let newMsgs: any[] = [];
+      if (Array.isArray(res.data)) {
+        newMsgs = res.data;
+      } else if (res.data?.content && Array.isArray(res.data.content)) {
+        newMsgs = res.data.content;
+      }
+
+      // 检查是否有新消息
+      for (const msg of newMsgs) {
+        if (!messages.value.some(m => m.id === msg.id)) {
+          handleNewMessage(msg);
+        }
+      }
+    } catch {
+      // 静默失败
+    }
+  }, 5000); // 每5秒轮询一次
+};
+
+const stopPolling = () => {
+  if (pollingTimer) {
+    clearInterval(pollingTimer);
+    pollingTimer = null;
+  }
+};
+
 onMounted(() => {
-  // 先注册消息处理器
-  wsService.onMessage('chat', handleNewMessage);
+  // 订阅聊天消息
+  wsManager.subscribe('chat', handleNewMessage);
 
   loadChatList();
   if (currentUserId.value) {
-    // WebSocket 使用 access_token cookie 认证
-    // 由于跨端口 cookie 无法自动携带，使用空 token 让后端尝试其他认证方式
-    wsService.connect('', String(currentUserId.value)).catch((err) => {
+    wsManager.connect('', String(currentUserId.value)).catch((err) => {
       console.error('WebSocket连接失败:', err);
     });
   }
+
+  // 启动轮询 fallback
+  startPolling();
 });
 
 onUnmounted(() => {
-  wsService.disconnect();
+  wsManager.unsubscribe('chat', handleNewMessage);
+  wsManager.disconnect();
+  stopPolling();
 });
 </script>
 

@@ -1,7 +1,8 @@
 package com.idleitems.school.controller;
 
-import com.idleitems.school.service.ChunkUploadService;
-import com.idleitems.school.service.FileService;
+import com.idleitems.school.module.file.service.ChunkUploadService;
+import com.idleitems.school.module.file.service.FileService;
+import com.idleitems.school.module.file.controller.ChunkUploadController;
 import com.idleitems.school.util.FileValidationService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -105,6 +106,20 @@ class ChunkUploadControllerTest {
     }
 
     @Test
+    @DisplayName("测试检查已上传分片失败")
+    void testCheckUploadedChunksFailure() throws Exception {
+        when(chunkUploadService.getUploadedChunks(anyString()))
+                .thenThrow(new RuntimeException("读取分片失败"));
+
+        mockMvc.perform(get("/api/items/upload/check")
+                .param("fileHash", "abc123")
+                .param("totalChunks", "5"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(500))
+                .andExpect(jsonPath("$.message").value(containsString("检查失败")));
+    }
+
+    @Test
     @DisplayName("测试合并分片成功")
     void testCompleteUploadSuccess() throws Exception {
         File tempFile = File.createTempFile("merged", ".jpg");
@@ -112,7 +127,7 @@ class ChunkUploadControllerTest {
 
         when(chunkUploadService.isUploadComplete(anyString(), anyInt())).thenReturn(true);
         when(chunkUploadService.mergeChunks(anyString(), anyInt(), anyString())).thenReturn(tempFile);
-        when(fileValidationService.validateImage(any())).thenReturn(new com.idleitems.school.util.FileValidationService.ImageValidationResult(100, 100, "jpg"));
+        when(fileValidationService.validateImage(any())).thenReturn(new FileValidationService.ImageValidationResult(100, 100, "jpg"));
 
         Map<String, Object> expectedResult = new HashMap<>();
         expectedResult.put("url", "http://localhost:7000/uploads/2026/05/07/test.jpg");
@@ -162,5 +177,21 @@ class ChunkUploadControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(400))
                 .andExpect(jsonPath("$.message").value(containsString("合并后的文件验证失败")));
+    }
+
+    @Test
+    @DisplayName("测试合并分片时mergeChunks抛出异常")
+    void testCompleteUploadMergeException() throws Exception {
+        when(chunkUploadService.isUploadComplete(anyString(), anyInt())).thenReturn(true);
+        when(chunkUploadService.mergeChunks(anyString(), anyInt(), anyString()))
+                .thenThrow(new RuntimeException("合并文件失败"));
+
+        mockMvc.perform(post("/api/items/upload/complete")
+                .param("fileHash", "abc123")
+                .param("totalChunks", "5")
+                .param("originalFileName", "test.jpg"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(500))
+                .andExpect(jsonPath("$.message").value(containsString("合并失败")));
     }
 }

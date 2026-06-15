@@ -53,7 +53,7 @@ public class CategoryQueryService {
                 })
                 .collect(Collectors.toList());
 
-        cacheService.set("categories:all", result, 1800, TimeUnit.SECONDS);
+        cacheService.set("categories:all", result, 3600, TimeUnit.SECONDS);
         return result;
     }
 
@@ -94,8 +94,174 @@ public class CategoryQueryService {
             }
         }
 
-        cacheService.set("categories:tree", tree, 1800, TimeUnit.SECONDS);
+        cacheService.set("categories:tree", tree, 3600, TimeUnit.SECONDS);
         return tree;
+    }
+
+    public List<Map<String, Object>> getChildren(Long parentId) {
+        List<Category> children = categoryRepository.findByParentId(parentId);
+        if (children.isEmpty()) {
+            return Collections.emptyList();
+        }
+        CategoryData data = loadCategoryData();
+        return children.stream()
+                .map(c -> {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("id", c.getId());
+                    map.put("name", c.getName());
+                    map.put("icon", c.getIcon());
+                    map.put("parentId", c.getParentId());
+                    map.put("sort", c.getSort());
+                    map.put("itemCount", getItemCountForCategory(c.getId(), data));
+                    return map;
+                })
+                .sorted((a, b) -> {
+                    int sortA = a.get("sort") instanceof Integer ? (Integer) a.get("sort") : 0;
+                    int sortB = b.get("sort") instanceof Integer ? (Integer) b.get("sort") : 0;
+                    int cmp = Integer.compare(sortA, sortB);
+                    if (cmp != 0) return cmp;
+                    String nameA = (String) a.getOrDefault("name", "");
+                    String nameB = (String) b.getOrDefault("name", "");
+                    return nameA.compareTo(nameB);
+                })
+                .collect(Collectors.toList());
+    }
+
+    public List<Map<String, Object>> suggestCategories(String prefix) {
+        List<Category> matches = categoryRepository.searchByKeyword(prefix);
+        return matches.stream()
+                .limit(5)
+                .map(c -> {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("id", c.getId());
+                    map.put("name", c.getName());
+                    map.put("icon", c.getIcon());
+                    map.put("parentName", getParentName(c));
+                    map.put("level", c.getLevel());
+                    return map;
+                })
+                .collect(Collectors.toList());
+    }
+
+    public List<Map<String, Object>> recommendCategories(String title, int limit) {
+        String[] tokens = title.split("[\\s,，。、/]+");
+        
+        List<Category> allActive = categoryRepository.findByStatus(true);
+        Set<Long> parentIds = allActive.stream()
+                .map(Category::getParentId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        List<Map<String, Object>> results = allActive.stream()
+                .filter(c -> !parentIds.contains(c.getId()))
+                .map(c -> {
+                    double score = 0;
+                    String matchedToken = "";
+                    for (String token : tokens) {
+                        if (token.isEmpty()) continue;
+                        String lowerToken = token.toLowerCase();
+                        if (c.getName() != null && c.getName().toLowerCase().contains(lowerToken)) {
+                            score += 0.5;
+                            matchedToken = token;
+                        }
+                        if (c.getKeywords() != null &&
+                            c.getKeywords().toLowerCase().contains(lowerToken)) {
+                            score += 0.3;
+                            if (matchedToken.isEmpty()) matchedToken = token;
+                        }
+                    }
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("id", c.getId());
+                    map.put("name", c.getName());
+                    map.put("icon", c.getIcon());
+                    map.put("parentName", getParentName(c));
+                    map.put("score", Math.min(score, 1.0));
+                    map.put("matchedToken", matchedToken);
+                    return map;
+                })
+                .filter(m -> (Double) m.get("score") > 0)
+                .sorted((a, b) -> Double.compare((Double) b.get("score"), (Double) a.get("score")))
+                .limit(limit)
+                .collect(Collectors.toList());
+
+        return results;
+    }
+
+    @SuppressWarnings("unchecked")
+    public List<Map<String, Object>> getHotCategories(int limit) {
+        Object cached = cacheService.get("categories:hot");
+        if (cached instanceof List) {
+            List<Map<String, Object>> cachedResult = (List<Map<String, Object>>) cached;
+            return cachedResult.stream().limit(limit).collect(Collectors.toList());
+        }
+
+        List<Category> allActive = categoryRepository.findByStatus(true);
+        Map<Long, Category> categoryMap = allActive.stream()
+                .collect(Collectors.toMap(Category::getId, c -> c));
+        List<Object[]> counts = itemRepository.countItemsByCategory();
+
+        Map<Long, Long> countMap = new HashMap<>();
+        for (Object[] row : counts) {
+            Long categoryId = (Long) row[0];
+            Long count = (Long) row[1];
+            countMap.put(categoryId, count != null ? count : 0L);
+        }
+
+        List<Map<String, Object>> result = countMap.entrySet().stream()
+                .map(entry -> {
+                    Long categoryId = entry.getKey();
+                    Long itemCount = entry.getValue();
+                    Category c = categoryMap.get(categoryId);
+                    if (c == null) return null;
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("id", c.getId());
+                    map.put("name", c.getName());
+                    map.put("icon", c.getIcon());
+                    map.put("itemCount", itemCount);
+                    map.put("parentName", getParentName(c));
+                    return map;
+                })
+                .filter(Objects::nonNull)
+                .sorted((a, b) -> Long.compare((Long) b.get("itemCount"), (Long) a.get("itemCount")))
+                .limit(limit)
+                .collect(Collectors.toList());
+
+        cacheService.set("categories:hot", result, 300, TimeUnit.SECONDS);
+        return result;
+    }
+
+    /**
+     * 清除所有分类相关的缓存
+     * 在分类 CRUD 操作后调用，确保数据一致性
+     */
+    public void clearCategoryCache() {
+        cacheService.delete("categories:all");
+        cacheService.delete("categories:tree");
+        cacheService.delete("categories:hot");
+        log.info("分类缓存已清除");
+    }
+
+    private String getParentName(Category c) {
+        if (c.getParentId() == null) return "";
+        return categoryRepository.findById(c.getParentId())
+                .map(Category::getName)
+                .orElse("");
+    }
+
+    public List<Map<String, Object>> getBreadcrumb(Long id) {
+        List<Map<String, Object>> breadcrumb = new ArrayList<>();
+        Category current = categoryRepository.findById(id).orElse(null);
+        while (current != null) {
+            Map<String, Object> node = new HashMap<>();
+            node.put("id", current.getId());
+            node.put("name", current.getName());
+            node.put("level", current.getLevel());
+            breadcrumb.add(0, node);
+            current = current.getParentId() != null
+                    ? categoryRepository.findById(current.getParentId()).orElse(null)
+                    : null;
+        }
+        return breadcrumb;
     }
 
     public List<Map<String, Object>> searchCategories(String keyword) {

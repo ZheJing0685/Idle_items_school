@@ -27,7 +27,7 @@ public class TimeoutAspect {
         long timeoutValue = timeout.value();
         TimeUnit unit = timeout.unit();
 
-        Future<Object> future = executor.submit(() -> {
+        Future<Object> future = executor.submit((Callable<Object>) () -> {
             try {
                 return joinPoint.proceed();
             } catch (Throwable e) {

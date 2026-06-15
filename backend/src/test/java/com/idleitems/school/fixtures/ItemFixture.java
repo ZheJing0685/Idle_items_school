@@ -1,6 +1,6 @@
 package com.idleitems.school.fixtures;
 
-import com.idleitems.school.entity.Item;
+import com.idleitems.school.module.item.entity.Item;
 import java.math.BigDecimal;
 
 /**

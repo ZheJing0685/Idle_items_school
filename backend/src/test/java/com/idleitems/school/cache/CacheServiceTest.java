@@ -1,5 +1,6 @@
 package com.idleitems.school.cache;
 
+import com.idleitems.school.shared.cache.CacheService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;

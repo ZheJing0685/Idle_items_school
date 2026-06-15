@@ -9,7 +9,7 @@
         :rules="rules"
         label-position="top"
         class="password-form"
-        @keyup.enter="handleSubmit"
+        @submit.prevent="handleSubmit"
       >
         <el-form-item label="当前密码" prop="oldPassword">
           <el-input

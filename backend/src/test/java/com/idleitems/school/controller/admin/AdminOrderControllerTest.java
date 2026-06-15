@@ -1,14 +1,15 @@
 package com.idleitems.school.controller.admin;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.idleitems.school.dto.order.AdminOrderResponse;
-import com.idleitems.school.dto.order.CancelOrderRequest;
-import com.idleitems.school.entity.Order;
-import com.idleitems.school.service.AdminLogService;
-import com.idleitems.school.service.DictService;
-import com.idleitems.school.service.OrderAdminService;
-import com.idleitems.school.service.OrderQueryService;
-import com.idleitems.school.service.OrderRefundService;
+import com.idleitems.school.module.admin.controller.AdminOrderController;
+import com.idleitems.school.module.order.dto.AdminOrderResponse;
+import com.idleitems.school.module.order.dto.CancelOrderRequest;
+import com.idleitems.school.module.order.entity.Order;
+import com.idleitems.school.module.admin.service.AdminLogService;
+import com.idleitems.school.module.system.service.DictService;
+import com.idleitems.school.module.order.service.OrderAdminService;
+import com.idleitems.school.module.order.service.OrderQueryService;
+import com.idleitems.school.module.order.service.OrderRefundService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

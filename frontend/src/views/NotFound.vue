@@ -155,7 +155,7 @@
 
 .action-btn-primary {
   background: var(--primary-color);
-  color: #fff;
+  color: var(--text-inverse);
 }
 
 .action-btn-primary:hover {
@@ -180,11 +180,11 @@
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
-  background: var(--eco-light);
+  background: var(--accent-light);
   border-radius: 9999px;
   font-size: 14px;
   font-weight: 500;
-  color: var(--eco-color);
+  color: var(--accent);
 }
 
 @keyframes float {

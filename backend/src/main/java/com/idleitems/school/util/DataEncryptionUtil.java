@@ -96,10 +96,10 @@ public class DataEncryptionUtil {
 
             byte[] decrypted = cipher.doFinal(encrypted);
             return new String(decrypted, StandardCharsets.UTF_8);
-        } catch (Exception e) {
-            log.error("解密失败", e);
-            throw new RuntimeException("数据解密失败", e);
-        }
+    } catch (Exception e) {
+        log.warn("解密失败: {}（可能是旧数据未加密）", e.getMessage());
+        throw new RuntimeException("数据解密失败", e);
+    }
     }
 
     /**

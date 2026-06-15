@@ -3,7 +3,7 @@
     <input ref="fileInput" type="file" :accept="accept" @change="handleFileChange" hidden />
 
     <template v-if="modelValue">
-      <img :src="modelValue" class="preview-image" alt="预览" />
+      <img :src="modelValue" class="preview-image" alt="预览" loading="lazy" />
       <div class="preview-overlay">
         <button class="remove-btn" @click.stop="removeFile" aria-label="删除图片">
           <X :size="20" />

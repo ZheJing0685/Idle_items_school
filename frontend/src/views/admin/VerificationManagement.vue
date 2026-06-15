@@ -110,7 +110,7 @@
         <el-table-column label="真实姓名" width="110" prop="realName" />
         <el-table-column label="身份证号" width="180">
           <template #default="{ row }">
-            <span class="id-value">{{ maskIdNumber(row.idNumber) }}</span>
+            <span class="id-value">{{ maskIdCard(row.idCard) }}</span>
           </template>
         </el-table-column>
         <el-table-column label="学号" width="120" prop="studentId">
@@ -466,9 +466,10 @@ const getTypeText = (type: string) => {
   return dictStore.getDictLabel('VERIFICATION_TYPE', typeEnum);
 };
 
-const maskIdNumber = (idNumber: string) => {
-  if (!idNumber) return '-';
-  return idNumber.replace(/(\d{4})\d+(\d{4})/, '$1**********$2');
+const maskIdCard = (idCard: string) => {
+  if (!idCard) return '-';
+  if (idCard.length >= 14) return idCard.replace(/(\d{4})\d{10}(\d{4})/, '$1****$2');
+  return idCard;
 };
 
 const formatDate = (dateString: string) => {

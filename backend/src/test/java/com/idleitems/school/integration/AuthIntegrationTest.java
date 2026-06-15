@@ -1,10 +1,10 @@
 package com.idleitems.school.integration;
 
 import com.idleitems.school.BaseIntegrationTest;
-import com.idleitems.school.dto.LoginRequest;
-import com.idleitems.school.dto.RegisterRequest;
-import com.idleitems.school.entity.User;
-import com.idleitems.school.repository.UserRepository;
+import com.idleitems.school.module.auth.dto.LoginRequest;
+import com.idleitems.school.module.auth.dto.RegisterRequest;
+import com.idleitems.school.module.user.entity.User;
+import com.idleitems.school.module.user.repository.UserRepository;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -184,8 +184,7 @@ class AuthIntegrationTest extends BaseIntegrationTest {
         loginAndGetToken();
 
         mockMvc.perform(post("/api/auth/refresh")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"refreshToken\": \"" + refreshToken + "\"}"))
+                        .cookie(new jakarta.servlet.http.Cookie("refresh_token", refreshToken)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.data.token").exists())

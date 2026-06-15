@@ -1,12 +1,13 @@
 package com.idleitems.school.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.idleitems.school.dto.order.CancelOrderRequest;
-import com.idleitems.school.dto.order.OrderSummaryResponse;
-import com.idleitems.school.service.OrderBuyerService;
-import com.idleitems.school.service.OrderQueryService;
-import com.idleitems.school.service.OrderRefundService;
-import com.idleitems.school.service.OrderSellerService;
+import com.idleitems.school.module.order.dto.CancelOrderRequest;
+import com.idleitems.school.module.order.dto.OrderSummaryResponse;
+import com.idleitems.school.module.order.service.OrderBuyerService;
+import com.idleitems.school.module.order.service.OrderQueryService;
+import com.idleitems.school.module.order.service.OrderRefundService;
+import com.idleitems.school.module.order.service.OrderSellerService;
+import com.idleitems.school.module.order.controller.OrderController;
 import com.idleitems.school.security.JwtUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

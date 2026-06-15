@@ -23,4 +23,10 @@ public class UpdateProfileRequest {
     private String bio;
     @Schema(description = "学校名称")
     private String schoolName;
+    @Schema(description = "学院/系")
+    private String department;
+    @Schema(description = "专业")
+    private String major;
+    @Schema(description = "年级")
+    private String grade;
 }

@@ -42,6 +42,15 @@
           <span class="stat-label">二级分类</span>
         </div>
       </div>
+      <div class="stat-card">
+        <div class="stat-icon stat-icon-ratio">
+          <PieChart :size="24" />
+        </div>
+        <div class="stat-content">
+          <span class="stat-value">{{ level2Ratio }}%</span>
+          <span class="stat-label">二级分类占比</span>
+        </div>
+      </div>
     </div>
 
     <div class="main-content">
@@ -117,9 +126,12 @@
               <div class="tree-node" :class="{ 'is-disabled': !data.status }">
                 <div class="tree-node-content">
                   <span class="tree-node-icon" v-if="data.icon">
-                    <img :src="data.icon" :alt="data.name" />
+                    <img :src="data.icon" :alt="data.name" loading="lazy" />
                   </span>
                   <span class="tree-node-name">{{ data.name }}</span>
+                  <span class="tree-node-child-count" v-if="data.level === 1 && data.children?.length">
+                    {{ data.children.length }}子
+                  </span>
                   <span class="tree-node-count">{{ data.itemCount || 0 }}</span>
                   <span
                     class="tree-node-status"
@@ -179,7 +191,7 @@
           <div class="detail-header">
             <div class="detail-header-left">
               <div class="detail-icon" v-if="currentCategory.icon">
-                <img :src="currentCategory.icon" :alt="currentCategory.name" />
+                <img :src="currentCategory.icon" :alt="currentCategory.name" loading="lazy" />
               </div>
               <div class="detail-icon detail-icon-placeholder" v-else>
                 <Package :size="32" />
@@ -363,7 +375,7 @@
                     <span>点击上传图标</span>
                   </div>
                   <div class="icon-preview" v-else>
-                    <img :src="editForm.icon" :alt="editForm.name" />
+                    <img :src="editForm.icon" :alt="editForm.name" loading="lazy" />
                     <button
                       type="button"
                       class="remove-btn"
@@ -600,7 +612,7 @@
 import { ref, computed, watch, onMounted, nextTick } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import api from '../../api';
-import { List, Clock, Layers, Grid, ChevronUp, ChevronDown, RefreshCw, Search, Plus, Edit3, Trash2, X, Upload, XCircle, Package, Table, Download, ChevronLeft, ChevronRight } from 'lucide-vue-next';
+import { List, Clock, Layers, Grid, PieChart, ChevronUp, ChevronDown, RefreshCw, Search, Plus, Edit3, Trash2, X, Upload, XCircle, Package, Table, Download, ChevronLeft, ChevronRight } from 'lucide-vue-next';
 
 const stats = ref({ total: 0, active: 0, level1: 0, level2: 0 });
 const allCategories = ref<any[]>([]);
@@ -631,6 +643,12 @@ const logPageSize = ref(20);
 const logTotal = ref(0);
 
 const treeProps = { children: 'children', label: 'name' };
+
+/** 二级分类占比（百分比整数） */
+const level2Ratio = computed(() => {
+  if (stats.value.total === 0) return 0;
+  return Math.round((stats.value.level2 / stats.value.total) * 100);
+});
 
 const tableTotalPages = computed(
   () => Math.ceil(tableTotal.value / tablePageSize.value) || 1

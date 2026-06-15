@@ -181,13 +181,13 @@
 }
 
 .btn-primary {
-  background: var(--color-primary);
+  background: var(--btn-primary-bg);
   border: none;
-  color: var(--text-inverse);
+  color: var(--btn-primary-text);
 }
 
 .btn-primary:hover {
-  background: var(--color-primary-light);
+  background: var(--btn-primary-hover-bg);
 }
 
 .btn-sm {

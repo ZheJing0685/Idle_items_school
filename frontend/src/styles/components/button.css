@@ -1,0 +1,121 @@
+/* ============================================
+   按钮系统 (Button System)
+   用法: <button class="btn btn-primary">按钮</button>
+   ============================================ */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: var(--r-md, 12px);
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 150ms ease;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  line-height: 1.4;
+  user-select: none;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Primary */
+.btn-primary {
+  background: var(--accent, var(--primary-color));
+  color: var(--text-inverse, #fff);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--accent-hover, var(--primary-dark));
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Secondary */
+.btn-secondary {
+  background: var(--surface, var(--bg-surface));
+  color: var(--fg, var(--text-primary));
+  border: 1px solid var(--border, var(--border-default));
+}
+
+.btn-secondary:hover:not(:disabled) {
+  border-color: var(--accent, var(--primary-color));
+  color: var(--accent, var(--primary-color));
+}
+
+/* Ghost */
+.btn-ghost {
+  background: transparent;
+  color: var(--fg-secondary, var(--text-secondary));
+}
+
+.btn-ghost:hover:not(:disabled) {
+  background: var(--accent-subtle, var(--primary-alpha-10));
+  color: var(--accent, var(--primary-color));
+}
+
+/* Success */
+.btn-success {
+  background: var(--color-success, var(--success-color));
+  color: var(--text-inverse, #fff);
+}
+
+.btn-success:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+/* Danger */
+.btn-danger {
+  background: var(--color-danger, var(--error-color));
+  color: var(--text-inverse, #fff);
+}
+
+.btn-danger:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+/* Warning */
+.btn-warning {
+  background: var(--color-warning, var(--warning-color));
+  color: var(--text-inverse, #fff);
+}
+
+.btn-warning:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+/* Sizes */
+.btn-lg {
+  padding: 14px 28px;
+  font-size: 16px;
+  border-radius: var(--r-lg, 16px);
+}
+
+.btn-sm {
+  padding: 6px 14px;
+  font-size: 13px;
+}
+
+/* Full width */
+.btn-block {
+  width: 100%;
+}
+
+/* Disabled state */
+.btn:disabled,
+.btn.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}

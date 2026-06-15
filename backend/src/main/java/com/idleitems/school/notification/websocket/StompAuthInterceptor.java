@@ -75,14 +75,29 @@ public class StompAuthInterceptor implements ChannelInterceptor {
     }
 
     private Message<?> handleConnect(StompHeaderAccessor accessor, Message<?> message) {
-        String authHeader = getAuthHeader(accessor);
+        String token = null;
 
-        if (authHeader == null || !authHeader.startsWith(BEARER_PREFIX)) {
-            log.warn("STOMP CONNECT缺少有效的Authorization头");
-            throw new SecurityException("STOMP连接需要有效的Bearer Token");
+        // 1. 优先从 Authorization 头读取
+        String authHeader = getAuthHeader(accessor);
+        if (authHeader != null && authHeader.startsWith(BEARER_PREFIX)) {
+            token = authHeader.substring(BEARER_PREFIX.length());
         }
 
-        String token = authHeader.substring(BEARER_PREFIX.length());
+        // 2. 如果 Authorization 头没有，从 WebSocket 会话属性中读取 cookie token
+        if (token == null) {
+            Map<String, Object> sessionAttributes = accessor.getSessionAttributes();
+            if (sessionAttributes != null) {
+                token = (String) sessionAttributes.get("access_token");
+                if (token != null) {
+                    log.debug("从WebSocket会话属性中获取到access_token");
+                }
+            }
+        }
+
+        if (token == null) {
+            log.warn("STOMP CONNECT缺少有效的认证信息（Authorization头或Cookie）");
+            throw new SecurityException("STOMP连接需要有效的认证信息");
+        }
 
         if (blacklistService.isBlacklisted(token)) {
             log.warn("STOMP CONNECT使用了已失效的Token");

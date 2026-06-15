@@ -30,6 +30,7 @@ public class FileValidationService {
     private static final String CONFIG_ALLOWED_CONTENT_TYPES = "file_allowed_content_types";
 
     private static final long DEFAULT_MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+    private static final long DEFAULT_MAX_VIDEO_SIZE = 100 * 1024 * 1024; // 100MB
     private static final Set<String> DEFAULT_ALLOWED_EXTENSIONS = new HashSet<>(Arrays.asList("jpg", "jpeg", "png"));
     private static final Set<String> DEFAULT_ALLOWED_CONTENT_TYPES = new HashSet<>(Arrays.asList(
             "image/jpeg",
@@ -50,6 +51,10 @@ public class FileValidationService {
                 (byte) 0x0D, (byte) 0x0A, (byte) 0x1A, (byte) 0x0A});
         // WebP: RIFF....WEBP
         MAGIC_BYTES.put("webp", new byte[]{(byte) 0x52, (byte) 0x49, (byte) 0x46, (byte) 0x46});
+        // MP4: ftyp box (00 00 00 XX 66 74 79 70)
+        MAGIC_BYTES.put("mp4", new byte[]{(byte) 0x00, (byte) 0x00, (byte) 0x00});
+        // MOV: ftyp (00 00 00 XX 66 74 79 70)
+        MAGIC_BYTES.put("mov", new byte[]{(byte) 0x00, (byte) 0x00, (byte) 0x00});
     }
 
     private long getMaxFileSize() {
@@ -123,8 +128,9 @@ public class FileValidationService {
 
         // 3. Magic Byte验证 - 验证文件实际内容与声明类型一致
         byte[] fileHeader = readFileHeader(file, 8);
+        log.warn("文件校验: 扩展名={}, 文件大小={}, content-type={}, 前8字节={}", extension, file.getSize(), file.getContentType(), bytesToHex(fileHeader));
         if (!validateMagicBytes(extension, fileHeader)) {
-            log.warn("文件类型伪造检测: 文件扩展名为{}，但实际内容不匹配", extension);
+            log.warn("文件类型伪造检测: 扩展名={}, 实际前8字节={}, 期望={}", extension, bytesToHex(fileHeader), magicBytesToHex(extension));
             throw new IllegalArgumentException("文件内容与声明的类型不匹配，请上传真实的图片文件");
         }
 
@@ -203,6 +209,20 @@ public class FileValidationService {
         }
     }
 
+    private String bytesToHex(byte[] bytes) {
+        StringBuilder sb = new StringBuilder();
+        for (byte b : bytes) {
+            sb.append(String.format("%02X ", b));
+        }
+        return sb.toString().trim();
+    }
+
+    private String magicBytesToHex(String extension) {
+        byte[] magic = MAGIC_BYTES.get(extension);
+        if (magic == null) return "未配置";
+        return bytesToHex(magic);
+    }
+
     public void validateFileType(String extension, String contentType) throws IllegalArgumentException {
         Set<String> allowedExtensions = getAllowedExtensions();
         if (!allowedExtensions.contains(extension.toLowerCase())) {
@@ -212,5 +232,47 @@ public class FileValidationService {
         if (contentType == null || !DEFAULT_ALLOWED_CONTENT_TYPES.contains(contentType)) {
             throw new IllegalArgumentException("文件类型不支持，仅支持JPG、PNG、WebP格式");
         }
+    }
+
+    public VideoValidationResult validateVideo(MultipartFile file) throws IllegalArgumentException, IOException {
+        if (file.isEmpty()) {
+            throw new IllegalArgumentException("文件不能为空");
+        }
+
+        if (file.getSize() > DEFAULT_MAX_VIDEO_SIZE) {
+            throw new IllegalArgumentException("视频文件大小不能超过" + (DEFAULT_MAX_VIDEO_SIZE / 1024 / 1024) + "MB");
+        }
+
+        String originalFilename = file.getOriginalFilename();
+        if (originalFilename == null) {
+            throw new IllegalArgumentException("文件名不能为空");
+        }
+
+        String extension = getFileExtension(originalFilename).toLowerCase();
+        Set<String> videoExtensions = new HashSet<>(Arrays.asList("mp4", "mov", "avi", "webm", "mkv"));
+        if (!videoExtensions.contains(extension)) {
+            throw new IllegalArgumentException("视频格式不支持，仅支持 MP4、MOV、AVI、WebM、MKV 格式");
+        }
+
+        Set<String> videoContentTypes = new HashSet<>(Arrays.asList(
+                "video/mp4", "video/quicktime", "video/x-msvideo",
+                "video/webm", "video/x-matroska"
+        ));
+        String contentType = file.getContentType();
+        if (contentType == null || !videoContentTypes.contains(contentType)) {
+            throw new IllegalArgumentException("视频文件类型不匹配");
+        }
+
+        return new VideoValidationResult(extension);
+    }
+
+    public static class VideoValidationResult {
+        private final String extension;
+
+        public VideoValidationResult(String extension) {
+            this.extension = extension;
+        }
+
+        public String getExtension() { return extension; }
     }
 }

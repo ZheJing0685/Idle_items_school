@@ -65,8 +65,8 @@
 
       <div class="bulk-bar" v-if="selectedOrders.length">
         <span>已选择 {{ selectedOrders.length }} 项</span>
-        <button class="btn btn-warning" @click="handleBulkCancel">
-          批量取消
+        <button class="btn btn-warning" @click="handleBulkCancel" :disabled="bulkLoading">
+          {{ bulkLoading ? '处理中...' : '批量取消' }}
         </button>
       </div>
 
@@ -88,7 +88,7 @@
         <el-table-column label="物品" min-width="200">
           <template #default="{ row }">
             <div class="item-cell">
-              <img :src="row.itemCover || fallbackCover" :alt="row.itemTitle" class="thumb" />
+              <img :src="row.itemCover || fallbackCover" :alt="row.itemTitle" class="thumb" loading="lazy" />
               <div>
                 <div>{{ row.itemTitle }}</div>
                 <div class="subtext">商品ID {{ row.itemId }}</div>
@@ -256,6 +256,7 @@ const pageSize = ref(20);
 const total = ref(0);
 const detailDialogVisible = ref(false);
 const currentOrder = ref<any>(null);
+const bulkLoading = ref(false);
 const stats = ref({
   total: 0,
   pendingPayment: 0,
@@ -461,13 +462,16 @@ const handleBulkCancel = async () => {
       '批量取消订单',
       { inputValidator: (input) => !!input || '原因不能为空' }
     );
+    bulkLoading.value = true;
     await api.admin.orders.batchCancel(cancellableIds, value);
     selectedOrders.value = [];
-    ElMessage.success('批量取消成功');
+    ElMessage.success(`已批量取消 ${cancellableIds.length} 个订单`);
     await refreshData();
   } catch (error) {
     if (error !== 'cancel' && error !== 'close')
       ElMessage.error(error.message || '批量取消失败');
+  } finally {
+    bulkLoading.value = false;
   }
 };
 

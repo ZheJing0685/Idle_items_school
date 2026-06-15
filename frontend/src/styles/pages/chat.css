@@ -52,7 +52,7 @@
 }
 
 .chat-item.active {
-  background: oklch(62% 0.14 195 / 0.08);
+  background: var(--accent-subtle);
   border-left-color: var(--primary-color);
 }
 
@@ -127,6 +127,28 @@
   padding: var(--space-5);
 }
 
+.loading-more,
+.load-more-hint {
+  text-align: center;
+  padding: var(--space-3) 0;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.date-separator {
+  text-align: center;
+  padding: var(--space-4) 0 var(--space-2);
+}
+
+.date-separator-text {
+  display: inline-block;
+  font-size: 12px;
+  color: var(--text-muted);
+  background: var(--bg-muted);
+  padding: 2px 12px;
+  border-radius: 10px;
+}
+
 .message-item {
   display: flex;
   margin-bottom: var(--space-4);
@@ -181,9 +203,63 @@
 }
 
 .message-input {
-  padding: var(--space-4) var(--space-5);
+  padding: var(--space-2) var(--space-5) var(--space-4);
   border-top: 1px solid var(--border-subtle);
   background: var(--bg-surface);
+}
+
+.input-toolbar {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.toolbar-btn {
+  padding: 6px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  transition: background var(--duration-fast), color var(--duration-fast);
+}
+
+.toolbar-btn:hover {
+  background: var(--bg-muted);
+  color: var(--primary-color);
+}
+
+.message-image {
+  max-width: 280px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.message-image img {
+  width: 100%;
+  display: block;
+  border-radius: var(--radius-lg);
+  transition: opacity var(--duration-fast);
+}
+
+.message-image img:hover {
+  opacity: 0.9;
+}
+
+.message-video {
+  max-width: 320px;
+}
+
+.message-video video {
+  width: 100%;
+  border-radius: var(--radius-lg);
+  display: block;
+}
+
+.message-item.is-mine .message-image,
+.message-item.is-mine .message-video {
+  margin-left: auto;
 }
 
 .message-input :deep(.el-input__wrapper) {
@@ -198,12 +274,12 @@
 }
 
 .message-input :deep(.el-input__wrapper.is-focus) {
-  box-shadow: 0 0 0 2px oklch(62% 0.14 195 / 0.3);
+  box-shadow: var(--accent-glow-strong);
 }
 
 .message-input :deep(.el-input-group__append) {
   background: var(--primary-color);
-  color: white;
+  color: var(--text-inverse);
   border: none;
   border-radius: var(--radius-md);
   padding: 8px 20px;
@@ -213,7 +289,7 @@
 }
 
 .message-input :deep(.el-input-group__append:hover) {
-  background: oklch(55% 0.14 195);
+  background: var(--accent-hover);
 }
 
 .message-input :deep(.el-input-group__append:active) {

@@ -22,7 +22,7 @@
   font-weight: 600;
   color: var(--text-primary);
   text-decoration: none;
-  transition: all 0.15s;
+  transition: all 150ms ease;
   margin-left: auto;
 }
 
@@ -212,7 +212,7 @@
   font-family: var(--font-mono);
   font-weight: 700;
   font-size: 18px;
-  color: var(--price-color);
+  color: var(--price);
 }
 
 .item-card-price .unit {
@@ -283,7 +283,7 @@
 
 .profile-menu-badge {
   background: var(--error-color);
-  color: #fff;
+  color: var(--text-inverse);
   font-size: 11px;
   font-weight: 700;
   padding: 2px 7px;

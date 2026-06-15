@@ -47,30 +47,17 @@ public class XssFilter implements Filter {
             throws IOException, ServletException {
 
         HttpServletRequest httpRequest = (HttpServletRequest) request;
-        HttpServletResponse httpResponse = (HttpServletResponse) response;
+        String method = httpRequest.getMethod();
+        String contentType = httpRequest.getContentType();
 
-        try {
-            String method = httpRequest.getMethod();
-            String contentType = httpRequest.getContentType();
-
-            if ("GET".equals(method)) {
-                // GET 请求：仅过滤查询参数
-                XssHttpServletRequestWrapper xssRequest = new XssHttpServletRequestWrapper(httpRequest, false);
-                chain.doFilter(xssRequest, response);
-            } else if (("POST".equals(method) || "PUT".equals(method) || "PATCH".equals(method))
-                    && (contentType == null || !contentType.startsWith("multipart/form-data"))) {
-                XssHttpServletRequestWrapper xssRequest = new XssHttpServletRequestWrapper(httpRequest, true);
-                chain.doFilter(xssRequest, response);
-            } else {
-                chain.doFilter(request, response);
-            }
-        } catch (IOException e) {
-            log.error("XSS过滤器处理请求体时发生IO异常: {}", e.getMessage(), e);
-            httpResponse.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            httpResponse.setContentType("application/json;charset=UTF-8");
-            httpResponse.getWriter().write("{\"code\":40001,\"message\":\"请求体读取异常\",\"data\":null}");
-        } catch (Exception e) {
-            log.error("XSS过滤器处理请求时发生异常: {}", e.getMessage(), e);
+        if ("GET".equals(method)) {
+            XssHttpServletRequestWrapper xssRequest = new XssHttpServletRequestWrapper(httpRequest, false);
+            chain.doFilter(xssRequest, response);
+        } else if (("POST".equals(method) || "PUT".equals(method) || "PATCH".equals(method))
+                && (contentType == null || !contentType.startsWith("multipart/form-data"))) {
+            XssHttpServletRequestWrapper xssRequest = new XssHttpServletRequestWrapper(httpRequest, true);
+            chain.doFilter(xssRequest, response);
+        } else {
             chain.doFilter(request, response);
         }
     }

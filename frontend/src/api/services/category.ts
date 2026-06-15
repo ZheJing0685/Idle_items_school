@@ -28,6 +28,9 @@ const category = {
     ),
   searchCategories: (keyword: string) =>
     get<CategoryInfo[]>(API_PATHS.CATEGORY.SEARCH, { params: { keyword } }),
+  /** 分类建议（关键词补全），委托给 searchCategories */
+  suggestCategories: (keyword: string) =>
+    get<CategoryInfo[]>(API_PATHS.CATEGORY.SEARCH, { params: { keyword } }),
   submitFeedback: (data: { categoryName: string; reason: string }) =>
     post<null>(API_PATHS.CATEGORY.FEEDBACK, data),
   getMyFeedbacks: (params?: Record<string, any>) =>

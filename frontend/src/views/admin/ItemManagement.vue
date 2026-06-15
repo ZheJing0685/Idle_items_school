@@ -110,7 +110,7 @@
           <template #default="{ row }">
             <div class="item-cell">
               <div class="item-image">
-                <img :src="getFirstImage(row)" :alt="row.title" />
+                <img :src="getFirstImage(row)" :alt="row.title" loading="lazy" />
                 <span v-if="row.isRecommended" class="recommend-badge">推荐</span>
               </div>
               <div class="item-info">
@@ -225,10 +225,12 @@
           已选择 <strong>{{ selectedItems.length }}</strong> 项
         </div>
         <div class="bulk-actions">
-          <button class="btn btn-sm btn-warning" @click="handleBulkTakeDown">
+          <button class="btn btn-sm btn-warning" @click="handleBulkTakeDown" :disabled="bulkLoading">
+            <span v-if="bulkLoading" class="loading-spinner-sm"></span>
             批量下架
           </button>
-          <button class="btn btn-sm btn-danger" @click="handleBulkDelete">
+          <button class="btn btn-sm btn-danger" @click="handleBulkDelete" :disabled="bulkLoading">
+            <span v-if="bulkLoading" class="loading-spinner-sm"></span>
             批量删除
           </button>
         </div>
@@ -256,7 +258,7 @@
       <div class="item-detail" v-if="currentItem">
         <div class="detail-gallery">
           <div class="main-image">
-            <img :src="getFirstImage(currentItem)" :alt="currentItem.title" />
+            <img :src="getFirstImage(currentItem)" :alt="currentItem.title" loading="lazy" />
           </div>
           <div class="image-list" v-if="parseImages(currentItem.images).length">
             <img
@@ -265,6 +267,7 @@
               :src="img"
               :class="{ active: idx === 0 }"
               @click="currentItem.coverImage = img"
+              loading="lazy"
             />
           </div>
         </div>
@@ -409,6 +412,7 @@ const pageSize = ref(20);
 const total = ref(0);
 const detailDialogVisible = ref(false);
 const currentItem = ref<any>(null);
+const bulkLoading = ref(false);
 
 const stats = ref({ total: 0, pending: 0, onSale: 0, sold: 0 });
 const totalPages = computed(() => Math.ceil(total.value / pageSize.value) || 1);
@@ -657,6 +661,7 @@ const handleBulkTakeDown = () => {
     '确认'
   )
     .then(async () => {
+      bulkLoading.value = true;
       try {
         const res = await api.admin.items.batchOffShelf(selectedItems.value, '');
         if (res.code === 200) {
@@ -668,6 +673,8 @@ const handleBulkTakeDown = () => {
         }
       } catch {
         ElMessage.error('网络错误');
+      } finally {
+        bulkLoading.value = false;
       }
     })
     .catch(() => {});
@@ -680,6 +687,7 @@ const handleBulkDelete = () => {
     { type: 'error' }
   )
     .then(async () => {
+      bulkLoading.value = true;
       try {
         const results = await Promise.allSettled(
           selectedItems.value.map((id) => api.admin.items.deleteItem(id))
@@ -692,6 +700,8 @@ const handleBulkDelete = () => {
         fetchItems();
       } catch {
         ElMessage.error('网络错误');
+      } finally {
+        bulkLoading.value = false;
       }
     })
     .catch(() => {});

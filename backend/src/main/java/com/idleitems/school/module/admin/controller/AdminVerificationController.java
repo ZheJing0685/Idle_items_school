@@ -12,6 +12,8 @@ import com.idleitems.school.module.user.entity.VerificationRecord;
 import com.idleitems.school.module.user.repository.UserRepository;
 import com.idleitems.school.module.user.repository.VerificationRecordRepository;
 import com.idleitems.school.module.admin.service.AdminLogService;
+import com.idleitems.school.module.notification.entity.Notification;
+import com.idleitems.school.module.notification.service.NotificationService;
 import com.idleitems.school.module.user.service.VerificationService;
 import com.idleitems.school.config.ApiPaths;
 import jakarta.servlet.http.HttpServletRequest;
@@ -44,6 +46,7 @@ public class AdminVerificationController {
     private final UserRepository userRepository;
     private final AdminLogService adminLogService;
     private final VerificationService verificationService;
+    private final NotificationService notificationService;
 
     private static final int MAX_BATCH_SIZE = 50;
 
@@ -116,6 +119,19 @@ public class AdminVerificationController {
         user.setVerified(true);
         userRepository.save(user);
 
+        try {
+            notificationService.createNotification(
+                    record.getUserId(),
+                    Notification.NotificationType.SYSTEM.getCode(),
+                    "实名认证已通过",
+                    "您的实名认证已通过审核",
+                    id,
+                    "VERIFICATION"
+            );
+        } catch (Exception e) {
+            log.warn("发送认证通过通知失败: recordId={}", id, e);
+        }
+
         Map<String, Object> details = new HashMap<>();
         details.put("recordId", id);
         details.put("userId", record.getUserId());
@@ -148,6 +164,19 @@ public class AdminVerificationController {
                 userRepository.save(user);
             }
         });
+
+        try {
+            notificationService.createNotification(
+                    record.getUserId(),
+                    Notification.NotificationType.SYSTEM.getCode(),
+                    "实名认证未通过",
+                    "您的实名认证未通过审核，原因：" + reason,
+                    id,
+                    "VERIFICATION"
+            );
+        } catch (Exception e) {
+            log.warn("发送认证拒绝通知失败: recordId={}", id, e);
+        }
 
         Map<String, Object> details = new HashMap<>();
         details.put("recordId", id);
@@ -194,6 +223,18 @@ public class AdminVerificationController {
         verificationRecordRepository.saveAll(records);
 
         for (VerificationRecord record : records) {
+            try {
+                notificationService.createNotification(
+                        record.getUserId(),
+                        Notification.NotificationType.SYSTEM.getCode(),
+                        "实名认证已通过",
+                        "您的实名认证已通过审核",
+                        record.getId(),
+                        "VERIFICATION"
+                );
+            } catch (Exception e) {
+                log.warn("发送批量认证通过通知失败: recordId={}", record.getId(), e);
+            }
             Map<String, Object> details = new HashMap<>();
             details.put("recordId", record.getId());
             details.put("userId", record.getUserId());
@@ -240,6 +281,18 @@ public class AdminVerificationController {
         verificationRecordRepository.saveAll(records);
 
         for (VerificationRecord record : records) {
+            try {
+                notificationService.createNotification(
+                        record.getUserId(),
+                        Notification.NotificationType.SYSTEM.getCode(),
+                        "实名认证未通过",
+                        "您的实名认证未通过审核，原因：" + requestBody.getReason(),
+                        record.getId(),
+                        "VERIFICATION"
+                );
+            } catch (Exception e) {
+                log.warn("发送批量认证拒绝通知失败: recordId={}", record.getId(), e);
+            }
             Map<String, Object> details = new HashMap<>();
             details.put("recordId", record.getId());
             details.put("userId", record.getUserId());

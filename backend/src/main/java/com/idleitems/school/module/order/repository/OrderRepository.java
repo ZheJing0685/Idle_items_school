@@ -81,6 +81,9 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     @Query("SELECT o FROM Order o WHERE o.id = :orderId")
     Optional<Order> findByIdWithLock(@Param("orderId") Long orderId);
 
+    @Query("SELECT COUNT(o) FROM Order o WHERE o.itemId = :itemId AND o.orderStatus = 'COMPLETED'")
+    Long countCompletedByItemId(@Param("itemId") Long itemId);
+
     @Query("SELECT o FROM Order o WHERE o.orderStatus = :status AND o.createdAt < :threshold")
     List<Order> findTimeoutOrders(@Param("status") Order.OrderStatus status, @Param("threshold") LocalDateTime threshold);
 

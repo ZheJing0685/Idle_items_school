@@ -1,13 +1,14 @@
 package com.idleitems.school.controller.admin;
 
-import com.idleitems.school.aspect.PermissionAspect;
-import com.idleitems.school.entity.Item;
-import com.idleitems.school.entity.User;
-import com.idleitems.school.service.AdminLogService;
-import com.idleitems.school.service.DictService;
-import com.idleitems.school.service.ItemAdminService;
-import com.idleitems.school.service.ItemQueryService;
-import com.idleitems.school.cache.CacheService;
+import com.idleitems.school.module.admin.controller.AdminItemController;
+import com.idleitems.school.module.admin.controller.AdminItemController;
+import com.idleitems.school.module.item.entity.Item;
+import com.idleitems.school.module.user.entity.User;
+import com.idleitems.school.module.admin.service.AdminLogService;
+import com.idleitems.school.module.system.service.DictService;
+import com.idleitems.school.module.item.service.ItemAdminService;
+import com.idleitems.school.module.item.service.ItemQueryService;
+import com.idleitems.school.shared.cache.CacheService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,8 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.context.annotation.EnableAspectJAutoProxy;
-import org.springframework.context.annotation.Import;
+
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -33,8 +33,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(AdminItemController.class)
 @AutoConfigureMockMvc(addFilters = false)
-@EnableAspectJAutoProxy
-@Import(PermissionAspect.class)
 @DisplayName("AdminItemController 物品管理接口测试")
 class AdminItemControllerTest {
 
@@ -42,7 +40,7 @@ class AdminItemControllerTest {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private com.idleitems.school.repository.UserRepository userRepository;
+    private com.idleitems.school.module.user.repository.UserRepository userRepository;
 
     @MockitoBean
     private AdminLogService adminLogService;
@@ -60,7 +58,7 @@ class AdminItemControllerTest {
     private ItemQueryService itemQueryService;
 
     @MockitoBean
-    private com.idleitems.school.service.UserService userService;
+    private com.idleitems.school.module.user.service.UserService userService;
 
     @BeforeEach
     void setUp() {

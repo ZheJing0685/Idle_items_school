@@ -2,6 +2,7 @@ package com.idleitems.school.module.item.service;
 
 import com.idleitems.school.module.item.entity.Item;
 import com.idleitems.school.module.item.repository.ItemRepository;
+import com.idleitems.school.module.notification.service.NotificationService;
 import com.idleitems.school.module.order.repository.OrderRepository;
 import com.idleitems.school.shared.cache.CacheService;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ public class ItemAdminService {
     private final ItemRepository itemRepository;
     private final OrderRepository orderRepository;
     private final CacheService cacheService;
+    private final NotificationService notificationService;
 
     @Transactional
     public Item approveItem(Long id) {
@@ -28,6 +30,18 @@ public class ItemAdminService {
                 .orElseThrow(() -> new IllegalArgumentException("Item not found"));
         item.setStatus(Item.ItemStatus.ON_SALE);
         Item savedItem = itemRepository.save(item);
+        try {
+            notificationService.createNotification(
+                    savedItem.getUserId(),
+                    3,
+                    "物品审核通过",
+                    "您的物品《" + savedItem.getTitle() + "》已通过审核，现已上架",
+                    savedItem.getId(),
+                    "ITEM"
+            );
+        } catch (Exception e) {
+            log.warn("发送物品审核通过通知失败: itemId={}", id, e);
+        }
         clearItemCache(id);
         return savedItem;
     }
@@ -39,6 +53,18 @@ public class ItemAdminService {
         item.setStatus(Item.ItemStatus.REJECTED);
         item.setRejectReason(reason);
         Item savedItem = itemRepository.save(item);
+        try {
+            notificationService.createNotification(
+                    savedItem.getUserId(),
+                    3,
+                    "物品审核未通过",
+                    "您的物品《" + savedItem.getTitle() + "》审核未通过，原因：" + reason,
+                    savedItem.getId(),
+                    "ITEM"
+            );
+        } catch (Exception e) {
+            log.warn("发送物品审核拒绝通知失败: itemId={}", id, e);
+        }
         clearItemCache(id);
         return savedItem;
     }

@@ -11,10 +11,18 @@ const chat = {
   getMessages: (chatId: number | string, params?: Record<string, any>) =>
     get<ChatMessage[] | { content: ChatMessage[]; totalElements: number }>(`/chats/${chatId}/messages`, { params }),
 
-  sendMessage: (chatId: number | string, receiverId: number | string, content: string) =>
+  sendMessage: (chatId: number | string, receiverId: number | string, content: string, messageType: string = 'TEXT') =>
     post<ChatMessage>(`/chats/${chatId}/messages`, null, {
-      params: { receiverId, content },
+      params: { receiverId, content, messageType },
     }),
+
+  uploadChatMedia: (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return post<{ url: string; fileName: string; size: number; mediaType: string }>('/upload/chat-media', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
 };
 
 export default chat;

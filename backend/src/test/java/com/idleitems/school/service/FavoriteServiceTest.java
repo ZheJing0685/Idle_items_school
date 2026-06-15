@@ -1,12 +1,13 @@
 package com.idleitems.school.service;
 
-import com.idleitems.school.entity.Favorite;
-import com.idleitems.school.entity.Item;
-import com.idleitems.school.cache.CacheService;
+import com.idleitems.school.module.item.entity.Favorite;
+import com.idleitems.school.module.item.entity.Item;
+import com.idleitems.school.module.item.repository.FavoriteRepository;
+import com.idleitems.school.module.item.repository.ItemRepository;
+import com.idleitems.school.module.item.service.FavoriteService;
+import com.idleitems.school.module.user.repository.UserRepository;
 import com.idleitems.school.common.BusinessException;
-import com.idleitems.school.repository.FavoriteRepository;
-import com.idleitems.school.repository.ItemRepository;
-import com.idleitems.school.repository.UserRepository;
+import com.idleitems.school.shared.cache.CacheService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

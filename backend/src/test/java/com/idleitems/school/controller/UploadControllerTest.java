@@ -1,6 +1,7 @@
 package com.idleitems.school.controller;
 
-import com.idleitems.school.service.FileService;
+import com.idleitems.school.module.file.service.FileService;
+import com.idleitems.school.module.file.controller.UploadController;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -81,3 +81,8 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Reduced Motion — 动效降级 */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-image { animation: none; }
+}

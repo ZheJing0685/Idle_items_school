@@ -148,6 +148,7 @@
       </header>
 
       <main class="admin-content">
+        <BreadcrumbNav />
         <router-view v-slot="{ Component }">
           <transition name="page-fade" mode="out-in">
             <component :is="Component" />
@@ -163,6 +164,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { userStore } from '../../store';
+import BreadcrumbNav from '../../components/common/BreadcrumbNav.vue';
 import { LayoutDashboard, Users, CheckCircle, Package, Menu, MessageSquare, ClipboardList, AlertTriangle, TrendingUp, FileText, LogOut, Home } from 'lucide-vue-next';
 
 const route = useRoute();

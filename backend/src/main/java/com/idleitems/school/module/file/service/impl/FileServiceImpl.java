@@ -113,6 +113,43 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
+    public Map<String, Object> uploadChatMedia(MultipartFile file) throws Exception {
+        String contentType = file.getContentType();
+        boolean isVideo = contentType != null && contentType.startsWith("video/");
+
+        if (isVideo) {
+            FileValidationService.VideoValidationResult validation = fileValidationService.validateVideo(file);
+            StorageAdapter storageAdapter = storageServiceFactory.getStorageAdapter();
+            String originalFilename = file.getOriginalFilename();
+            if (originalFilename == null || originalFilename.isBlank()) {
+                originalFilename = "unknown";
+            }
+            String extension = validation.getExtension();
+            String fileName = UUID.randomUUID().toString() + "." + extension;
+
+            Path tempDir = Files.createTempDirectory("chat_upload_");
+            try {
+                Path tempFile = tempDir.resolve("video." + extension);
+                file.transferTo(tempFile.toFile());
+                Map<String, Object> storageResult = storageAdapter.upload(tempFile.toFile(), fileName, contentType);
+
+                Map<String, Object> result = new HashMap<>();
+                result.put("url", storageResult.get("url"));
+                result.put("path", storageResult.get("path"));
+                result.put("fileName", fileName);
+                result.put("originalName", originalFilename);
+                result.put("size", file.getSize());
+                result.put("mediaType", "video");
+                return result;
+            } finally {
+                safeDeleteDirectory(tempDir);
+            }
+        } else {
+            return uploadImage(file);
+        }
+    }
+
+    @Override
     public String uploadFile(MultipartFile file, String directory) throws IOException {
         if (file == null || file.isEmpty()) {
             throw new BusinessException(ErrorCode.BAD_REQUEST, "文件不能为空");

@@ -5,6 +5,8 @@ import com.idleitems.school.common.ErrorCode;
 import com.idleitems.school.module.chat.dto.ChatDTO;
 import com.idleitems.school.module.chat.entity.Chat;
 import com.idleitems.school.module.chat.entity.ChatMessage;
+import com.idleitems.school.module.notification.entity.Notification;
+import com.idleitems.school.module.notification.service.NotificationService;
 import com.idleitems.school.module.user.entity.User;
 import com.idleitems.school.module.chat.repository.ChatRepository;
 import com.idleitems.school.module.chat.repository.ChatMessageRepository;
@@ -32,6 +34,7 @@ public class ChatService {
     private final ChatRepository chatRepository;
     private final ChatMessageRepository chatMessageRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     private static final int MAX_MESSAGE_LENGTH = 2000;
     private static final int RECALL_TIME_LIMIT_MINUTES = 2;
@@ -70,19 +73,32 @@ public class ChatService {
         if (content == null || content.trim().isEmpty()) {
             throw new BusinessException(ErrorCode.BAD_REQUEST, "消息内容不能为空");
         }
-        if (content.length() > MAX_MESSAGE_LENGTH) {
-            throw new BusinessException(ErrorCode.BAD_REQUEST,
-                    "消息内容不能超过" + MAX_MESSAGE_LENGTH + "个字符");
-        }
 
-        // 敏感词过滤
-        List<String> sensitiveWords = SensitiveWordFilter.findSensitiveWords(content);
-        if (!sensitiveWords.isEmpty()) {
-            throw new BusinessException(ErrorCode.BAD_REQUEST, SensitiveWordFilter.getWarningMessage(sensitiveWords));
-        }
+        String safeContent;
+        String lastMessagePreview;
 
-        // XSS 过滤
-        String safeContent = XssFilter.filterXss(content.trim());
+        if (messageType == ChatMessage.MessageType.IMAGE || messageType == ChatMessage.MessageType.VIDEO) {
+            // 文件消息：跳过敏感词和 XSS 过滤，content 是 URL
+            if (content.length() > 2000) {
+                throw new BusinessException(ErrorCode.BAD_REQUEST, "文件路径过长");
+            }
+            safeContent = content.trim();
+            lastMessagePreview = messageType == ChatMessage.MessageType.IMAGE ? "[图片]" : "[视频]";
+        } else {
+            // 文本消息：正常校验和过滤
+            if (content.length() > MAX_MESSAGE_LENGTH) {
+                throw new BusinessException(ErrorCode.BAD_REQUEST,
+                        "消息内容不能超过" + MAX_MESSAGE_LENGTH + "个字符");
+            }
+
+            List<String> sensitiveWords = SensitiveWordFilter.findSensitiveWords(content);
+            if (!sensitiveWords.isEmpty()) {
+                throw new BusinessException(ErrorCode.BAD_REQUEST, SensitiveWordFilter.getWarningMessage(sensitiveWords));
+            }
+
+            safeContent = XssFilter.filterXss(content.trim());
+            lastMessagePreview = safeContent.length() > 50 ? safeContent.substring(0, 50) + "..." : safeContent;
+        }
 
         ChatMessage message = new ChatMessage();
         message.setChatId(chatId);
@@ -95,9 +111,25 @@ public class ChatService {
         ChatMessage savedMessage = chatMessageRepository.save(message);
 
         // 更新会话最后消息
-        chat.setLastMessage(safeContent.length() > 50 ? safeContent.substring(0, 50) + "..." : safeContent);
+        chat.setLastMessage(lastMessagePreview);
         chat.setLastMessageTime(LocalDateTime.now());
         chatRepository.save(chat);
+
+        try {
+            String senderNickname = userRepository.findById(senderId)
+                    .map(User::getNickname)
+                    .orElse("用户");
+            notificationService.createNotification(
+                    receiverId,
+                    Notification.NotificationType.INTERACTION.getCode(),
+                    senderNickname,
+                    lastMessagePreview,
+                    chatId,
+                    "CHAT"
+            );
+        } catch (Exception e) {
+            log.warn("发送聊天通知失败: chatId={}, error={}", chatId, e.getMessage());
+        }
 
         return savedMessage;
     }
@@ -170,7 +202,7 @@ public class ChatService {
             throw new BusinessException(ErrorCode.OPERATION_NOT_ALLOWED, "无权查看消息");
         }
 
-        return chatMessageRepository.findByChatIdOrderByCreatedAtAsc(chatId, pageable);
+        return chatMessageRepository.findByChatIdOrderByCreatedAtDesc(chatId, pageable);
     }
 
     /**

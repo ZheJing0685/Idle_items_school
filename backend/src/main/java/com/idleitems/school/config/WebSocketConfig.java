@@ -1,7 +1,8 @@
 package com.idleitems.school.config;
 
 import com.idleitems.school.security.JwtUtil;
-import com.idleitems.school.websocket.StompAuthInterceptor;
+import com.idleitems.school.notification.websocket.StompAuthInterceptor;
+import com.idleitems.school.notification.websocket.WebSocketHandshakeInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -33,6 +34,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     
     private final JwtUtil jwtUtil;
     private final StompAuthInterceptor stompAuthInterceptor;
+    private final WebSocketHandshakeInterceptor webSocketHandshakeInterceptor;
 
     @Bean
     public TaskScheduler webSocketTaskScheduler() {
@@ -73,11 +75,13 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.addEndpoint("/ws")
                 .setAllowedOriginPatterns(origins)
                 .setAllowedOrigins(origins) // 显式设置允许的源
+                .addInterceptors(webSocketHandshakeInterceptor)
                 .withSockJS();
         
         // 也支持原生WebSocket连接
         registry.addEndpoint("/ws-native")
                 .setAllowedOriginPatterns(origins)
-                .setAllowedOrigins(origins); // 显式设置允许的源
+                .setAllowedOrigins(origins) // 显式设置允许的源
+                .addInterceptors(webSocketHandshakeInterceptor);
     }
 }

@@ -2,6 +2,7 @@ package com.idleitems.school.module.category.service;
 
 import com.idleitems.school.common.BusinessException;
 import com.idleitems.school.common.ErrorCode;
+import com.idleitems.school.common.event.CategoryChangedEvent;
 import com.idleitems.school.module.category.entity.Category;
 import com.idleitems.school.module.category.entity.CategoryChangeLog;
 import com.idleitems.school.module.category.repository.CategoryChangeLogRepository;
@@ -11,6 +12,7 @@ import com.idleitems.school.shared.cache.CacheService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -31,6 +33,7 @@ public class CategoryCommandService {
     private final CategoryChangeLogRepository categoryChangeLogRepository;
     private final CacheService cacheService;
     private final ObjectMapper objectMapper;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public Category createCategory(Category category, Long operatorId) {
@@ -65,6 +68,7 @@ public class CategoryCommandService {
         recordChangeLog(saved, CategoryChangeLog.ActionType.CREATE, operatorId, null);
         normalizeSortValues(category.getParentId());
         clearCategoryCache();
+        publishCategoryChanged(saved.getId(), "CREATE");
         return saved;
     }
 
@@ -114,7 +118,7 @@ public class CategoryCommandService {
             if (newParent.getLevel() >= 3) {
                 throw new BusinessException(ErrorCode.OPERATION_NOT_ALLOWED, "Max 3 levels");
             }
-            changes.put("parentId", Map.of("old", existing.getParentId(), "new", updateData.getParentId()));
+            changes.put("parentId", Map.of("old", existing.getParentId() != null ? existing.getParentId() : "", "new", updateData.getParentId()));
             existing.setParentId(updateData.getParentId());
             existing.setLevel(newParent.getLevel() + 1);
         }
@@ -126,6 +130,7 @@ public class CategoryCommandService {
             recordChangeLog(saved, CategoryChangeLog.ActionType.UPDATE, operatorId, changes);
         }
         clearCategoryCache();
+        publishCategoryChanged(saved.getId(), "UPDATE");
         return saved;
     }
 
@@ -148,6 +153,7 @@ public class CategoryCommandService {
         categoryRepository.deleteById(id);
         normalizeSortValues(category.getParentId());
         clearCategoryCache();
+        publishCategoryChanged(id, "DELETE");
     }
 
     @Transactional
@@ -176,6 +182,7 @@ public class CategoryCommandService {
             throw new BusinessException(ErrorCode.OPERATION_NOT_ALLOWED, "Cannot delete: " + String.join("; ", errors));
         }
         clearCategoryCache();
+        publishCategoryChanged(null, "BATCH_DELETE");
     }
 
     @Transactional
@@ -190,6 +197,7 @@ public class CategoryCommandService {
 
         recordChangeLog(saved, CategoryChangeLog.ActionType.STATUS_CHANGE, operatorId, changes);
         clearCategoryCache();
+        publishCategoryChanged(id, "STATUS_CHANGE");
         return saved;
     }
 
@@ -260,6 +268,9 @@ public class CategoryCommandService {
         }
 
         clearCategoryCache();
+        if (successCount > 0) {
+            publishCategoryChanged(null, "IMPORT");
+        }
         Map<String, Object> result = new HashMap<>();
         result.put("successCount", successCount);
         result.put("failCount", failCount);
@@ -350,6 +361,14 @@ public class CategoryCommandService {
     private void clearCategoryCache() {
         cacheService.delete("categories:all");
         cacheService.delete("categories:tree");
+    }
+
+    private void publishCategoryChanged(Long categoryId, String action) {
+        try {
+            eventPublisher.publishEvent(new CategoryChangedEvent(this, categoryId, action));
+        } catch (Exception e) {
+            log.error("Failed to publish CategoryChangedEvent: {}", e.getMessage());
+        }
     }
 
     private String[] parseCsvLine(String line) {

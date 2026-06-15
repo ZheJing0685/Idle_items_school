@@ -1,9 +1,10 @@
 package com.idleitems.school.service;
 
-import com.idleitems.school.entity.DictItem;
-import com.idleitems.school.entity.DictType;
-import com.idleitems.school.repository.DictItemRepository;
-import com.idleitems.school.repository.DictTypeRepository;
+import com.idleitems.school.module.system.entity.DictItem;
+import com.idleitems.school.module.system.entity.DictType;
+import com.idleitems.school.module.system.repository.DictItemRepository;
+import com.idleitems.school.module.system.repository.DictTypeRepository;
+import com.idleitems.school.module.system.service.DictService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

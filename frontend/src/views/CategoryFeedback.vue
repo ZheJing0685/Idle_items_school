@@ -12,6 +12,7 @@
         :rules="rules"
         label-position="top"
         class="feedback-form"
+        @submit.prevent="handleSubmit"
       >
         <el-form-item label="反馈类型" prop="feedbackType">
           <el-radio-group v-model="form.feedbackType" class="type-radio-group">
@@ -52,9 +53,9 @@
           <div class="form-actions">
             <el-button
               type="primary"
+              native-type="submit"
               size="large"
               :loading="submitting"
-              @click="handleSubmit"
               class="submit-btn"
             >
               提交反馈

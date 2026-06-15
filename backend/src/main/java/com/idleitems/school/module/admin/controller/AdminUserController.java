@@ -224,7 +224,10 @@ public class AdminUserController {
                 request.getStudentId(),
                 request.getGender(),
                 request.getBio(),
-                request.getSchoolName()
+                request.getSchoolName(),
+                request.getDepartment(),
+                request.getMajor(),
+                request.getGrade()
             );
 
             Map<String, Object> details = new HashMap<>();

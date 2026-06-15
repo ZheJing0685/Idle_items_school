@@ -3,9 +3,11 @@ package com.idleitems.school.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.idleitems.school.common.BusinessException;
 import com.idleitems.school.common.ErrorCode;
-import com.idleitems.school.entity.Chat;
-import com.idleitems.school.entity.ChatMessage;
-import com.idleitems.school.service.ChatService;
+import static org.mockito.ArgumentMatchers.argThat;
+import com.idleitems.school.module.chat.entity.Chat;
+import com.idleitems.school.module.chat.entity.ChatMessage;
+import com.idleitems.school.module.chat.service.ChatService;
+import com.idleitems.school.module.chat.controller.ChatController;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -140,6 +142,8 @@ class ChatControllerTest {
     @DisplayName("发送消息 - 内容超长")
     void testSendMessageContentTooLong() throws Exception {
         String longContent = "a".repeat(2001);
+        when(chatService.sendMessage(eq(1L), eq(1L), eq(2L), argThat(c -> c.length() > 2000), any()))
+                .thenThrow(new BusinessException(ErrorCode.BAD_REQUEST, "消息内容不能超过2000个字符"));
 
         mockMvc.perform(post("/api/chats/1/messages")
                         .requestAttr("userId", 1L)

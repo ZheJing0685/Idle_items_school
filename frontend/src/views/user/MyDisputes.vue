@@ -88,7 +88,7 @@
             </div>
             <div class="info-item">
               <span class="info-label">纠纷类型</span>
-              <span class="info-value">{{ getDisputeTypeLabel(currentDispute.disputeType) }}</span>
+              <span class="info-value">{{ getDisputeTypeLabel(currentDispute?.disputeType) }}</span>
             </div>
             <div class="info-item">
               <span class="info-label">创建时间</span>
@@ -175,33 +175,34 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { ElMessage } from 'element-plus';
 import api from '../../api';
+import type { DisputeItem, DisputeStats, DisputeForm, DisputeReplyForm, DisputeEvaluateForm, DisputeLog } from '../../types/dispute';
 
-const disputes = ref([]);
+const disputes = ref<DisputeItem[]>([]);
 const loading = ref(false);
 const page = ref(1);
 const pageSize = ref(10);
 const total = ref(0);
 const filterStatus = ref('');
 
-const stats = ref({ total: 0, pending: 0, processing: 0, resolved: 0 });
+const stats = ref<DisputeStats>({ total: 0, pending: 0, processing: 0, resolved: 0 });
 
 const detailVisible = ref(false);
-const currentDispute = ref(null);
+const currentDispute = ref<DisputeItem | null>(null);
 
 const replyVisible = ref(false);
-const replyForm = ref({ content: '' });
+const replyForm = ref<DisputeReplyForm>({ content: '' });
 const replyLoading = ref(false);
 
 const evaluateVisible = ref(false);
-const evaluateForm = ref({ score: 5, remark: '' });
+const evaluateForm = ref<DisputeEvaluateForm>({ score: 5, remark: '' });
 const evaluateLoading = ref(false);
 
-const getStatusClass = (status) => {
-  const map = {
+const getStatusClass = (status: string): string => {
+  const map: Record<string, string> = {
     PENDING: 'status-pending',
     ASSIGNED: 'status-assigned',
     PROCESSING: 'status-processing',
@@ -213,8 +214,8 @@ const getStatusClass = (status) => {
   return map[status] || 'status-default';
 };
 
-const getStatusLabel = (status) => {
-  const map = {
+const getStatusLabel = (status: string): string => {
+  const map: Record<string, string> = {
     PENDING: '待处理',
     ASSIGNED: '已分配',
     PROCESSING: '处理中',
@@ -226,28 +227,28 @@ const getStatusLabel = (status) => {
   return map[status] || status;
 };
 
-const getDisputeTypeLabel = (type) => {
-  const map = { 1: '商品问题', 2: '物流问题', 3: '退款问题', 4: '其他' };
-  return map[type] || '其他';
+const getDisputeTypeLabel = (type?: number | string): string => {
+  const map: Record<string, string> = { '1': '商品问题', '2': '物流问题', '3': '退款问题', '4': '其他' };
+  return map[String(type)] || '其他';
 };
 
-const formatTime = (dateStr) => {
+const formatTime = (dateStr: string): string => {
   if (!dateStr) return '-';
   const date = new Date(dateStr);
   const now = new Date();
-  const diff = now - date;
+  const diff = now.getTime() - date.getTime();
   if (diff < 60000) return '刚刚';
   if (diff < 3600000) return Math.floor(diff / 60000) + '分钟前';
   if (diff < 86400000) return Math.floor(diff / 3600000) + '小时前';
   return Math.floor(diff / 86400000) + '天前';
 };
 
-const formatDateTime = (dateStr) => {
+const formatDateTime = (dateStr: string): string => {
   if (!dateStr) return '-';
   return new Date(dateStr).toLocaleString('zh-CN');
 };
 
-const parseLogs = (logsStr) => {
+const parseLogs = (logsStr: string): DisputeLog[] => {
   try {
     return JSON.parse(logsStr);
   } catch {
@@ -255,18 +256,18 @@ const parseLogs = (logsStr) => {
   }
 };
 
-const canReply = (dispute) => {
+const canReply = (dispute: DisputeItem): boolean => {
   return ['PENDING', 'ASSIGNED', 'PROCESSING'].includes(dispute.disputeStatus);
 };
 
-const canEvaluate = (dispute) => {
+const canEvaluate = (dispute: DisputeItem): boolean => {
   return ['RESOLVED', 'CLOSED'].includes(dispute.disputeStatus) && !dispute.satisfaction;
 };
 
-const fetchDisputes = async () => {
+const fetchDisputes = async (): Promise<void> => {
   loading.value = true;
   try {
-    const params = { page: page.value, size: pageSize.value };
+    const params: Record<string, unknown> = { page: page.value, size: pageSize.value };
     if (filterStatus.value) params.status = filterStatus.value;
     const res = await api.user.disputes.list(params);
     if (res.code === 200) {
@@ -275,50 +276,50 @@ const fetchDisputes = async () => {
     } else {
       ElMessage.error(res.message || '获取纠纷列表失败');
     }
-  } catch (e) {
+  } catch (e: unknown) {
     ElMessage.error('网络错误');
   } finally {
     loading.value = false;
   }
 };
 
-const fetchStats = async () => {
+const fetchStats = async (): Promise<void> => {
   try {
     const res = await api.user.disputes.list({ size: 1 });
     if (res.code === 200) {
       stats.value.total = res.data.totalElements || 0;
     }
-  } catch {}
+  } catch (_e: unknown) { /* 非关键数据，静默失败 */ }
   try {
     const res = await api.user.disputes.list({ status: 'PENDING', size: 1 });
     if (res.code === 200) {
       stats.value.pending = res.data.totalElements || 0;
     }
-  } catch {}
+  } catch (_e: unknown) { /* 非关键数据，静默失败 */ }
   try {
     const res = await api.user.disputes.list({ status: 'PROCESSING', size: 1 });
     if (res.code === 200) {
       stats.value.processing = res.data.totalElements || 0;
     }
-  } catch {}
+  } catch (_e: unknown) { /* 非关键数据，静默失败 */ }
   try {
     const res = await api.user.disputes.list({ status: 'RESOLVED', size: 1 });
     if (res.code === 200) {
       stats.value.resolved = res.data.totalElements || 0;
     }
-  } catch {}
+  } catch (_e: unknown) { /* 非关键数据，静默失败 */ }
 };
 
-const viewDetail = async (dispute) => {
+const viewDetail = async (dispute: DisputeItem): Promise<void> => {
   try {
-    const res = await api.user.disputes.get(dispute.id);
+    const res = await api.user.disputes.get(dispute.id!);
     if (res.code === 200) {
       currentDispute.value = res.data;
       detailVisible.value = true;
     } else {
       ElMessage.error(res.message || '获取详情失败');
     }
-  } catch {
+  } catch (_e: unknown) {
     ElMessage.error('网络错误');
   }
 };
@@ -328,14 +329,14 @@ const showReplyDialog = () => {
   replyVisible.value = true;
 };
 
-const submitReply = async () => {
+const submitReply = async (): Promise<void> => {
   if (!replyForm.value.content.trim()) {
     ElMessage.warning('请输入回复内容');
     return;
   }
   replyLoading.value = true;
   try {
-    const res = await api.user.disputes.reply(currentDispute.value.id, replyForm.value);
+    const res = await api.user.disputes.reply(currentDispute.value!.id, replyForm.value);
     if (res.code === 200) {
       ElMessage.success('回复成功');
       replyVisible.value = false;
@@ -344,7 +345,7 @@ const submitReply = async () => {
     } else {
       ElMessage.error(res.message || '回复失败');
     }
-  } catch {
+  } catch (_e: unknown) {
     ElMessage.error('网络错误');
   } finally {
     replyLoading.value = false;
@@ -356,14 +357,14 @@ const showEvaluateDialog = () => {
   evaluateVisible.value = true;
 };
 
-const submitEvaluate = async () => {
+const submitEvaluate = async (): Promise<void> => {
   if (!evaluateForm.value.score) {
     ElMessage.warning('请选择满意度评分');
     return;
   }
   evaluateLoading.value = true;
   try {
-    const res = await api.user.disputes.satisfaction(currentDispute.value.id, evaluateForm.value);
+    const res = await api.user.disputes.satisfaction(currentDispute.value!.id, evaluateForm.value);
     if (res.code === 200) {
       ElMessage.success('评价成功');
       evaluateVisible.value = false;
@@ -372,7 +373,7 @@ const submitEvaluate = async () => {
     } else {
       ElMessage.error(res.message || '评价失败');
     }
-  } catch {
+  } catch (_e: unknown) {
     ElMessage.error('网络错误');
   } finally {
     evaluateLoading.value = false;

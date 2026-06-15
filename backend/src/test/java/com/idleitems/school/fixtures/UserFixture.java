@@ -1,6 +1,6 @@
 package com.idleitems.school.fixtures;
 
-import com.idleitems.school.entity.User;
+import com.idleitems.school.module.user.entity.User;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 

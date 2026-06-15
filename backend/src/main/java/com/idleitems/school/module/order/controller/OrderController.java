@@ -1,6 +1,7 @@
 package com.idleitems.school.module.order.controller;
 
 import com.idleitems.school.common.Result;
+import com.idleitems.school.common.annotation.Idempotent;
 import com.idleitems.school.config.ApiPaths;
 import com.idleitems.school.module.order.dto.CancelOrderRequest;
 import com.idleitems.school.module.order.dto.CreateOrderRequest;
@@ -36,6 +37,7 @@ public class OrderController {
 
     @Operation(summary = "创建订单", description = "买家创建新订单")
     @PostMapping
+    @Idempotent(message = "订单正在处理中，请勿重复提交")
     public Result<OrderSummaryResponse> createOrder(
             @RequestAttribute("userId") Long userId,
             @Valid @RequestBody CreateOrderRequest request) {
@@ -75,6 +77,7 @@ public class OrderController {
 
     @Operation(summary = "支付订单", description = "买家对指定订单进行支付")
     @PostMapping("/{id}/pay")
+    @Idempotent(message = "支付正在处理中，请勿重复支付")
     public Result<OrderSummaryResponse> payOrder(
             @RequestAttribute("userId") Long userId,
             @PathVariable Long id,

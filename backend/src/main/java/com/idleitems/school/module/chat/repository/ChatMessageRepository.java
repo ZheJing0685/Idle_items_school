@@ -15,7 +15,7 @@ import java.util.List;
 public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> {
     Page<ChatMessage> findByChatIdOrderByCreatedAtAsc(Long chatId, Pageable pageable);
 
-    List<ChatMessage> findByChatIdOrderByCreatedAtDesc(Long chatId, Pageable pageable);
+    Page<ChatMessage> findByChatIdOrderByCreatedAtDesc(Long chatId, Pageable pageable);
 
     List<ChatMessage> findByChatIdAndReceiverIdAndIsReadFalse(Long chatId, Long receiverId);
 

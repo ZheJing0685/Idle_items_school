@@ -9,7 +9,7 @@
 }
 
 .section-title {
-  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+  font-family: var(--font-display);
   font-size: 24px;
   font-weight: 600;
   color: var(--content-primary);
@@ -74,6 +74,11 @@
   color: var(--color-warning);
 }
 
+.stat-icon-ratio {
+  background: var(--color-danger-alpha-10);
+  color: var(--color-danger);
+}
+
 .stat-content {
   display: flex;
   flex-direction: column;
@@ -81,7 +86,7 @@
 }
 
 .stat-value {
-  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+  font-family: var(--font-display);
   font-size: 28px;
   font-weight: 700;
   color: var(--content-primary);
@@ -120,7 +125,7 @@
 }
 
 .tree-title {
-  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+  font-family: var(--font-display);
   font-size: 15px;
   font-weight: 600;
   color: var(--content-primary);
@@ -272,6 +277,16 @@
   flex-shrink: 0;
 }
 
+.tree-node-child-count {
+  font-size: 11px;
+  color: var(--color-info);
+  background: var(--color-info-alpha-10);
+  padding: 1px 6px;
+  border-radius: 9999px;
+  flex-shrink: 0;
+  margin-right: 4px;
+}
+
 .tree-node-status {
   font-size: 11px;
   flex-shrink: 0;
@@ -374,7 +389,7 @@
 }
 
 .detail-empty h4 {
-  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+  font-family: var(--font-display);
   font-size: 16px;
   font-weight: 600;
   color: var(--content-secondary);
@@ -440,7 +455,7 @@
 }
 
 .detail-name {
-  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+  font-family: var(--font-display);
   font-size: 18px;
   font-weight: 600;
   color: var(--content-primary);
@@ -536,7 +551,7 @@
 }
 
 .edit-title {
-  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+  font-family: var(--font-display);
   font-size: 16px;
   font-weight: 600;
   color: var(--content-primary);
@@ -637,11 +652,12 @@
 }
 
 .btn-primary {
-  background: var(--color-primary);
-  color: var(--text-inverse);
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
 }
 
 .btn-primary:hover {
+  background: var(--btn-primary-hover-bg);
   opacity: 0.9;
 }
 

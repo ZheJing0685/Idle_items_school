@@ -21,7 +21,7 @@
       </template>
     </PageHeader>
 
-    <FilterTabs v-model="currentTab" :tabs="tabs" @change="handleTabChange" />
+    <FilterTabs :modelValue="currentTab" :tabs="tabs" @update:modelValue="handleTabChange" />
 
     <div class="orders-panel" v-loading="loading">
       <div class="orders-list" v-if="orders.length > 0">
@@ -42,6 +42,7 @@
                 :src="order.itemCover || fallbackCover"
                 :alt="order.itemTitle"
                 class="item-image"
+                loading="lazy"
               />
               <div class="item-details">
                 <h4 class="item-title">{{ order.itemTitle }}</h4>
@@ -116,6 +117,7 @@
           <img
             :src="currentReviewOrder?.itemCover || fallbackCover"
             class="review-item-image"
+            loading="lazy"
           />
           <span class="review-item-title">
             {{ currentReviewOrder?.itemTitle }}
@@ -276,10 +278,6 @@ const loadOrders = async () => {
   }
 };
 
-const refreshOrders = async () => {
-  await loadOrders();
-};
-
 const setView = async (view: string) => {
   const nextView = sanitizeOrderView(view);
   if (currentView.value === nextView) return;
@@ -292,11 +290,7 @@ const setView = async (view: string) => {
 };
 
 const handleTabChange = async (value: string) => {
-  await setTab(value);
-};
-
-const setTab = async (status: string) => {
-  const nextStatus = sanitizeOrderStatus(status);
+  const nextStatus = sanitizeOrderStatus(value);
   if (currentTab.value === nextStatus) return;
 
   currentTab.value = nextStatus;
@@ -310,7 +304,10 @@ const handlePay = async (order: any) => {
     await ElMessageBox.confirm('确认支付该订单？', '提示', { type: 'warning' });
     await api.order.payOrder(order.id);
     ElMessage.success('支付成功');
-    await refreshOrders();
+    currentTab.value = 'ALL';
+    currentPage.value = 1;
+    await syncQuery();
+    await loadOrders();
   } catch (error) {
     if (error !== 'cancel' && error !== 'close') {
       ElMessage.error(error.message || '支付失败');
@@ -323,7 +320,10 @@ const handleCancel = async (order: any) => {
     await ElMessageBox.confirm('确认取消该订单？', '提示', { type: 'warning' });
     await api.order.cancelOrder(order.id, '用户主动取消');
     ElMessage.success('订单已取消');
-    await refreshOrders();
+    currentTab.value = 'ALL';
+    currentPage.value = 1;
+    await syncQuery();
+    await loadOrders();
   } catch (error) {
     if (error !== 'cancel' && error !== 'close') {
       ElMessage.error(error.message || '取消失败');
@@ -338,7 +338,10 @@ const handleShip = async (order: any) => {
     });
     await api.order.shipOrder(order.id);
     ElMessage.success('发货成功');
-    await refreshOrders();
+    currentTab.value = 'ALL';
+    currentPage.value = 1;
+    await syncQuery();
+    await loadOrders();
   } catch (error) {
     if (error !== 'cancel' && error !== 'close') {
       ElMessage.error(error.message || '发货失败');
@@ -351,7 +354,10 @@ const handleConfirmReceive = async (order: any) => {
     await ElMessageBox.confirm('确认已收到货物？', '提示', { type: 'warning' });
     await api.order.confirmReceive(order.id);
     ElMessage.success('已确认收货');
-    await refreshOrders();
+    currentTab.value = 'ALL';
+    currentPage.value = 1;
+    await syncQuery();
+    await loadOrders();
   } catch (error) {
     if (error !== 'cancel' && error !== 'close') {
       ElMessage.error(error.message || '确认收货失败');
@@ -376,7 +382,10 @@ const handleApplyRefund = async (order: any) => {
 
     await api.order.applyRefund(order.id, { reason: reason.trim() });
     ElMessage.success('退款申请已提交');
-    await refreshOrders();
+    currentTab.value = 'ALL';
+    currentPage.value = 1;
+    await syncQuery();
+    await loadOrders();
   } catch (error) {
     if (error !== 'cancel' && error !== 'close') {
       ElMessage.error(error.message || '退款申请失败');
@@ -413,7 +422,10 @@ const submitReview = async () => {
     });
     ElMessage.success('评价成功');
     showReviewDialog.value = false;
-    await refreshOrders();
+    currentTab.value = 'ALL';
+    currentPage.value = 1;
+    await syncQuery();
+    await loadOrders();
   } catch (error) {
     ElMessage.error(error.message || '评价失败');
   }
@@ -456,11 +468,11 @@ const viewDetail = (order: any) => {
 
 const handlePageChange = async (page: number) => {
   currentPage.value = page;
+  await syncQuery();
   await loadOrders();
 };
 
 onMounted(async () => {
-  await syncQuery();
   await loadOrders();
 });
 </script>

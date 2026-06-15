@@ -25,10 +25,10 @@
       <div v-else-if="item" class="detail-layout">
         <!-- Gallery -->
         <div class="detail-gallery">
-          <div class="detail-main-img" @click="openLightbox">
-            <img v-if="currentImage" :src="currentImage" :alt="item.title" class="main-img" />
+          <div class="detail-main-img" role="button" tabindex="0" :aria-label="'查看大图，共 ' + allImages.length + ' 张'" @click="openLightbox" @keydown.enter="openLightbox" @keydown.space.prevent="openLightbox">
+            <img v-if="currentImage" :src="currentImage" :alt="item.title" class="main-img" loading="eager" />
             <div v-else class="img-placeholder" :style="{ background: getGalleryBg() }">
-              {{ getCategoryEmoji(item.categoryName) }}
+              {{ categoryStore.getCategoryIcon(item.categoryName) }}
             </div>
             <div class="img-count" v-if="allImages.length > 1">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
@@ -39,39 +39,45 @@
               {{ allImages.length }} 张图片
             </div>
           </div>
-          <div class="detail-thumbs" v-if="allImages.length > 1">
+          <div class="detail-thumbs" v-if="allImages.length > 1" role="tablist" aria-label="图片缩略图">
             <div
               v-for="(img, index) in allImages"
               :key="index"
               class="detail-thumb"
               :class="{ active: currentThumb === index }"
+              role="tab"
+              tabindex="0"
+              :aria-selected="currentThumb === index"
+              :aria-label="'图片 ' + (index + 1)"
               @click="currentThumb = index; currentImage = img"
+              @keydown.enter="currentThumb = index; currentImage = img"
+              @keydown.space.prevent="currentThumb = index; currentImage = img"
             >
-              <img :src="img" :alt="`图片 ${index + 1}`" />
+              <img :src="img" :alt="'图片 ' + (index + 1)" loading="lazy" />
             </div>
           </div>
         </div>
 
         <!-- Lightbox -->
-        <div class="lightbox" v-if="showLightbox" @click="closeLightbox">
+        <div class="lightbox" v-if="showLightbox" role="dialog" aria-modal="true" aria-label="图片灯箱" ref="lightboxRef" tabindex="-1" @click="closeLightbox" @keydown.escape="closeLightbox">
           <div class="lightbox-content" @click.stop>
-            <button class="lightbox-close" @click="closeLightbox">
+            <button class="lightbox-close" @click="closeLightbox" aria-label="关闭灯箱" ref="closeBtnRef">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
                 <path d="M18 6L6 18M6 6l12 12" />
               </svg>
             </button>
-            <button class="lightbox-prev" v-if="allImages.length > 1" @click="prevImage">
+            <button class="lightbox-prev" v-if="allImages.length > 1" @click="prevImage" aria-label="上一张图片">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
                 <path d="M15 18l-6-6 6-6" />
               </svg>
             </button>
-            <img :src="currentImage" :alt="item.title" class="lightbox-img" />
-            <button class="lightbox-next" v-if="allImages.length > 1" @click="nextImage">
+            <img :src="currentImage" :alt="item.title" class="lightbox-img" loading="lazy" />
+            <button class="lightbox-next" v-if="allImages.length > 1" @click="nextImage" aria-label="下一张图片">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
                 <path d="M9 18l6-6-6-6" />
               </svg>
             </button>
-            <div class="lightbox-counter">{{ currentThumb + 1 }} / {{ allImages.length }}</div>
+            <div class="lightbox-counter" aria-live="polite">{{ currentThumb + 1 }} / {{ allImages.length }}</div>
           </div>
         </div>
 
@@ -82,7 +88,34 @@
             <div class="detail-tags" style="margin-top:10px">
               <span v-if="item.eco" class="tag tag-eco">环保优选</span>
               <span class="tag tag-condition">{{ getConditionText(item.condition) }}</span>
-              <span class="tag tag-category">{{ getCategoryEmoji(item.categoryName) }} {{ item.categoryName }}</span>
+              <span class="tag tag-category">
+              {{ categoryStore.getCategoryIcon(item.categoryName) }}
+              <template v-if="categoryPath.length > 0">
+                <span
+                  v-for="(cat, idx) in categoryPath"
+                  :key="cat.id"
+                  class="category-path-segment"
+                >
+                  <router-link
+                    v-if="idx === categoryPath.length - 1"
+                    :to="`/items/category/${encodeURIComponent(cat.name)}`"
+                    class="category-path-link"
+                  >
+                    {{ cat.name }}
+                  </router-link>
+                  <template v-else>
+                    <router-link
+                      :to="`/items/category/${encodeURIComponent(cat.name)}`"
+                      class="category-path-link"
+                    >
+                      {{ cat.name }}
+                    </router-link>
+                    <span class="category-path-sep"> / </span>
+                  </template>
+                </span>
+              </template>
+              <template v-else>{{ item.categoryName }}</template>
+            </span>
             </div>
           </div>
 
@@ -130,90 +163,106 @@
           <!-- Actions -->
           <div class="detail-actions">
             <button class="btn btn-secondary btn-lg" @click="toggleFavorite">
-              <svg width="18" height="18" viewBox="0 0 24 24" :fill="isFavorited ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2">
+              <svg width="18" height="18" viewBox="0 0 24 24" :fill="isFavorited ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
               </svg>
               {{ isFavorited ? '已收藏' : '收藏' }}
             </button>
-            <button class="btn btn-primary btn-lg" @click="handleContact">
-              💬 我想要
+            <button class="btn btn-secondary btn-lg" @click="handleChat">
+              💬 聊天
+            </button>
+            <button class="btn btn-primary btn-lg" @click="handleBuy">
+              🛒 购买
             </button>
           </div>
         </div>
       </div>
+
+      <!-- Related Items -->
+      <div class="related-section" v-if="similarItems.length > 0 || sellerItems.length > 0">
+        <div class="related-block" v-if="similarItems.length > 0">
+          <h3 class="related-title">相似推荐</h3>
+          <div class="related-grid">
+            <router-link
+              v-for="r in similarItems"
+              :key="r.id"
+              :to="`/item/${r.id}`"
+              class="related-card"
+            >
+              <div class="related-card-img">
+                <img v-if="r.coverImage" :src="r.coverImage" :alt="r.title" loading="lazy" />
+                <div v-else class="related-img-placeholder">{{ r.title?.charAt(0) || '物' }}</div>
+              </div>
+              <div class="related-card-body">
+                <div class="related-card-title">{{ r.title }}</div>
+                <div class="related-card-price">¥{{ r.price?.toLocaleString() }}</div>
+                <div class="related-card-seller">{{ r.sellerNickname || '未知卖家' }}</div>
+              </div>
+            </router-link>
+          </div>
+        </div>
+        <div class="related-block" v-if="sellerItems.length > 0">
+          <h3 class="related-title">卖家其他好物</h3>
+          <div class="related-grid">
+            <router-link
+              v-for="r in sellerItems"
+              :key="r.id"
+              :to="`/item/${r.id}`"
+              class="related-card"
+            >
+              <div class="related-card-img">
+                <img v-if="r.coverImage" :src="r.coverImage" :alt="r.title" loading="lazy" />
+                <div v-else class="related-img-placeholder">{{ r.title?.charAt(0) || '物' }}</div>
+              </div>
+              <div class="related-card-body">
+                <div class="related-card-title">{{ r.title }}</div>
+                <div class="related-card-price">¥{{ r.price?.toLocaleString() }}</div>
+                <div class="related-card-seller">{{ r.sellerNickname || '未知卖家' }}</div>
+              </div>
+            </router-link>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import api from '../api';
 import { useUserStore } from '../store/modules/user';
+import { getCategoryColorById, getConditionText, getDeliveryText, getTimeAgo } from '../utils/item-helper';
+import { useCategoryStore } from '../store/category';
 
 const route = useRoute();
 const router = useRouter();
 const userStore = useUserStore();
+const categoryStore = useCategoryStore();
 
 const loading = ref(true);
-const item = ref(null);
+const item = ref<any>(null);
 const isFavorited = ref(false);
 const currentThumb = ref(0);
 const currentImage = ref('');
 const showLightbox = ref(false);
 const allImages = ref([] as string[]);
+const lightboxRef = ref<HTMLElement | null>(null);
+const closeBtnRef = ref<HTMLElement | null>(null);
+const similarItems = ref<any[]>([]);
+const sellerItems = ref<any[]>([]);
 
-const IMG_COLORS = {
-  digital: ['#dce8f7', '#c4d8f0', '#b0cce8'],
-  books: ['#f5edd6', '#ebe0c4', '#e0d3b2'],
-  living: ['#d8f0e0', '#c4e8d0', '#b0e0c0'],
-  clothing: ['#e8d8f0', '#dcc4e8', '#d0b0e0'],
-  sports: ['#f0e0d0', '#e8d4c0', '#e0c8b0'],
-  furniture: ['#e0e8d8', '#d4e0c8', '#c8d8b8'],
-  other: ['#e8e8e8', '#dcdcdc', '#d0d0d0'],
-};
-
-const getCategoryEmoji = (category) => {
-  const map = {
-    '数码电子': '💻', '教材书籍': '📚', '生活用品': '🧴',
-    '服饰鞋包': '👟', '运动户外': '⚽', '家具家电': '🪑', '其他': '📦',
-  };
-  return map[category] || '📦';
-};
+/** 当前物品的分类路径（一级 > 二级） */
+const categoryPath = computed(() => {
+  if (!item.value?.categoryId) return [];
+  return categoryStore.getCategoryPath(item.value.categoryId);
+});
 
 const getGalleryBg = () => {
-  const cat = item.value?.categoryName || '其他';
-  const colors = IMG_COLORS[cat] || IMG_COLORS.other;
-  return colors[0];
-};
-
-const getGalleryColors = () => {
-  const cat = item.value?.categoryName || '其他';
-  return IMG_COLORS[cat] || IMG_COLORS.other;
-};
-
-const getConditionText = (condition) => {
-  const map = { NEW: '全新', LIKE_NEW: '九五新', GOOD: '九成新', FAIR: '八成新', POOR: '七成新' };
-  return map[condition] || condition || '未知';
-};
-
-const getDeliveryText = (method) => {
-  const map = { LOCAL_DELIVERY: '面交', HOME_DELIVERY: '上门', EXPRESS: '快递', MAIL: '邮寄' };
-  return map[method] || method || '面交';
-};
-
-const getTimeAgo = (dateStr) => {
-  if (!dateStr) return '刚刚';
-  const date = new Date(dateStr);
-  const now = new Date();
-  const diff = now.getTime() - date.getTime();
-  const minutes = Math.floor(diff / 60000);
-  const hours = Math.floor(diff / 3600000);
-  const days = Math.floor(diff / 86400000);
-  if (minutes < 60) return `${minutes}分钟前`;
-  if (hours < 24) return `${hours}小时前`;
-  return `${days}天前`;
+  const id = item.value?.categoryId ?? 0;
+  return getCategoryColorById(id);
 };
 
 const fetchItemDetail = async () => {
@@ -250,11 +299,26 @@ const fetchItemDetail = async () => {
     
     // Set current image
     currentImage.value = allImages.value[0] || '';
+
+    // Fetch related items
+    fetchRelatedItems(itemId);
   } catch (error) {
     ElMessage.error(error.message || '获取物品详情失败');
     router.push('/');
   } finally {
     loading.value = false;
+  }
+};
+
+const fetchRelatedItems = async (itemId: number | string) => {
+  try {
+    const res = await api.item.getRelatedItems(itemId);
+    if (res.data) {
+      similarItems.value = (res.data.similarItems || []).slice(0, 6);
+      sellerItems.value = (res.data.sellerItems || []).slice(0, 4);
+    }
+  } catch {
+    // Non-critical data, silent fail
   }
 };
 
@@ -279,7 +343,7 @@ const toggleFavorite = async () => {
   }
 };
 
-const handleContact = async () => {
+const handleChat = async () => {
   if (!userStore.isLoggedIn) {
     ElMessage.warning('请先登录');
     router.push('/login');
@@ -301,9 +365,88 @@ const handleContact = async () => {
   }
 };
 
+/** 购买弹窗 - 分字段输入收货信息 */
+const handleBuy = async () => {
+  if (!userStore.isLoggedIn) {
+    // 将购买意图存入 sessionStorage，登录后恢复
+    sessionStorage.setItem('pendingPurchase', JSON.stringify({ itemId: item.value?.id }));
+    ElMessage.warning('请先登录');
+    router.push('/login');
+    return;
+  }
+  try {
+    const { ElMessageBox } = await import('element-plus');
+
+    // 使用自定义 HTML 实现分字段输入
+    const htmlContent = `
+      <div style="display:flex;flex-direction:column;gap:16px;">
+        <div>
+          <label style="font-size:13px;font-weight:600;color:var(--text-primary,#333);display:block;margin-bottom:4px;">收货人姓名</label>
+          <input id="buyer-name-input" class="buyer-field" placeholder="请输入收货人姓名" style="width:100%;padding:10px 12px;border:1.5px solid var(--border,#e0e0e0);border-radius:8px;font-size:14px;box-sizing:border-box;outline:none;transition:border-color .15s;" />
+        </div>
+        <div>
+          <label style="font-size:13px;font-weight:600;color:var(--text-primary,#333);display:block;margin-bottom:4px;">联系电话</label>
+          <input id="buyer-phone-input" class="buyer-field" placeholder="请输入手机号" style="width:100%;padding:10px 12px;border:1.5px solid var(--border,#e0e0e0);border-radius:8px;font-size:14px;box-sizing:border-box;outline:none;transition:border-color .15s;" />
+        </div>
+        <div>
+          <label style="font-size:13px;font-weight:600;color:var(--text-primary,#333);display:block;margin-bottom:4px;">收货地址</label>
+          <input id="buyer-address-input" class="buyer-field" placeholder="请输入详细地址（校区、宿舍楼等）" style="width:100%;padding:10px 12px;border:1.5px solid var(--border,#e0e0e0);border-radius:8px;font-size:14px;box-sizing:border-box;outline:none;transition:border-color .15s;" />
+        </div>
+      </div>
+    `;
+
+    await ElMessageBox({
+      title: '确认购买',
+      message: htmlContent,
+      dangerouslyUseHTMLString: true,
+      confirmButtonText: '确认下单',
+      cancelButtonText: '取消',
+      closeOnClickModal: false,
+      beforeClose: async (action: string, instance: any, done: () => void) => {
+        if (action === 'confirm') {
+          const nameEl = document.getElementById('buyer-name-input') as HTMLInputElement;
+          const phoneEl = document.getElementById('buyer-phone-input') as HTMLInputElement;
+          const addrEl = document.getElementById('buyer-address-input') as HTMLInputElement;
+
+          const name = nameEl?.value?.trim();
+          const phone = phoneEl?.value?.trim();
+          const address = addrEl?.value?.trim();
+
+          if (!name) { ElMessage.warning('请输入收货人姓名'); return; }
+          if (!phone) { ElMessage.warning('请输入联系电话'); return; }
+          if (!address) { ElMessage.warning('请输入收货地址'); return; }
+          if (!/^1[3-9]\d{9}$/.test(phone)) { ElMessage.warning('请输入正确的手机号'); return; }
+
+          try {
+            const response = await api.order.createOrder({
+              itemId: item.value!.id,
+              buyerName: name,
+              buyerPhone: phone,
+              buyerAddress: address,
+            });
+            if (response.code === 200) {
+              ElMessage.success('下单成功');
+              router.push('/user/orders');
+              done();
+            } else {
+              ElMessage.error(response.message || '下单失败');
+            }
+          } catch (err: any) {
+            ElMessage.error(err.message || '下单失败');
+          }
+        } else {
+          done();
+        }
+      },
+    });
+  } catch (error) {
+    // 取消操作不处理
+  }
+};
+
 const viewSellerProfile = () => {
   if (item.value?.userId) {
-    router.push(`/user/${item.value.userId}`);
+    router.push(`/seller/${item.value.userId}`);
   }
 };
 
@@ -311,6 +454,9 @@ const openLightbox = () => {
   if (allImages.value.length > 0) {
     showLightbox.value = true;
     document.body.style.overflow = 'hidden';
+    nextTick(() => {
+      closeBtnRef.value?.focus();
+    });
   }
 };
 
@@ -335,3 +481,110 @@ onMounted(() => {
 </script>
 
 <style scoped src="../styles/pages/item-detail.css"></style>
+
+<style scoped>
+.category-path-link {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.category-path-link:hover {
+  color: var(--accent, #4f46e5);
+  text-decoration: underline;
+}
+.category-path-sep {
+  margin: 0 2px;
+  opacity: 0.5;
+}
+
+.related-section {
+  margin-top: 48px;
+  padding-top: 32px;
+  border-top: 1px solid var(--border, #e5e7eb);
+}
+
+.related-block {
+  margin-bottom: 32px;
+}
+
+.related-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: var(--text-primary, #111827);
+}
+
+.related-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 16px;
+}
+
+.related-card {
+  text-decoration: none;
+  color: inherit;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--surface, #fff);
+  border: 1px solid var(--border, #e5e7eb);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.related-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.related-card-img {
+  width: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
+  background: var(--surface-alt, #f3f4f6);
+}
+
+.related-card-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.related-img-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  color: var(--text-tertiary, #9ca3af);
+  background: var(--surface-alt, #f3f4f6);
+}
+
+.related-card-body {
+  padding: 10px 12px 12px;
+}
+
+.related-card-title {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-primary, #111827);
+}
+
+.related-card-price {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--accent, #4f46e5);
+  margin-top: 4px;
+}
+
+.related-card-seller {
+  font-size: 0.75rem;
+  color: var(--text-tertiary, #9ca3af);
+  margin-top: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+</style>

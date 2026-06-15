@@ -5,6 +5,7 @@ import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
@@ -37,23 +38,11 @@ public class Category {
     @Column(name = "icon", length = 255)
     private String icon;
 
-    @Column(name = "image", length = 255)
-    private String image;
-
     @Column(name = "keywords", length = 255)
     private String keywords;
 
-    @Column(name = "meta_description", length = 500)
-    private String metaDescription;
-
-    @Column(name = "path", length = 500)
-    private String path;
-
-    @Column(name = "background_color", length = 20)
-    private String backgroundColor;
-
-    @Column(name = "created_by")
-    private Long createdBy;
+    @Column(name = "carbon_saving_kg", precision = 10, scale = 2)
+    private BigDecimal carbonSavingKg = BigDecimal.ZERO;
 
     @Column(name = "updated_by")
     private Long updatedBy;

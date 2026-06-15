@@ -81,13 +81,13 @@
 
       <div v-if="selectedDisputes.length > 0" class="batch-actions">
         <span class="batch-info">已选择 {{ selectedDisputes.length }} 项</span>
-        <button class="btn btn-sm btn-primary" @click="handleBatchApprove">
+        <button class="btn btn-sm btn-primary" @click="handleBatchApprove" :disabled="batchLoading">
           <CheckCircle :size="14" />
-          批量通过
+          {{ batchLoading ? '处理中...' : '批量通过' }}
         </button>
-        <button class="btn btn-sm btn-ghost" @click="handleBatchClose">
+        <button class="btn btn-sm btn-ghost" @click="handleBatchClose" :disabled="batchLoading">
           <XCircle :size="14" />
-          批量关闭
+          {{ batchLoading ? '处理中...' : '批量关闭' }}
         </button>
       </div>
 
@@ -259,7 +259,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElMessageBox } from 'element-plus';
 import api from '../../api';
 import { useDictStore } from '../../store/dict';
 import {
@@ -289,6 +289,7 @@ const currentDispute = ref<any>(null);
 const processDialogVisible = ref(false);
 const processForm = ref({ result: '', remark: '' });
 const processLoading = ref(false);
+const batchLoading = ref(false);
 
 const disputeStatusOptions = computed(() => dictStore.getDictOptions('DISPUTE_STATUS'));
 
@@ -422,10 +423,20 @@ const submitProcess = async () => {
 const handleBatchApprove = async () => {
   if (selectedDisputes.value.length === 0) return;
   try {
+    await ElMessageBox.confirm(
+      `确认批量通过选中的 ${selectedDisputes.value.length} 个纠纷？`,
+      '批量通过',
+      { type: 'warning' }
+    );
+  } catch {
+    return;
+  }
+  batchLoading.value = true;
+  try {
     const ids = selectedDisputes.value.map((d) => d.id);
     const response = await api.admin.disputes.batchApprove(ids);
     if (response.code === 200) {
-      ElMessage.success('批量处理成功');
+      ElMessage.success(`已批量通过 ${selectedDisputes.value.length} 个纠纷`);
       selectedDisputes.value = [];
       fetchDisputes();
       fetchStats();
@@ -434,16 +445,28 @@ const handleBatchApprove = async () => {
     }
   } catch (error) {
     ElMessage.error('批量处理失败');
+  } finally {
+    batchLoading.value = false;
   }
 };
 
 const handleBatchClose = async () => {
   if (selectedDisputes.value.length === 0) return;
   try {
+    await ElMessageBox.confirm(
+      `确认批量关闭选中的 ${selectedDisputes.value.length} 个纠纷？`,
+      '批量关闭',
+      { type: 'warning' }
+    );
+  } catch {
+    return;
+  }
+  batchLoading.value = true;
+  try {
     const ids = selectedDisputes.value.map((d) => d.id);
     const response = await api.admin.disputes.batchClose(ids);
     if (response.code === 200) {
-      ElMessage.success('批量关闭成功');
+      ElMessage.success(`已批量关闭 ${selectedDisputes.value.length} 个纠纷`);
       selectedDisputes.value = [];
       fetchDisputes();
       fetchStats();
@@ -452,6 +475,8 @@ const handleBatchClose = async () => {
     }
   } catch (error) {
     ElMessage.error('批量关闭失败');
+  } finally {
+    batchLoading.value = false;
   }
 };
 

@@ -52,67 +52,51 @@
             <p class="card-subtitle">开启你的闲置交易之旅</p>
           </div>
 
-          <form class="register-form" @submit.prevent="handleRegister">
+          <el-form
+            ref="registerFormRef"
+            :model="registerForm"
+            :rules="registerRules"
+            class="register-form"
+            label-position="top"
+            @submit.prevent="handleRegister"
+          >
             <div class="form-row">
-              <div class="form-group">
-                <label class="form-label" for="reg-username">用户名</label>
-                <input
-                  id="reg-username"
+              <el-form-item label="用户名" prop="username" class="form-group">
+                <el-input
                   v-model="registerForm.username"
-                  type="text"
                   placeholder="3-20个字符"
-                  class="form-input"
-                  required
                 />
-              </div>
-              <div class="form-group">
-                <label class="form-label" for="reg-nickname">昵称</label>
-                <input
-                  id="reg-nickname"
+              </el-form-item>
+              <el-form-item label="昵称" prop="nickname" class="form-group">
+                <el-input
                   v-model="registerForm.nickname"
-                  type="text"
                   placeholder="请输入昵称"
-                  class="form-input"
-                  required
                 />
-              </div>
+              </el-form-item>
             </div>
 
-            <div class="form-group">
-              <label class="form-label" for="reg-password">密码</label>
-              <input
-                id="reg-password"
+            <el-form-item label="密码" prop="password" class="form-group">
+              <el-input
                 v-model="registerForm.password"
                 type="password"
-                placeholder="8-32个字符，包含大小写字母、数字"
-                class="form-input"
-                required
+                show-password
+                placeholder="8-32个字符，包含大小写字母、数字和特殊字符"
               />
-            </div>
+            </el-form-item>
 
             <div class="form-row">
-              <div class="form-group">
-                <label class="form-label" for="reg-email">邮箱</label>
-                <input
-                  id="reg-email"
+              <el-form-item label="邮箱" prop="email" class="form-group">
+                <el-input
                   v-model="registerForm.email"
-                  type="email"
                   placeholder="请输入邮箱"
-                  class="form-input"
-                  required
                 />
-              </div>
-              <div class="form-group">
-                <label class="form-label" for="reg-phone">手机号</label>
-                <input
-                  id="reg-phone"
+              </el-form-item>
+              <el-form-item label="手机号" prop="phone" class="form-group">
+                <el-input
                   v-model="registerForm.phone"
-                  type="tel"
                   placeholder="请输入手机号"
-                  class="form-input"
-                  required
                 />
-              </div>
+              </el-form-item>
             </div>
 
             <div class="form-terms">
@@ -127,14 +111,17 @@
               </label>
             </div>
 
-            <button
-              type="submit"
+            <el-button
+              type="primary"
+              native-type="submit"
               class="submit-btn"
-              :disabled="loading || !agreedToTerms"
+              :loading="loading"
+              :disabled="!agreedToTerms"
+              size="large"
             >
               {{ loading ? '注册中...' : '立即注册' }}
-            </button>
-          </form>
+            </el-button>
+          </el-form>
 
           <div class="card-footer">
             <span class="footer-text">已有账号？</span>
@@ -149,13 +136,15 @@
 <script setup lang="ts">
 import { ref, reactive } from 'vue';
 import { useRouter } from 'vue-router';
-import { ElMessage } from 'element-plus';
+import { ElMessage, type FormInstance } from 'element-plus';
 import { userStore } from '../store';
+import { formRules, validatePassword } from '../utils/validator';
 
 const router = useRouter();
 const loading = ref(false);
 const agreedToTerms = ref(false);
 const store = userStore();
+const registerFormRef = ref<FormInstance>();
 
 const registerForm = reactive({
   username: '',
@@ -165,16 +154,22 @@ const registerForm = reactive({
   nickname: '',
 });
 
+const registerRules = {
+  username: formRules.username,
+  nickname: formRules.nickname,
+  password: formRules.password,
+  email: formRules.email,
+  phone: formRules.phone,
+};
+
 const handleRegister = async () => {
   if (!agreedToTerms.value) {
     ElMessage.warning('请先阅读并同意用户协议');
     return;
   }
 
-  if (!registerForm.username || !registerForm.password || !registerForm.email || !registerForm.phone) {
-    ElMessage.warning('请填写所有必填字段');
-    return;
-  }
+  const valid = await registerFormRef.value?.validate().catch(() => false);
+  if (!valid) return;
 
   try {
     loading.value = true;

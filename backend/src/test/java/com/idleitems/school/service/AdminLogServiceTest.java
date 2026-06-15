@@ -1,13 +1,15 @@
 package com.idleitems.school.service;
 
-import com.idleitems.school.entity.AdminLog;
-import com.idleitems.school.repository.AdminLogRepository;
+import com.idleitems.school.module.admin.entity.AdminLog;
+import com.idleitems.school.module.admin.repository.AdminLogRepository;
+import com.idleitems.school.module.admin.service.AdminLogService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -82,8 +84,67 @@ class AdminLogServiceTest {
         Map<String, Object> details = new HashMap<>();
         adminLogService.logOperation(1L, "DELETE_ITEM", "ITEM", 100L, details, request);
 
-        verify(adminLogRepository).save(argThat(log -> 
+        verify(adminLogRepository).save(argThat(log ->
             log.getDetails().contains("Error serializing details")));
+    }
+
+    @Test
+    @DisplayName("记录操作日志 - X-Real-IP为空时使用RemoteAddr")
+    void logOperation_whenXRealIpNull_usesRemoteAddr() throws Exception {
+        when(request.getHeader("X-Real-IP")).thenReturn(null);
+        when(request.getRemoteAddr()).thenReturn("10.0.0.1");
+        when(request.getHeader("User-Agent")).thenReturn("TestAgent");
+        when(objectMapper.writeValueAsString(anyMap())).thenReturn("{}");
+
+        adminLogService.logOperation(1L, "TEST", "ITEM", 1L, Map.of(), request);
+
+        ArgumentCaptor<AdminLog> captor = ArgumentCaptor.forClass(AdminLog.class);
+        verify(adminLogRepository).save(captor.capture());
+        assertEquals("10.0.0.1", captor.getValue().getIpAddress());
+    }
+
+    @Test
+    @DisplayName("记录操作日志 - X-Real-IP为unknown时使用RemoteAddr")
+    void logOperation_whenXRealIpUnknown_usesRemoteAddr() throws Exception {
+        when(request.getHeader("X-Real-IP")).thenReturn("unknown");
+        when(request.getRemoteAddr()).thenReturn("10.0.0.2");
+        when(request.getHeader("User-Agent")).thenReturn("TestAgent");
+        when(objectMapper.writeValueAsString(anyMap())).thenReturn("{}");
+
+        adminLogService.logOperation(1L, "TEST", "ITEM", 1L, Map.of(), request);
+
+        ArgumentCaptor<AdminLog> captor = ArgumentCaptor.forClass(AdminLog.class);
+        verify(adminLogRepository).save(captor.capture());
+        assertEquals("10.0.0.2", captor.getValue().getIpAddress());
+    }
+
+    @Test
+    @DisplayName("记录操作日志 - X-Real-IP为空字符串时使用RemoteAddr")
+    void logOperation_whenXRealIpEmpty_usesRemoteAddr() throws Exception {
+        when(request.getHeader("X-Real-IP")).thenReturn("");
+        when(request.getRemoteAddr()).thenReturn("10.0.0.3");
+        when(request.getHeader("User-Agent")).thenReturn("TestAgent");
+        when(objectMapper.writeValueAsString(anyMap())).thenReturn("{}");
+
+        adminLogService.logOperation(1L, "TEST", "ITEM", 1L, Map.of(), request);
+
+        ArgumentCaptor<AdminLog> captor = ArgumentCaptor.forClass(AdminLog.class);
+        verify(adminLogRepository).save(captor.capture());
+        assertEquals("10.0.0.3", captor.getValue().getIpAddress());
+    }
+
+    @Test
+    @DisplayName("记录操作日志 - 无UserAgent")
+    void logOperation_whenUserAgentNull_savesNull() throws Exception {
+        when(request.getHeader("X-Real-IP")).thenReturn("192.168.1.1");
+        when(request.getHeader("User-Agent")).thenReturn(null);
+        when(objectMapper.writeValueAsString(anyMap())).thenReturn("{}");
+
+        adminLogService.logOperation(1L, "TEST", "ITEM", 1L, Map.of(), request);
+
+        ArgumentCaptor<AdminLog> captor = ArgumentCaptor.forClass(AdminLog.class);
+        verify(adminLogRepository).save(captor.capture());
+        assertNull(captor.getValue().getUserAgent());
     }
 
     @Test
@@ -151,7 +212,7 @@ class AdminLogServiceTest {
         Page<AdminLog> page = new PageImpl<>(List.of(testLog));
         LocalDateTime startDate = LocalDateTime.now().minusDays(7);
         LocalDateTime endDate = LocalDateTime.now();
-        
+
         when(adminLogRepository.findByFilters("DELETE", 1L, "ITEM", startDate, endDate, pageable))
                 .thenReturn(page);
 
@@ -162,11 +223,23 @@ class AdminLogServiceTest {
     }
 
     @Test
+    @DisplayName("根据筛选条件获取日志 - 全空参数")
+    void getAdminLogsByFilters_withNullParams_returnsResults() {
+        Page<AdminLog> page = new PageImpl<>(List.of(testLog));
+        when(adminLogRepository.findByFilters(null, null, null, null, null, pageable))
+                .thenReturn(page);
+
+        Page<AdminLog> result = adminLogService.getAdminLogsByFilters(null, null, null, null, null, pageable);
+
+        assertEquals(1, result.getContent().size());
+    }
+
+    @Test
     @DisplayName("获取导出日志")
     void getAdminLogsForExport_ReturnsLogs() {
         LocalDateTime startDate = LocalDateTime.now().minusDays(30);
         LocalDateTime endDate = LocalDateTime.now();
-        
+
         when(adminLogRepository.findAllByFilters(null, null, null, startDate, endDate))
                 .thenReturn(List.of(testLog));
 
@@ -174,5 +247,19 @@ class AdminLogServiceTest {
 
         assertEquals(1, result.size());
         verify(adminLogRepository).findAllByFilters(null, null, null, startDate, endDate);
+    }
+
+    @Test
+    @DisplayName("获取导出日志 - 带全部筛选参数")
+    void getAdminLogsForExport_withAllFilters_returnsLogs() {
+        LocalDateTime startDate = LocalDateTime.now().minusDays(30);
+        LocalDateTime endDate = LocalDateTime.now();
+        when(adminLogRepository.findAllByFilters("keyword", 1L, "ITEM", startDate, endDate))
+                .thenReturn(List.of(testLog));
+
+        List<AdminLog> result = adminLogService.getAdminLogsForExport("keyword", 1L, "ITEM", startDate, endDate);
+
+        assertEquals(1, result.size());
+        assertEquals("ITEM", result.get(0).getTargetType());
     }
 }

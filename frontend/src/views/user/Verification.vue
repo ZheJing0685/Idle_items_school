@@ -39,11 +39,11 @@
           </el-form-item>
 
           <el-form-item label="身份证正面照片" prop="idCardFront">
-            <UploadArea v-model="form.idCardFront" text="点击上传身份证正面照片" hint="请上传清晰的身份证正面照片，确保信息可见" />
+            <UploadArea v-model="form.idCardFront" text="点击上传身份证正面照片" hint="请上传清晰的身份证正面照片，确保信息可见" @upload="(f: File) => uploadFiles.idCardFront = f" />
           </el-form-item>
 
           <el-form-item label="身份证反面照片" prop="idCardBack">
-            <UploadArea v-model="form.idCardBack" text="点击上传身份证反面照片" hint="请上传清晰的身份证反面照片，确保信息可见" />
+            <UploadArea v-model="form.idCardBack" text="点击上传身份证反面照片" hint="请上传清晰的身份证反面照片，确保信息可见" @upload="(f: File) => uploadFiles.idCardBack = f" />
           </el-form-item>
         </template>
 
@@ -58,7 +58,7 @@
           </el-form-item>
 
           <el-form-item label="学生证照片" prop="studentCard">
-            <UploadArea v-model="form.studentCard" text="点击上传学生证照片" hint="请上传清晰的学生证照片，确保信息可见" />
+            <UploadArea v-model="form.studentCard" text="点击上传学生证照片" hint="请上传清晰的学生证照片，确保信息可见" @upload="(f: File) => uploadFiles.studentCard = f" />
           </el-form-item>
         </template>
 
@@ -73,7 +73,7 @@
           </el-form-item>
 
           <el-form-item label="教师证照片" prop="teacherCard">
-            <UploadArea v-model="form.teacherCard" text="点击上传教师证照片" hint="请上传清晰的教师证照片，确保信息可见" />
+            <UploadArea v-model="form.teacherCard" text="点击上传教师证照片" hint="请上传清晰的教师证照片，确保信息可见" @upload="(f: File) => uploadFiles.teacherCard = f" />
           </el-form-item>
         </template>
 
@@ -106,6 +106,13 @@ const store = userStore();
 const formRef = ref<InstanceType<typeof ElForm> | null>(null);
 const loading = ref(false);
 const verificationStatus = ref<Record<string, string> | null>(null);
+
+const uploadFiles = reactive<Record<string, File | null>>({
+  idCardFront: null,
+  idCardBack: null,
+  studentCard: null,
+  teacherCard: null,
+});
 
 const form = reactive({
   verificationType: '',
@@ -292,28 +299,64 @@ const getStatusDescription = (status: string) => {
   return map[status] || '';
 };
 
+const detectRealType = (buffer: ArrayBuffer): { mime: string; ext: string } | null => {
+  const bytes = new Uint8Array(buffer, 0, 8);
+  const hex = Array.from(bytes).map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ');
+  if (hex.startsWith('FF D8 FF')) return { mime: 'image/jpeg', ext: 'jpg' };
+  if (hex.startsWith('89 50 4E 47')) return { mime: 'image/png', ext: 'png' };
+  if (hex.startsWith('52 49 46 46')) return { mime: 'image/webp', ext: 'webp' };
+  return null;
+};
+
+const uploadImage = async (file: File): Promise<string> => {
+  const buffer = await file.arrayBuffer();
+  const real = detectRealType(buffer);
+  const mime = real?.mime || file.type || 'image/png';
+  const ext = real?.ext || 'png';
+  const name = file.name.replace(/\.[^.]+$/, '') + '.' + ext;
+  const blob = new Blob([buffer], { type: mime });
+  const formData = new FormData();
+  formData.append('file', blob, name);
+  const res = await fetch('/api/verification/upload', { method: 'POST', body: formData });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data?.message || '上传失败');
+  return data?.data?.url || '';
+};
+
 const submitForm = async () => {
   if (!formRef.value) return;
   await formRef.value.validate(async (valid) => {
     if (valid) {
       loading.value = true;
       try {
+        let idCardFront = form.idCardFront;
+        let idCardBack = form.idCardBack;
+        let studentCard = form.studentCard;
+        let teacherCard = form.teacherCard;
+        if (form.verificationType === '1') {
+          idCardFront = uploadFiles.idCardFront ? await uploadImage(uploadFiles.idCardFront) : idCardFront;
+          idCardBack = uploadFiles.idCardBack ? await uploadImage(uploadFiles.idCardBack) : idCardBack;
+        } else if (form.verificationType === '2') {
+          studentCard = uploadFiles.studentCard ? await uploadImage(uploadFiles.studentCard) : studentCard;
+        } else if (form.verificationType === '3') {
+          teacherCard = uploadFiles.teacherCard ? await uploadImage(uploadFiles.teacherCard) : teacherCard;
+        }
         const submitData: Record<string, any> = {
           verificationType: form.verificationType,
           realName: form.name,
         };
         if (form.verificationType === '1') {
           submitData.idCard = form.idCard;
-          submitData.idCardFront = form.idCardFront;
-          submitData.idCardBack = form.idCardBack;
+          submitData.idCardFront = idCardFront;
+          submitData.idCardBack = idCardBack;
         } else if (form.verificationType === '2') {
           submitData.studentId = form.studentId;
           submitData.school = form.school;
-          submitData.studentCard = form.studentCard;
+          submitData.studentCard = studentCard;
         } else if (form.verificationType === '3') {
           submitData.teacherId = form.teacherId;
           submitData.school = form.school;
-          submitData.teacherCard = form.teacherCard;
+          submitData.teacherCard = teacherCard;
         }
         const response = await api.verification.submit(submitData as any);
         if (response.code === 200) {

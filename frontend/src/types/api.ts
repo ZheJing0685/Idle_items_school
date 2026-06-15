@@ -48,6 +48,15 @@ export interface UserInfo {
   avatar?: string
   nickname?: string
   school?: string
+  schoolName?: string
+  department?: string
+  major?: string
+  grade?: string
+  studentId?: string
+  bio?: string
+  gender?: number
+  birthday?: string
+  creditScore?: number
   createdAt?: string
   updatedAt?: string
 }
@@ -209,6 +218,38 @@ export interface FavoriteInfo {
 }
 
 // ============================================
+// Seller / Store Types
+// ============================================
+export interface SellerProfile {
+  id: number
+  nickname: string
+  avatar: string
+  schoolName: string
+  bio: string
+  verified: boolean
+  creditScore: number
+  memberSince: string
+  totalItems: number
+  soldItems: number
+  completedDeals: number
+  rating: number
+  reviewCount: number
+}
+
+export interface ReviewItem {
+  id: number
+  reviewerId: number
+  reviewedUserId: number
+  reviewerNickname: string
+  reviewerAvatar: string
+  itemId: number
+  rating: number
+  content: string
+  createdAt: string
+  isAnonymous: boolean
+}
+
+// ============================================
 // Chat Types
 // ============================================
 export interface ChatMessage {
@@ -217,7 +258,7 @@ export interface ChatMessage {
   senderId: number
   receiverId: number
   content: string
-  messageType: 'TEXT' | 'IMAGE' | 'SYSTEM'
+  messageType: 'TEXT' | 'IMAGE' | 'VIDEO' | 'SYSTEM'
   isRead: boolean
   createdAt: string
 }

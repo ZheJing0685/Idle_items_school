@@ -11,7 +11,6 @@ import java.time.LocalDateTime;
     @Index(name = "idx_orders_buyer_id", columnList = "buyer_id"),
     @Index(name = "idx_orders_seller_id", columnList = "seller_id"),
     @Index(name = "idx_orders_order_status", columnList = "order_status"),
-    @Index(name = "idx_orders_item_id", columnList = "item_id"),
     @Index(name = "idx_orders_buyer_id_status", columnList = "buyer_id, order_status"),
     @Index(name = "idx_orders_seller_id_status", columnList = "seller_id, order_status"),
     @Index(name = "idx_orders_order_no", columnList = "order_no")
@@ -64,9 +63,6 @@ public class Order {
 
     @Column(name = "ship_time")
     private LocalDateTime shipTime;
-
-    @Column(name = "deliver_time")
-    private LocalDateTime deliverTime;
 
     @Column(name = "tracking_number", length = 100)
     private String trackingNumber;

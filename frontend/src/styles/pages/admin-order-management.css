@@ -9,7 +9,7 @@
 }
 
 .section-title {
-  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+  font-family: var(--font-display);
   font-size: 24px;
   font-weight: 600;
   color: var(--content-primary);
@@ -159,12 +159,12 @@
 }
 
 .status-paid {
-  background: oklch(55% 0.15 158 / 0.1);
+  background: var(--color-success-alpha-10);
   color: var(--color-success);
 }
 
 .status-unpaid {
-  background: oklch(70% 0.15 85 / 0.1);
+  background: var(--color-warning-alpha-10);
   color: var(--color-warning);
 }
 
@@ -177,22 +177,22 @@
 }
 
 .badge-success {
-  background: oklch(55% 0.15 158 / 0.1);
+  background: var(--color-success-alpha-10);
   color: var(--color-success);
 }
 
 .badge-warning {
-  background: oklch(70% 0.15 85 / 0.1);
+  background: var(--color-warning-alpha-10);
   color: var(--color-warning);
 }
 
 .badge-info {
-  background: oklch(55% 0.15 280 / 0.1);
+  background: var(--color-info-alpha-10);
   color: var(--color-info);
 }
 
 .badge-danger {
-  background: oklch(55% 0.2 25 / 0.1);
+  background: var(--color-danger-alpha-10);
   color: var(--color-danger);
 }
 
@@ -224,12 +224,12 @@
 }
 
 .action-btn-success {
-  background: oklch(55% 0.15 158 / 0.12);
+  background: var(--color-success-alpha-10);
   color: var(--color-success);
 }
 
 .action-btn-danger {
-  background: oklch(55% 0.2 25 / 0.12);
+  background: var(--color-danger-alpha-10);
   color: var(--color-danger);
 }
 

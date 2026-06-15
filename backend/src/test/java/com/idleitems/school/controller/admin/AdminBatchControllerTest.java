@@ -1,15 +1,15 @@
 package com.idleitems.school.controller.admin;
 
-import com.idleitems.school.aspect.PermissionAspect;
-import com.idleitems.school.entity.Item;
-import com.idleitems.school.entity.Order;
-import com.idleitems.school.entity.User;
-import com.idleitems.school.repository.ItemRepository;
-import com.idleitems.school.repository.UserRepository;
-import com.idleitems.school.service.AdminLogService;
-import com.idleitems.school.service.DictService;
-import com.idleitems.school.service.OrderAdminService;
-import com.idleitems.school.service.UserService;
+import com.idleitems.school.module.admin.controller.AdminBatchController;
+import com.idleitems.school.module.item.entity.Item;
+import com.idleitems.school.module.order.entity.Order;
+import com.idleitems.school.module.user.entity.User;
+import com.idleitems.school.module.item.repository.ItemRepository;
+import com.idleitems.school.module.user.repository.UserRepository;
+import com.idleitems.school.module.admin.service.AdminLogService;
+import com.idleitems.school.module.system.service.DictService;
+import com.idleitems.school.module.order.service.OrderAdminService;
+import com.idleitems.school.module.user.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,8 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.context.annotation.EnableAspectJAutoProxy;
-import org.springframework.context.annotation.Import;
+
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
@@ -32,8 +31,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(AdminBatchController.class)
 @AutoConfigureMockMvc(addFilters = false)
-@EnableAspectJAutoProxy
-@Import(PermissionAspect.class)
 @DisplayName("AdminBatchController 批量操作接口测试")
 class AdminBatchControllerTest {
 

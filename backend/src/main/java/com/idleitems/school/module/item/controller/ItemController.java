@@ -12,6 +12,7 @@ import com.idleitems.school.module.file.service.FileService;
 import com.idleitems.school.module.item.service.ItemQueryService;
 import com.idleitems.school.module.item.service.ItemCommandService;
 import com.idleitems.school.module.item.service.ItemAdminService;
+import com.idleitems.school.module.item.service.RecommendationService;
 import com.idleitems.school.module.order.service.OrderBuyerService;
 import com.idleitems.school.module.order.service.OrderSellerService;
 import com.idleitems.school.module.order.service.OrderQueryService;
@@ -43,6 +44,7 @@ public class ItemController {
 
     private final ItemQueryService itemQueryService;
     private final ItemCommandService itemCommandService;
+    private final RecommendationService recommendationService;
     private final UserService userService;
     private final FileService fileService;
     private final OrderQueryService orderQueryService;
@@ -67,7 +69,7 @@ public class ItemController {
         return Result.success("上传成功", result);
     }
 
-    @Operation(summary = "获取物品列表", description = "分页查询闲置物品列表，支持按分类、成色、交易方式等条件筛选")
+    @Operation(summary = "获取物品列表", description = "分页查询闲置物品列表，支持按关键字、分类、成色、交易方式等条件筛选和排序")
     @GetMapping(ApiPaths.Item.LIST_PATH)
     public Result<Page<ItemSummaryDTO>> getItems(
             @RequestParam(value = "page", defaultValue = "1") int page,
@@ -75,8 +77,9 @@ public class ItemController {
             @RequestParam(value = "categoryId", required = false) String categoryIdStr,
             @RequestParam(value = "sortBy", defaultValue = "createdAt") String sortBy,
             @RequestParam(value = "condition", required = false) String condition,
-            @RequestParam(value = "deliveryMethod", required = false) String deliveryMethod) {
-        Page<ItemSummaryDTO> items = itemQueryService.getItems(page, size, categoryIdStr, sortBy, condition, deliveryMethod);
+            @RequestParam(value = "deliveryMethod", required = false) String deliveryMethod,
+            @RequestParam(value = "keyword", required = false) String keyword) {
+        Page<ItemSummaryDTO> items = itemQueryService.getItems(page, size, categoryIdStr, sortBy, condition, deliveryMethod, keyword);
         return Result.success(items);
     }
 
@@ -111,9 +114,22 @@ public class ItemController {
 
     @Operation(summary = "获取物品详情", description = "根据物品ID获取闲置物品的详细信息")
     @GetMapping(ApiPaths.Item.DETAIL_PATH)
-    public Result<Item> getItem(@PathVariable Long id) {
+    public Result<Item> getItem(
+            @PathVariable Long id,
+            @RequestAttribute(value = "userId", required = false) Long userId) {
         Item item = itemQueryService.getItemById(id);
+        if (userId != null && item != null) {
+            recommendationService.recordView(userId, id, item.getCategoryId());
+        }
         return Result.success(item);
+    }
+
+    @Operation(summary = "个性化推荐", description = "根据用户浏览历史推荐闲置物品（基于分类偏好）")
+    @GetMapping(ApiPaths.Item.RECOMMENDED_PATH)
+    public Result<List<ItemSummaryDTO>> getRecommendedItems(
+            @RequestAttribute(value = "userId", required = false) Long userId) {
+        List<ItemSummaryDTO> items = recommendationService.getRecommendedItems(userId);
+        return Result.success(items);
     }
 
     @Operation(summary = "更新物品", description = "更新闲置物品的信息，更新后需重新审核")
@@ -155,6 +171,13 @@ public class ItemController {
             @PathVariable Long id) {
         List<Order> orders = orderQueryService.getOrdersByItemId(id, userId);
         return Result.success(orders);
+    }
+
+    @Operation(summary = "获取关联推荐", description = "根据物品ID获取相似物品推荐和卖家其他物品")
+    @GetMapping(ApiPaths.Item.RELATED_PATH)
+    public Result<Map<String, Object>> getRelatedItems(@PathVariable Long id) {
+        Map<String, Object> related = itemQueryService.getRelatedItems(id);
+        return Result.success(related);
     }
 
     @Operation(summary = "删除物品", description = "删除自己的闲置物品（仅限未出售状态）")

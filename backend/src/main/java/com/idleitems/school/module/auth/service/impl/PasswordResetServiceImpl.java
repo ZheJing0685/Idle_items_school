@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -27,7 +28,7 @@ public class PasswordResetServiceImpl implements PasswordResetService {
     private final PasswordEncoder passwordEncoder;
     private final RedisTemplate<String, String> redisTemplate;
     private final JwtTokenBlacklistService jwtTokenBlacklistService;
-    private final EmailService emailService;
+    private final Optional<EmailService> emailService;
 
     private static final String RESET_CODE_PREFIX = "password_reset:";
     private static final long CODE_EXPIRE_MINUTES = 5;
@@ -54,8 +55,11 @@ public class PasswordResetServiceImpl implements PasswordResetService {
 
         if (userExists) {
             // 仅对已注册用户发送验证码邮件
-            emailService.sendPasswordResetCode(email, code);
-            log.info("密码重置验证码已生成并发送，邮箱: {}***", email.substring(0, Math.min(3, email.length())));
+            emailService.ifPresentOrElse(
+                svc -> svc.sendPasswordResetCode(email, code),
+                () -> log.warn("邮件服务未配置，验证码仅保存在Redis中: {}***", email.substring(0, Math.min(3, email.length())))
+            );
+            log.info("密码重置验证码已生成，邮箱: {}***", email.substring(0, Math.min(3, email.length())));
         } else {
             // 未注册用户不发送邮件，但记录日志（防止邮箱枚举攻击）
             log.info("重置密码请求针对未注册邮箱: {}***", email.substring(0, Math.min(3, email.length())));

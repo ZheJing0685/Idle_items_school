@@ -41,10 +41,43 @@ public class CategoryController {
         return Result.success(categoryQueryService.getCategoryTree());
     }
 
+    @Operation(summary = "获取子分类列表", description = "根据父分类ID获取直接子分类列表")
+    @GetMapping("/{parentId}/children")
+    public Result<List<Map<String, Object>>> getChildren(@PathVariable Long parentId) {
+        return Result.success(categoryQueryService.getChildren(parentId));
+    }
+
     @Operation(summary = "搜索分类", description = "根据关键字搜索物品分类")
     @GetMapping("/search")
     public Result<List<Map<String, Object>>> searchCategories(@RequestParam String keyword) {
         return Result.success(categoryQueryService.searchCategories(keyword));
+    }
+
+    @Operation(summary = "分类搜索建议", description = "根据前缀关键词快速搜索分类（仅返回前5条活跃分类）")
+    @GetMapping(ApiPaths.Category.SUGGEST_PATH)
+    public Result<List<Map<String, Object>>> suggestCategories(@RequestParam("q") String prefix) {
+        return Result.success(categoryQueryService.suggestCategories(prefix));
+    }
+
+    @Operation(summary = "智能分类推荐", description = "根据物品标题推荐最匹配的分类（用于发布物品时智能选择）")
+    @GetMapping("/recommend")
+    public Result<List<Map<String, Object>>> recommendCategories(
+            @RequestParam String title,
+            @RequestParam(defaultValue = "3") int limit) {
+        return Result.success(categoryQueryService.recommendCategories(title, limit));
+    }
+
+    @Operation(summary = "分类热度排行", description = "获取物品数量最多的热门分类排行")
+    @GetMapping("/hot")
+    public Result<List<Map<String, Object>>> getHotCategories(
+            @RequestParam(defaultValue = "8") int limit) {
+        return Result.success(categoryQueryService.getHotCategories(limit));
+    }
+
+    @Operation(summary = "分类面包屑", description = "获取指定分类的父级路径（从根到当前分类）")
+    @GetMapping(ApiPaths.Category.BREADCRUMB_PATH)
+    public Result<List<Map<String, Object>>> getBreadcrumb(@PathVariable Long id) {
+        return Result.success(categoryQueryService.getBreadcrumb(id));
     }
 
     @Operation(summary = "提交分类反馈", description = "用户提交分类相关的反馈建议")

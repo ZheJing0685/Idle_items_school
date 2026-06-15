@@ -41,8 +41,6 @@ public class ItemDTO {
     private Boolean isBargainAllowed;
     @Schema(description = "品牌")
     private String brand;
-    @Schema(description = "购买日期")
-    private LocalDateTime purchaseDate;
     @Schema(description = "保修信息")
     private String warrantyInfo;
     @Schema(description = "标签")
@@ -97,7 +95,6 @@ public class ItemDTO {
                 .contactType(item.getContactType())
                 .isBargainAllowed(item.getIsBargainAllowed())
                 .brand(item.getBrand())
-                .purchaseDate(item.getPurchaseDate())
                 .warrantyInfo(item.getWarrantyInfo())
                 .tags(item.getTags())
                 .contactName(item.getContactName())

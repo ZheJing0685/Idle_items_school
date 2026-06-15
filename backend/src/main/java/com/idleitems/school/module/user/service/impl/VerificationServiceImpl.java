@@ -2,6 +2,8 @@ package com.idleitems.school.module.user.service.impl;
 
 import com.idleitems.school.common.BusinessException;
 import com.idleitems.school.common.ErrorCode;
+import com.idleitems.school.module.notification.entity.Notification;
+import com.idleitems.school.module.notification.service.NotificationService;
 import com.idleitems.school.module.user.dto.SubmitVerificationRequest;
 import com.idleitems.school.module.user.entity.User;
 import com.idleitems.school.module.user.entity.VerificationRecord;
@@ -12,6 +14,7 @@ import com.idleitems.school.util.DataEncryptionUtil;
 import com.idleitems.school.util.IdCardValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +29,7 @@ public class VerificationServiceImpl implements VerificationService {
     private final VerificationRecordRepository verificationRecordRepository;
     private final UserRepository userRepository;
     private final DataEncryptionUtil dataEncryptionUtil;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -94,6 +98,28 @@ public class VerificationServiceImpl implements VerificationService {
         record.setStatus(VerificationRecord.Status.PENDING);
         VerificationRecord saved = verificationRecordRepository.save(record);
         log.info("用户{}提交实名认证申请，记录ID: {}", userId, saved.getId());
+
+        try {
+            List<User> admins = userRepository.findByRole(User.Role.ADMIN, Pageable.unpaged()).getContent();
+            String typeName = switch (type) {
+                case ID_CARD -> "身份证";
+                case STUDENT_CARD -> "学生证";
+                case TEACHER_CARD -> "教师证";
+            };
+            for (User admin : admins) {
+                notificationService.createNotification(
+                        admin.getId(),
+                        Notification.NotificationType.SYSTEM.getCode(),
+                        "新实名认证申请",
+                        "用户提交了" + typeName + "认证申请（" + request.getRealName() + "），等待审核",
+                        saved.getId(),
+                        "VERIFICATION"
+                );
+            }
+        } catch (Exception e) {
+            log.warn("发送认证审核通知失败: recordId={}", saved.getId(), e);
+        }
+
         return saved;
     }
 

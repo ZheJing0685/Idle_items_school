@@ -1,16 +1,16 @@
 package com.idleitems.school.controller.admin;
 
-import com.idleitems.school.aspect.PermissionAspect;
-import com.idleitems.school.dto.CategoryDTO;
-import com.idleitems.school.entity.Category;
-import com.idleitems.school.entity.User;
-import com.idleitems.school.repository.CategoryRepository;
-import com.idleitems.school.repository.ItemRepository;
-import com.idleitems.school.repository.UserRepository;
-import com.idleitems.school.service.AdminLogService;
-import com.idleitems.school.service.CategoryCommandService;
-import com.idleitems.school.service.CategoryFeedbackService;
-import com.idleitems.school.service.CategoryQueryService;
+import com.idleitems.school.module.admin.controller.AdminCategoryController;
+import com.idleitems.school.module.category.dto.CategoryDTO;
+import com.idleitems.school.module.category.entity.Category;
+import com.idleitems.school.module.user.entity.User;
+import com.idleitems.school.module.category.repository.CategoryRepository;
+import com.idleitems.school.module.item.repository.ItemRepository;
+import com.idleitems.school.module.user.repository.UserRepository;
+import com.idleitems.school.module.admin.service.AdminLogService;
+import com.idleitems.school.module.category.service.CategoryCommandService;
+import com.idleitems.school.module.category.service.CategoryFeedbackService;
+import com.idleitems.school.module.category.service.CategoryQueryService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,8 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.context.annotation.EnableAspectJAutoProxy;
-import org.springframework.context.annotation.Import;
+
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.web.servlet.MockMvc;
@@ -37,8 +36,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(AdminCategoryController.class)
 @AutoConfigureMockMvc(addFilters = false)
-@EnableAspectJAutoProxy
-@Import(PermissionAspect.class)
 @DisplayName("AdminCategoryController 分类管理接口测试")
 class AdminCategoryControllerTest {
 

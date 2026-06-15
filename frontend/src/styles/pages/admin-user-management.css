@@ -9,7 +9,7 @@
 }
 
 .section-title {
-  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+  font-family: var(--font-display);
   font-size: 24px;
   font-weight: 600;
   color: var(--content-primary);
@@ -55,22 +55,22 @@
 }
 
 .stat-icon-users {
-  background: oklch(62% 0.14 195 / 0.1);
+  background: var(--color-primary-alpha-10);
   color: var(--color-primary);
 }
 
 .stat-icon-active {
-  background: oklch(55% 0.15 158 / 0.1);
+  background: var(--color-success-alpha-10);
   color: var(--color-success);
 }
 
 .stat-icon-verified {
-  background: oklch(70% 0.15 85 / 0.1);
+  background: var(--color-warning-alpha-10);
   color: var(--color-warning);
 }
 
 .stat-icon-new {
-  background: oklch(55% 0.15 280 / 0.1);
+  background: var(--color-info-alpha-10);
   color: var(--color-info);
 }
 
@@ -81,7 +81,7 @@
 }
 
 .stat-value {
-  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+  font-family: var(--font-display);
   font-size: 28px;
   font-weight: 700;
   color: var(--content-primary);
@@ -131,7 +131,7 @@
 }
 
 .card-title {
-  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+  font-family: var(--font-display);
   font-size: 16px;
   font-weight: 600;
   color: var(--content-primary);
@@ -298,22 +298,22 @@
 }
 
 .badge-student {
-  background: oklch(55% 0.15 280 / 0.1);
+  background: var(--color-info-alpha-10);
   color: var(--color-info);
 }
 
 .badge-success {
-  background: oklch(55% 0.15 158 / 0.1);
+  background: var(--color-success-alpha-10);
   color: var(--color-success);
 }
 
 .badge-danger {
-  background: oklch(55% 0.2 25 / 0.1);
+  background: var(--color-danger-alpha-10);
   color: var(--color-danger);
 }
 
 .badge-warning {
-  background: oklch(70% 0.15 85 / 0.1);
+  background: var(--color-warning-alpha-10);
   color: var(--color-warning);
 }
 
@@ -377,7 +377,7 @@
   justify-content: center;
   color: var(--content-secondary);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 200ms ease;
 }
 
 .action-btn:hover {
@@ -390,7 +390,7 @@
 }
 
 .action-danger:hover {
-  background: oklch(55% 0.2 25 / 0.1);
+  background: var(--color-danger-alpha-10);
   color: var(--color-danger);
 }
 
@@ -399,7 +399,7 @@
 }
 
 .action-success:hover {
-  background: oklch(55% 0.15 158 / 0.1);
+  background: var(--color-success-alpha-10);
   color: var(--color-success);
 }
 
@@ -475,7 +475,7 @@
   justify-content: center;
   color: var(--content-secondary);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 200ms ease;
 }
 
 .page-btn:hover:not(:disabled) {
@@ -531,11 +531,12 @@
 }
 
 .btn-primary {
-  background: var(--color-primary);
-  color: var(--text-inverse);
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
 }
 
 .btn-primary:hover {
+  background: var(--btn-primary-hover-bg);
   opacity: 0.9;
 }
 
@@ -589,7 +590,7 @@
 }
 
 .detail-name {
-  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+  font-family: var(--font-display);
   font-size: 18px;
   font-weight: 600;
   color: var(--content-primary);
@@ -652,7 +653,7 @@
 }
 
 .el-dialog__title {
-  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+  font-family: var(--font-display);
   font-size: 16px;
   font-weight: 600;
 }

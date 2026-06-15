@@ -150,6 +150,11 @@ const isActive = (path: string) => {
   color: var(--text-primary);
 }
 
+.nav-item:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 .nav-item.active {
   background: oklch(62% 0.14 195 / 0.08);
   color: var(--primary-color);

@@ -44,4 +44,27 @@ public class UploadController {
             return Result.error(ErrorCode.FILE_UPLOAD_ERROR, "文件上传失败：" + e.getMessage());
         }
     }
+
+    @Operation(summary = "上传聊天媒体", description = "支持聊天中的图片和视频文件上传")
+    @PostMapping("/chat-media")
+    public Result<Map<String, Object>> uploadChatMedia(
+            @RequestAttribute("userId") Long userId,
+            @RequestParam("file") MultipartFile file) {
+
+        if (file.isEmpty()) {
+            return Result.error(ErrorCode.VALIDATION_ERROR, "文件不能为空");
+        }
+
+        try {
+            Map<String, Object> result = fileService.uploadChatMedia(file);
+            result.put("uploadUserId", userId);
+            return Result.success("上传成功", result);
+        } catch (IllegalArgumentException e) {
+            log.warn("聊天媒体上传验证失败: {}", e.getMessage());
+            return Result.error(ErrorCode.FILE_TYPE_NOT_ALLOWED, "文件验证失败：" + e.getMessage());
+        } catch (Exception e) {
+            log.error("聊天媒体上传失败", e);
+            return Result.error(ErrorCode.FILE_UPLOAD_ERROR, "文件上传失败：" + e.getMessage());
+        }
+    }
 }
