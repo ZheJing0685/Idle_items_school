@@ -120,16 +120,6 @@ dump.rdb
 *.tar.gz
 *.rar
 
-# ==================== AI Agent Tools ====================
-.agents/
-Vibe-Skills/
-.codegraph/
-.embed-svc/
-.opencode/
-
-# ==================== Trae IDE ====================
-.trae/
-
 # ==================== User Uploads (Runtime Data) ====================
 backend/uploads/
 uploads/
@@ -154,39 +144,7 @@ backup*.sql
 *.jpeg~
 *.gif~
 
-# Temporary notes
-分析.txt
-已修复清单.txt
 
-# Local-only directories (not pushed to GitHub)
 docs/
 scripts/
 .githooks/
-GIT_WORKFLOW.md
-chapters/
-finish/
-# Spec/plan/report files (not source code)
-.specs/
-.playwright-mcp/
-.trae_spec/
-doc/
-CONTEXT.md
-findings.md
-progress.md
-task_plan.md
-task_plan_backup.md
-vulnerabilities_report_*.md
-websocket-*-report.md
-修复报告.md
-
-
-# Database exports (may contain sensitive data)
-sql/idle_items_school.sql
-前端浅色模式主题色系文档.txt
-浅色模式主题审查报告.html
-项目架构文档.html
-feature-review.html
-skills-lock.json
-nul
-毕业设计说明书.docx
-.gitignore
