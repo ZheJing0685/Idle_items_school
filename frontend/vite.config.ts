@@ -82,6 +82,9 @@ export default defineConfig({
       }
     }
   },
+  build: {
+    emptyOutDir: false
+  },
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src')

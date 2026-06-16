@@ -3,7 +3,7 @@ import router from '../../router';
 import { ErrorHandler } from '../../utils/error';
 import type { ApiResponse } from '../../types/api';
 
-const baseURL = '/api';
+const baseURL = import.meta.env.VITE_API_BASE_URL || '/api';
 
 const instance: AxiosInstance = axios.create({
   baseURL,
