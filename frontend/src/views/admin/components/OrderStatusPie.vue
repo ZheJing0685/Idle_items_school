@@ -18,12 +18,9 @@ function getCSSVar(name: string): string {
 
 echarts.use([PieChart, TooltipComponent, LegendComponent, CanvasRenderer]);
 
-const props = defineProps({
-  data: {
-    type: Object,
-    default: () => ({}),
-  },
-});
+const props = defineProps<{
+  data: Record<string, number>
+}>();
 
 const dictStore = useDictStore();
 const { chartColors } = useThemeColor();
@@ -59,7 +56,7 @@ const updateChart = () => {
   if (!chartInstance) return;
 
   const pieData = Object.entries(props.data as Record<string, number>)
-    .filter(([key, value]) => value > 0)
+    .filter(([_key, value]) => value > 0)
     .map(([key, value]) => ({
       name: statusMap.value[key]?.name || key,
       value: value,

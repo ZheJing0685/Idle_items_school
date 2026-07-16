@@ -67,25 +67,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { ref, reactive, computed, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
 import { userStore } from '../store';
 import api from '../api';
 
 // Import child components
 import BreadcrumbNav from '../components/common/BreadcrumbNav.vue';
-import Profile from './user/Profile.vue';
-import Verification from './user/Verification.vue';
-import UserItems from './user/Items.vue';
-import OrderList from './OrderList.vue';
-import Favorites from './user/Favorites.vue';
-import Chat from './user/Chat.vue';
-import Notifications from './user/Notifications.vue';
-import ChangePassword from './user/ChangePassword.vue';
 
 const store = userStore();
 const route = useRoute();
-const router = useRouter();
 const userInfo = computed(() => store.user);
 
 const tabs = [

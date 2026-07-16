@@ -210,6 +210,10 @@ public class ItemQueryService {
         return itemRepository.findByUserId(userId, pageable);
     }
 
+    public Page<ItemSummaryDTO> getUserItemsAsSummary(Long userId, Item.ItemStatus status, int page, int size) {
+        return convertToSummaryPage(getUserItems(userId, status, page, size));
+    }
+
     public Pageable createPageable(int page, int size, String sortBy) {
         Sort sort;
         switch (sortBy) {

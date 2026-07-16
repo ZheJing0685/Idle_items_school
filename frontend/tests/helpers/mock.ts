@@ -34,7 +34,7 @@ export const createRouterMock = () => {
 /**
  * 创建 Pinia Store Mock
  */
-export const createStoreMock = (storeName: string, initialState: any = {}) => {
+export const createStoreMock = (_storeName: string, initialState: any = {}) => {
   return {
     ...initialState,
     $reset: vi.fn(),

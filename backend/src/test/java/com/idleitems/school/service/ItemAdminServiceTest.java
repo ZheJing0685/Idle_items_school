@@ -1,5 +1,6 @@
 package com.idleitems.school.service;
 
+import com.idleitems.school.common.BusinessException;
 import com.idleitems.school.module.item.entity.Item;
 import com.idleitems.school.module.item.repository.ItemRepository;
 import com.idleitems.school.module.item.service.ItemAdminService;
@@ -68,7 +69,7 @@ class ItemAdminServiceTest {
     void approveItem_whenNotFound_throwsException() {
         when(itemRepository.findById(999L)).thenReturn(Optional.empty());
 
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(BusinessException.class, () -> {
             itemAdminService.approveItem(999L);
         });
 
@@ -97,7 +98,7 @@ class ItemAdminServiceTest {
     void rejectItem_whenNotFound_throwsException() {
         when(itemRepository.findById(999L)).thenReturn(Optional.empty());
 
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(BusinessException.class, () -> {
             itemAdminService.rejectItem(999L, "违规内容");
         });
 

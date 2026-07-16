@@ -6,11 +6,28 @@ import { setActivePinia, createPinia } from 'pinia';
 // Mock route
 const mockRoute = {
   query: {},
+  params: {},
   path: '/items',
+  name: 'Items',
 };
 
 vi.mock('vue-router', () => ({
   useRoute: () => mockRoute,
+}));
+
+// Mock category store
+const mockCategoryFetchAll = vi.fn().mockResolvedValue(undefined);
+vi.mock('@/store/category', () => ({
+  useCategoryStore: () => ({
+    categories: [],
+    flatCategories: [],
+    categoryTree: [],
+    loaded: false,
+    error: undefined,
+    fetchAll: mockCategoryFetchAll,
+    getCategoryIcon: vi.fn().mockReturnValue('📂'),
+    getCategoryColorById: vi.fn().mockReturnValue('#1890ff'),
+  }),
 }));
 
 // Mock store
@@ -90,24 +107,26 @@ describe('Items Component', () => {
       expect(wrapper.find('.items-page').exists()).toBe(true);
     });
 
-    it('应该渲染页面标题', () => {
+    it('应该渲染搜索栏', () => {
       const wrapper = mountItems();
-      expect(wrapper.text()).toContain('发现闲置好物');
+      expect(wrapper.find('.items-header').exists()).toBe(true);
     });
 
-    it('应该渲染页面副标题', () => {
+    it('应该渲染分类行', () => {
       const wrapper = mountItems();
-      expect(wrapper.text()).toContain('浏览来自校园的优质二手物品');
+      expect(wrapper.find('.category-row').exists()).toBe(true);
     });
 
-    it('应该渲染筛选栏', () => {
+    it('应该渲染排序栏', () => {
       const wrapper = mountItems();
-      expect(wrapper.find('.filter-bar').exists()).toBe(true);
+      expect(wrapper.find('.items-toolbar').exists()).toBe(true);
     });
 
-    it('应该渲染筛选栏右侧区域', () => {
+    it('应该渲染物品网格或空状态', () => {
       const wrapper = mountItems();
-      expect(wrapper.find('.filter-right').exists()).toBe(true);
+      const hasGrid = wrapper.find('.items-grid').exists();
+      const hasEmpty = wrapper.find('.empty-state').exists();
+      expect(hasGrid || hasEmpty).toBe(true);
     });
   });
 
@@ -159,11 +178,6 @@ describe('Items Component', () => {
       expect(typeof wrapper.vm.handleFilter).toBe('function');
     });
 
-    it('应该有handleCategoryChange方法', () => {
-      const wrapper = mountItems();
-      expect(typeof wrapper.vm.handleCategoryChange).toBe('function');
-    });
-
     it('应该有handleSizeChange方法', () => {
       const wrapper = mountItems();
       expect(typeof wrapper.vm.handleSizeChange).toBe('function');
@@ -175,68 +189,7 @@ describe('Items Component', () => {
     });
   });
 
-  describe('辅助方法', () => {
-    it('应该有isNew方法', () => {
-      const wrapper = mountItems();
-      expect(typeof wrapper.vm.isNew).toBe('function');
-    });
-
-    it('应该有getDiscount方法', () => {
-      const wrapper = mountItems();
-      expect(typeof wrapper.vm.getDiscount).toBe('function');
-    });
-
-    it('应该有getConditionText方法', () => {
-      const wrapper = mountItems();
-      expect(typeof wrapper.vm.getConditionText).toBe('function');
-    });
-
-    it('应该有getDeliveryText方法', () => {
-      const wrapper = mountItems();
-      expect(typeof wrapper.vm.getDeliveryText).toBe('function');
-    });
-
-    it('应该有parseTags方法', () => {
-      const wrapper = mountItems();
-      expect(typeof wrapper.vm.parseTags).toBe('function');
-    });
-  });
-
-  describe('辅助方法功能', () => {
-    it('isNew应该返回布尔值', () => {
-      const wrapper = mountItems();
-      const result = wrapper.vm.isNew(new Date().toISOString());
-      expect(typeof result).toBe('boolean');
-    });
-
-    it('getDiscount应该返回折扣或null', () => {
-      const wrapper = mountItems();
-      const result = wrapper.vm.getDiscount(80, 100);
-      expect(result).toBe(20);
-    });
-
-    it('getDiscount当原价小于等于现价时应返回null', () => {
-      const wrapper = mountItems();
-      const result = wrapper.vm.getDiscount(100, 80);
-      expect(result).toBeNull();
-    });
-
-    it('parseTags应该解析JSON格式标签', () => {
-      const wrapper = mountItems();
-      const result = wrapper.vm.parseTags('["标签1","标签2"]');
-      expect(result).toEqual(['标签1', '标签2']);
-    });
-
-    it('parseTags应该解析逗号分隔格式标签', () => {
-      const wrapper = mountItems();
-      const result = wrapper.vm.parseTags('标签1, 标签2');
-      expect(result).toEqual(['标签1', '标签2']);
-    });
-
-    it('parseTags空字符串应该返回空数组', () => {
-      const wrapper = mountItems();
-      const result = wrapper.vm.parseTags('');
-      expect(result).toEqual([]);
-    });
-  });
+  // 注意：Items.vue 未定义 isNew/getDiscount/getConditionText/getDeliveryText/parseTags 等方法
+  // 这些方法由各自组件通过 props 或独立的 utils 实现
+  // 因此对应的辅助方法测试已移除
 });

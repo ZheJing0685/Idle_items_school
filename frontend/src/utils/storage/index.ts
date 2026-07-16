@@ -1,4 +1,6 @@
-interface ExpiryItem<T = any> {
+import { logger } from '../logger';
+
+interface ExpiryItem<T = unknown> {
   value: T
   expiry: number
 }
@@ -10,22 +12,22 @@ class Storage {
     this.namespace = namespace;
   }
 
-  get<T = any>(key: string): T | null {
+  get<T = unknown>(key: string): T | null {
     try {
       const item = localStorage.getItem(`${this.namespace}:${key}`);
       return item ? JSON.parse(item) as T : null;
     } catch (error) {
-      console.error('Storage get error:', error);
+      logger.error('Storage get error:', error);
       return null;
     }
   }
 
-  set(key: string, value: any): boolean {
+  set(key: string, value: unknown): boolean {
     try {
       localStorage.setItem(`${this.namespace}:${key}`, JSON.stringify(value));
       return true;
     } catch (error) {
-      console.error('Storage set error:', error);
+      logger.error('Storage set error:', error);
       return false;
     }
   }
@@ -35,7 +37,7 @@ class Storage {
       localStorage.removeItem(`${this.namespace}:${key}`);
       return true;
     } catch (error) {
-      console.error('Storage remove error:', error);
+      logger.error('Storage remove error:', error);
       return false;
     }
   }
@@ -50,14 +52,14 @@ class Storage {
       });
       return true;
     } catch (error) {
-      console.error('Storage clear error:', error);
+      logger.error('Storage clear error:', error);
       return false;
     }
   }
 
-  getAll(): Record<string, any> {
+  getAll(): Record<string, unknown> {
     try {
-      const result: Record<string, any> = {};
+      const result: Record<string, unknown> = {};
       const keys = Object.keys(localStorage);
       keys.forEach((key) => {
         if (key.startsWith(`${this.namespace}:`)) {
@@ -67,7 +69,7 @@ class Storage {
       });
       return result;
     } catch (error) {
-      console.error('Storage getAll error:', error);
+      logger.error('Storage getAll error:', error);
       return {};
     }
   }
@@ -76,7 +78,7 @@ class Storage {
     return this.get(key) !== null;
   }
 
-  setWithExpiry<T = any>(key: string, value: T, ttl: number): boolean {
+  setWithExpiry<T = unknown>(key: string, value: T, ttl: number): boolean {
     try {
       const item: ExpiryItem<T> = {
         value,
@@ -84,12 +86,12 @@ class Storage {
       };
       return this.set(key, item);
     } catch (error) {
-      console.error('Storage setWithExpiry error:', error);
+      logger.error('Storage setWithExpiry error:', error);
       return false;
     }
   }
 
-  getWithExpiry<T = any>(key: string): T | null {
+  getWithExpiry<T = unknown>(key: string): T | null {
     try {
       const item = this.get<ExpiryItem<T>>(key);
       if (!item) return null;
@@ -100,7 +102,7 @@ class Storage {
       }
       return item.value;
     } catch (error) {
-      console.error('Storage getWithExpiry error:', error);
+      logger.error('Storage getWithExpiry error:', error);
       return null;
     }
   }

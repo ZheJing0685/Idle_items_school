@@ -74,7 +74,7 @@ class AuthControllerTest {
     @DisplayName("测试登录成功")
     void testLoginSuccess() throws Exception {
         Map<String, Object> tokenData = new HashMap<>();
-        tokenData.put("accessToken", "jwt-access-token");
+        tokenData.put("token", "jwt-access-token");
         tokenData.put("refreshToken", "jwt-refresh-token");
         when(authService.login(any(LoginRequest.class))).thenReturn(tokenData);
 
@@ -84,7 +84,7 @@ class AuthControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.message").value("登录成功"))
-                .andExpect(jsonPath("$.data.accessToken").value("jwt-access-token"));
+                .andExpect(jsonPath("$.data.token").value("jwt-access-token"));
     }
 
     @Test
@@ -138,7 +138,7 @@ class AuthControllerTest {
         when(authService.register(any(RegisterRequest.class))).thenReturn(user);
 
         Map<String, Object> tokenData = new HashMap<>();
-        tokenData.put("accessToken", "jwt-access-token");
+        tokenData.put("token", "jwt-access-token");
         tokenData.put("refreshToken", "jwt-refresh-token");
         when(authService.login(any(LoginRequest.class))).thenReturn(tokenData);
 
@@ -148,7 +148,7 @@ class AuthControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.message").value("注册成功"))
-                .andExpect(jsonPath("$.data.accessToken").value("jwt-access-token"));
+                .andExpect(jsonPath("$.data.token").value("jwt-access-token"));
     }
 
     @Test

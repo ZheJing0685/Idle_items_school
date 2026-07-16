@@ -110,7 +110,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, onUnmounted, nextTick } from 'vue';
+import { ref, reactive, computed, onMounted, onUnmounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { MessageSquare, Image as ImageIcon, Video as VideoIcon } from 'lucide-vue-next';
@@ -141,9 +141,7 @@ const loadedChatIds = reactive<Set<string>>(new Set());
 
 const loadChatList = async () => {
   try {
-    console.log('Loading chat list...');
     const res = await chatApi.getChats();
-    console.log('Chat list response:', res);
 
     // 后端返回格式: {code: 200, data: [...]} 或 {code: 200, data: {content: [...]}}
     let chatData: any[] = [];
@@ -151,28 +149,22 @@ const loadChatList = async () => {
     if (res && res.data) {
       if (Array.isArray(res.data)) {
         // 新格式: data直接是数组
-        chatData = res.data;
+        chatData = res.data as any[];
       } else if (res.data.content && Array.isArray(res.data.content)) {
         // 旧格式: data.content是数组
-        chatData = res.data.content;
+        chatData = res.data.content as any[];
       }
     }
 
     chatList.value = chatData;
-    console.log('Chat list:', chatList.value);
-    console.log('Chat list length:', chatList.value.length);
 
     // 检查URL参数中是否有chatId，如果有则自动选中
     const targetChatId = route.query.chatId;
-    console.log('Target chat ID from URL:', targetChatId);
 
     if (targetChatId && chatList.value.length > 0) {
-      const targetChat = chatList.value.find(chat => String(chat.id) === String(targetChatId));
-      console.log('Found target chat:', targetChat);
+      const targetChat = chatList.value.find((chat: any) => String(chat.id) === String(targetChatId));
       if (targetChat) {
         await selectChat(targetChat);
-      } else {
-        console.log('Target chat not found in list');
       }
     }
   } catch (error) {
@@ -211,11 +203,11 @@ const loadMessages = async (chatId: string) => {
     let msgData: any[] = [];
 
     if (Array.isArray(res.data)) {
-      msgData = res.data;
+      msgData = res.data as any[];
     } else if (res.data?.content && Array.isArray(res.data.content)) {
-      msgData = res.data.content;
+      msgData = res.data.content as any[];
     } else if (Array.isArray(res)) {
-      msgData = res as any;
+      msgData = res as any[];
     }
 
     // DESC（最新在前）→ 翻转后 ASC（最旧在前，最新在底）
@@ -243,11 +235,11 @@ const loadMoreMessages = async () => {
     let olderMsgs: any[] = [];
 
     if (Array.isArray(res.data)) {
-      olderMsgs = res.data;
+      olderMsgs = res.data as any[];
     } else if (res.data?.content && Array.isArray(res.data.content)) {
-      olderMsgs = res.data.content;
+      olderMsgs = res.data.content as any[];
     } else if (Array.isArray(res)) {
-      olderMsgs = res as any;
+      olderMsgs = res as any[];
     }
 
     if (olderMsgs.length === 0) {
@@ -287,30 +279,32 @@ const handleScroll = () => {
 const sendMessage = async () => {
   if (!newMessage.value.trim() || !currentChat.value) return;
   const content = newMessage.value.trim();
+  const chat = currentChat.value as any;
   try {
-    await chatApi.sendMessage(currentChat.value.id, String(currentChat.value.buyerId === currentUserId.value ? currentChat.value.sellerId : currentChat.value.buyerId), content);
+    await chatApi.sendMessage(chat.id, String(chat.buyerId === currentUserId.value ? chat.sellerId : chat.buyerId), content);
     newMessage.value = '';
-  } catch (error) {
+  } catch {
     ElMessage.error('发送消息失败');
   }
 };
 
 const getReceiverId = () => {
   if (!currentChat.value) return '';
-  return String(currentChat.value.buyerId === currentUserId.value ? currentChat.value.sellerId : currentChat.value.buyerId);
+  const chat = currentChat.value as any;
+  return String(chat.buyerId === currentUserId.value ? chat.sellerId : chat.buyerId);
 };
 
 const sendMediaMessage = async (file: File, messageType: string) => {
   if (!currentChat.value) return;
   try {
-    const res = await chatApi.uploadChatMedia(file);
-    const url = (res.data as any).url;
+    const res: any = await chatApi.uploadChatMedia(file);
+    const url = res.data?.url;
     if (!url) {
       ElMessage.error('文件上传失败');
       return;
     }
-    await chatApi.sendMessage(currentChat.value.id, getReceiverId(), url, messageType);
-  } catch (error) {
+    await chatApi.sendMessage((currentChat.value as any).id, getReceiverId(), url, messageType);
+  } catch {
     ElMessage.error('文件发送失败');
   }
 };
@@ -355,7 +349,7 @@ const getMessageAvatar = (msg: any) => {
 
 const formatTime = (time: any) => {
   if (!time) return '';
-  const date = typeof time === 'number' ? new Date(time) : new Date(time);
+  const date = typeof time === 'number' ? new Date(time) : new Date(time as string);
   if (isNaN(date.getTime())) return '';
   const now = new Date();
   const diff = now.getTime() - date.getTime();
@@ -412,7 +406,7 @@ const formatDateSeparator = (time: string): string => {
 };
 
 const messagesWithSeparators = computed(() => {
-  const sorted = [...messages.value].sort((a, b) => {
+  const sorted = [...messages.value].sort((a: any, b: any) => {
     return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
   });
 
@@ -420,12 +414,13 @@ const messagesWithSeparators = computed(() => {
   let lastDateKey = '';
 
   for (const msg of sorted) {
-    const dateKey = getMessageDateKey(msg.createdAt);
+    const msgAny = msg as any;
+    const dateKey = getMessageDateKey(msgAny.createdAt);
     if (dateKey !== lastDateKey) {
-      result.push({ type: 'separator', date: msg.createdAt, key: `sep-${dateKey}` });
+      result.push({ type: 'separator', date: msgAny.createdAt, key: `sep-${dateKey}` });
       lastDateKey = dateKey;
     }
-    result.push({ type: 'message', msg, key: `msg-${msg.id}` });
+    result.push({ type: 'message', msg: msgAny, key: `msg-${msgAny.id}` });
   }
 
   return result;
@@ -444,7 +439,7 @@ const scrollToBottom = () => {
 };
 
 const handleNewMessage = (msg: any) => {
-  const chatInList = chatList.value.find(c => c.id === msg.chatId);
+  const chatInList = chatList.value.find((c: any) => c.id === msg.chatId);
   if (chatInList) {
     chatInList.lastMessage = msg.messageType === 'IMAGE' ? '[图片]' : msg.messageType === 'VIDEO' ? '[视频]' : msg.content;
     chatInList.lastMessageTime = msg.createdAt;
@@ -459,14 +454,14 @@ const handleNewMessage = (msg: any) => {
   const chatId = String(msg.chatId);
   if (messageCache.has(chatId)) {
     const cachedMessages = messageCache.get(chatId)!;
-    const exists = cachedMessages.some(m => m.id === msg.id);
+    const exists = cachedMessages.some((m: any) => m.id === msg.id);
     if (!exists) {
       cachedMessages.push(msg);
     }
   }
 
-  if (currentChat.value && msg.chatId === currentChat.value.id) {
-    const exists = messages.value.some(m => m.id === msg.id);
+  if (currentChat.value && msg.chatId === (currentChat.value as any).id) {
+    const exists = messages.value.some((m: any) => m.id === msg.id);
     if (!exists) {
       messages.value = [...messages.value, msg];
       scrollToBottom();
@@ -489,14 +484,14 @@ const startPolling = () => {
       const res = await chatApi.getMessages(chatId, { page: 0, size: 10 });
       let newMsgs: any[] = [];
       if (Array.isArray(res.data)) {
-        newMsgs = res.data;
+        newMsgs = res.data as any[];
       } else if (res.data?.content && Array.isArray(res.data.content)) {
-        newMsgs = res.data.content;
+        newMsgs = res.data.content as any[];
       }
 
       // 检查是否有新消息
       for (const msg of newMsgs) {
-        if (!messages.value.some(m => m.id === msg.id)) {
+        if (!messages.value.some((m: any) => m.id === msg.id)) {
           handleNewMessage(msg);
         }
       }
@@ -519,7 +514,7 @@ onMounted(() => {
 
   loadChatList();
   if (currentUserId.value) {
-    wsManager.connect('', String(currentUserId.value)).catch((err) => {
+    wsManager.connect(String(currentUserId.value)).catch((err) => {
       console.error('WebSocket连接失败:', err);
     });
   }

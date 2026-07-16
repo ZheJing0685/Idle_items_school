@@ -112,6 +112,10 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
     @Query("UPDATE Item i SET i.viewCount = i.viewCount + 1 WHERE i.id = :itemId")
     void incrementViewCount(@Param("itemId") Long itemId);
 
+    @Modifying
+    @Query("UPDATE Item i SET i.viewCount = i.viewCount + :count WHERE i.id = :itemId")
+    void incrementViewCountBy(@Param("itemId") Long itemId, @Param("count") int count);
+
     @Query("SELECT i FROM Item i WHERE i.status = 'ON_SALE' AND i.categoryId = :categoryId AND i.id != :excludeId AND i.price BETWEEN :minPrice AND :maxPrice")
     List<Item> findRelatedByCategoryAndPriceRange(
             @Param("categoryId") Long categoryId,

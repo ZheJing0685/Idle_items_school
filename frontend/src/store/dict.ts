@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import dictService from '../api/services/dict';
+import { logger } from '@/utils/logger';
 import type { DictItem } from '../types/api';
 
 interface DictRecord {
@@ -38,8 +39,8 @@ export const useDictStore = defineStore('dict', () => {
       lastFetchTime.value = Date.now();
       return dicts.value;
     } catch (err: any) {
-      error.value = err.message || '获取字典数据失败';
-      console.error('获取字典数据失败:', err);
+      error.value = (err as Error).message || '获取字典数据失败';
+      logger.error('获取字典数据失败:', err);
       throw err;
     } finally {
       loading.value = false;
@@ -59,8 +60,8 @@ export const useDictStore = defineStore('dict', () => {
       dicts.value[typeCode] = response.data;
       return response.data;
     } catch (err: any) {
-      error.value = err.message || `获取字典类型 ${typeCode} 失败`;
-      console.error(`获取字典类型 ${typeCode} 失败:`, err);
+      error.value = (err as Error).message || `获取字典类型 ${typeCode} 失败`;
+      logger.error(`获取字典类型 ${typeCode} 失败:`, err);
       throw err;
     } finally {
       loading.value = false;

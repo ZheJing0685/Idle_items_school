@@ -46,6 +46,7 @@ rate-limit:
   default-window: 60
   login-limit: 5
   login-window: 60
+  auth-limit: 20
 
 # Actuator监控配置
 management:

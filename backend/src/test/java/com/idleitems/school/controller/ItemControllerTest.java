@@ -12,6 +12,7 @@ import com.idleitems.school.module.order.entity.Order;
 import com.idleitems.school.module.file.service.FileService;
 import com.idleitems.school.module.item.service.ItemCommandService;
 import com.idleitems.school.module.item.service.ItemQueryService;
+import com.idleitems.school.module.item.service.RecommendationService;
 import com.idleitems.school.module.order.service.OrderQueryService;
 import com.idleitems.school.module.user.service.UserService;
 import com.idleitems.school.module.item.controller.ItemController;
@@ -65,6 +66,9 @@ class ItemControllerTest {
 
     @MockitoBean
     private OrderQueryService orderQueryService;
+
+    @MockitoBean
+    private RecommendationService recommendationService;
 
     private Item testItem;
     private CreateItemRequest createRequest;

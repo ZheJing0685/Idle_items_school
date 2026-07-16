@@ -37,9 +37,9 @@ export const validateNickname = (nickname: string): boolean => {
   return nickname.length >= 2 && nickname.length <= 20;
 };
 
-export const validatePrice = (price: any): boolean => {
+export const validatePrice = (price: unknown): boolean => {
   if (price === null || price === undefined) return false;
-  const priceNum = parseFloat(price);
+  const priceNum = parseFloat(price as string);
   return !isNaN(priceNum) && priceNum > 0 && priceNum <= 999999;
 };
 
@@ -61,26 +61,26 @@ export const validateImage = (file: File | null): boolean => {
   return allowedTypes.includes(file.type);
 };
 
-export const validateArray = (array: any, minLength: number = 0, maxLength: number = Infinity): boolean => {
+export const validateArray = (array: unknown, minLength: number = 0, maxLength: number = Infinity): boolean => {
   if (!Array.isArray(array)) return false;
   return array.length >= minLength && array.length <= maxLength;
 };
 
-export const validateRequired = (value: any): boolean => {
+export const validateRequired = (value: unknown): boolean => {
   if (value === null || value === undefined) return false;
   if (typeof value === 'string') return value.trim() !== '';
   if (Array.isArray(value)) return value.length > 0;
   return true;
 };
 
-export const validateMinLength = (value: any, min: number): boolean => {
+export const validateMinLength = (value: unknown, min: number): boolean => {
   if (!value) return false;
   if (typeof value === 'string') return value.length >= min;
   if (Array.isArray(value)) return value.length >= min;
   return false;
 };
 
-export const validateMaxLength = (value: any, max: number): boolean => {
+export const validateMaxLength = (value: unknown, max: number): boolean => {
   if (!value) return true;
   if (typeof value === 'string') return value.length <= max;
   if (Array.isArray(value)) return value.length <= max;

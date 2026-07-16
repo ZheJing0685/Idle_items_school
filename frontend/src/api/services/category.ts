@@ -33,8 +33,8 @@ const category = {
     get<CategoryInfo[]>(API_PATHS.CATEGORY.SEARCH, { params: { keyword } }),
   submitFeedback: (data: { categoryName: string; reason: string }) =>
     post<null>(API_PATHS.CATEGORY.FEEDBACK, data),
-  getMyFeedbacks: (params?: Record<string, any>) =>
-    get<{ content: any[]; totalElements: number }>(API_PATHS.CATEGORY.MY_FEEDBACK, { params }),
+  getMyFeedbacks: (params?: Record<string, unknown>) =>
+    get<{ content: unknown[]; totalElements: number }>(API_PATHS.CATEGORY.MY_FEEDBACK, { params }),
 };
 
 export default category;

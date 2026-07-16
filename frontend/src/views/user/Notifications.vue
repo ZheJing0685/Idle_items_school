@@ -92,7 +92,7 @@ const markAllAsRead = async () => {
     await notificationApi.markAllAsRead();
     notifications.value.forEach(n => n.isRead = true);
     ElMessage.success('已全部标记为已读');
-  } catch (error) {
+  } catch {
     ElMessage.error('操作失败');
   }
 };
@@ -127,7 +127,7 @@ onMounted(() => {
 
   const userId = userStore.user?.id;
   if (userId) {
-    wsManager.connect('', String(userId)).catch((err) => {
+    wsManager.connect(String(userId)).catch((err) => {
       console.error('WebSocket连接失败:', err);
     });
   }

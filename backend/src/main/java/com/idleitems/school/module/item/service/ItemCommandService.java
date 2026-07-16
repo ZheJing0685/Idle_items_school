@@ -51,7 +51,15 @@ public class ItemCommandService {
         item.setMinPrice(req.getMinPrice());
         validateCategory(req.getCategoryId());
         item.setCategoryId(req.getCategoryId());
-        item.setCondition(req.getCondition() != null ? Item.ItemCondition.valueOf(req.getCondition()) : Item.ItemCondition.GOOD);
+        if (req.getCondition() != null) {
+            try {
+                item.setCondition(Item.ItemCondition.valueOf(req.getCondition()));
+            } catch (IllegalArgumentException e) {
+                throw new BusinessException(ErrorCode.BAD_REQUEST, "成色值无效: " + req.getCondition());
+            }
+        } else {
+            item.setCondition(Item.ItemCondition.GOOD);
+        }
         item.setDeliveryMethod(req.getDeliveryMethod());
         item.setContactType(req.getContactType());
         item.setIsBargainAllowed(req.getIsBargainAllowed() != null ? req.getIsBargainAllowed() : true);
@@ -116,7 +124,13 @@ public class ItemCommandService {
             validateCategory(req.getCategoryId());
             existingItem.setCategoryId(req.getCategoryId());
         }
-        if (req.getCondition() != null) existingItem.setCondition(Item.ItemCondition.valueOf(req.getCondition()));
+        if (req.getCondition() != null) {
+            try {
+                existingItem.setCondition(Item.ItemCondition.valueOf(req.getCondition()));
+            } catch (IllegalArgumentException e) {
+                throw new BusinessException(ErrorCode.BAD_REQUEST, "成色值无效: " + req.getCondition());
+            }
+        }
         if (req.getDeliveryMethod() != null) existingItem.setDeliveryMethod(req.getDeliveryMethod());
         if (req.getContactType() != null) existingItem.setContactType(req.getContactType());
         if (req.getIsBargainAllowed() != null) existingItem.setIsBargainAllowed(req.getIsBargainAllowed());
@@ -214,7 +228,6 @@ public class ItemCommandService {
     }
 
     private void clearItemCache() {
-        // 仅清除热点缓存，列表缓存依赖自然 TTL 过期，避免 deletePattern 导致缓存雪崩
         cacheService.delete("item:hot");
     }
 

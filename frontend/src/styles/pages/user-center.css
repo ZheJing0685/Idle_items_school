@@ -22,7 +22,7 @@
   font-weight: 600;
   color: var(--text-primary);
   text-decoration: none;
-  transition: all 150ms ease;
+  transition: border-color 150ms ease, color 150ms ease;
   margin-left: auto;
 }
 

@@ -14,7 +14,7 @@
         <el-form-item label="物品图片">
           <div class="upload-previews" v-if="form.images.length > 0">
             <div
-              v-for="(img, index) in form.images"
+              v-for="(_img, index) in form.images"
               :key="index"
               class="upload-preview"
               :style="{ background: getPreviewColor(index) }"
@@ -159,7 +159,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, watch, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { ElMessage, type FormInstance, type FormRules } from 'element-plus';
+import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus';
 import api from '../api';
 import { useCategoryStore } from '../store/category';
 
@@ -216,10 +216,6 @@ function matchCategoryByTitle(title: string): { id: number; name: string; icon: 
         c => c.name === parentName || (c.level === 2 && c.name === parentName)
       );
       if (matched) {
-        // 如果是子分类匹配到了，返回该子分类
-        const cat = categoryStore.flatCategories.find(
-          c => c.name === parentName && c.level >= 1
-        );
         // 尝试找该父分类下匹配关键词的子分类
         if (matched.children?.length) {
           const sub = matched.children.find(
@@ -382,7 +378,7 @@ const handleFileChange = async (e: Event) => {
       if (response.code === 200) {
         form.images.push(response.data.url);
       }
-    } catch (error) {
+    } catch {
       ElMessage.warning('图片上传失败');
     }
   }
@@ -410,19 +406,22 @@ const handleSubmit = async () => {
       ? cascaderPath.value[cascaderPath.value.length - 1]
       : form.categoryId;
 
-    const payload = {
+    const payload: Record<string, any> = {
       ...form,
+      price: form.price ?? undefined,
+      originalPrice: form.originalPrice ?? undefined,
       categoryId,
+      deliveryMethod: '',
     };
 
     if (isEdit.value) {
-      const response = await api.item.updateItem(route.query.edit as string, payload as any);
+      const response: any = await api.item.updateItem(route.query.edit as string, payload);
       if (response.code === 200) {
         ElMessage.success('修改成功');
         router.push('/user/items');
       }
     } else {
-      const response = await api.item.createItem(payload as any);
+      const response: any = await api.item.createItem(payload as any);
       if (response.code === 200) {
         clearDraft();
         ElMessage.success('🎉 发布成功！你的物品已进入审核，预计 10 分钟内上架。');
@@ -476,7 +475,7 @@ onMounted(async () => {
         const draft = JSON.parse(raw);
         const elapsed = Date.now() - (draft.savedAt || 0);
         if (elapsed < 24 * 60 * 60 * 1000) {
-          ElMessage.confirm('检测到未发布的草稿，是否恢复？', '恢复草稿', {
+          ElMessageBox.confirm('检测到未发布的草稿，是否恢复？', '恢复草稿', {
             confirmButtonText: '恢复',
             cancelButtonText: '放弃',
             type: 'info',
@@ -515,7 +514,7 @@ onMounted(async () => {
         const path = categoryStore.getCategoryPath(item.categoryId);
         cascaderPath.value = path.map(c => c.id);
       }
-    } catch (error) {
+    } catch {
       ElMessage.error('获取物品信息失败');
     }
   }

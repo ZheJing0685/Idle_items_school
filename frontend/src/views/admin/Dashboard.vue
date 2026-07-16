@@ -243,21 +243,25 @@ const fetchStats = async () => {
       api.admin.orders.getStats(),
     ]);
 
+    const userData = userStatsRes.data as any;
+    const itemData = itemStatsRes.data as any;
+    const orderData = orderStatsRes.data as any;
+
     if (userStatsRes.code === 200) {
-      stats.value.totalUsers = userStatsRes.data.total || 0;
-      stats.value.newUsersToday = userStatsRes.data.todayNew || 0;
+      stats.value.totalUsers = userData.total || 0;
+      stats.value.newUsersToday = userData.todayNew || 0;
     }
 
     if (itemStatsRes.code === 200) {
-      stats.value.totalItems = itemStatsRes.data.total || 0;
-      stats.value.newItemsToday = itemStatsRes.data.todayNew || 0;
+      stats.value.totalItems = itemData.total || 0;
+      stats.value.newItemsToday = itemData.todayNew || 0;
     }
 
     if (orderStatsRes.code === 200) {
-      stats.value.totalOrders = orderStatsRes.data.total || 0;
-      stats.value.newOrdersToday = orderStatsRes.data.todayNew || 0;
-      stats.value.totalAmount = orderStatsRes.data.totalAmount || 0;
-      stats.value.amountToday = orderStatsRes.data.todayAmount || 0;
+      stats.value.totalOrders = orderData.total || 0;
+      stats.value.newOrdersToday = orderData.todayNew || 0;
+      stats.value.totalAmount = orderData.totalAmount || 0;
+      stats.value.amountToday = orderData.todayAmount || 0;
     }
   } catch (error) {
     console.error('Error fetching stats:', error);
@@ -273,12 +277,13 @@ const fetchDashboardData = async () => {
   activityLoading.value = true;
   try {
     const res = await api.admin.statistics.getDashboard();
-    if (res.code === 200 && res.data) {
-      if (res.data.todoItems) {
-        todoItems.value = res.data.todoItems;
+    const dashData = res.data as any;
+    if (res.code === 200 && dashData) {
+      if (dashData.todoItems) {
+        todoItems.value = dashData.todoItems;
       }
-      if (res.data.recentActivities) {
-        recentActivities.value = res.data.recentActivities;
+      if (dashData.recentActivities) {
+        recentActivities.value = dashData.recentActivities;
       }
     }
   } catch {

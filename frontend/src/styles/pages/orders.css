@@ -20,7 +20,7 @@
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 150ms ease;
+  transition: color 150ms ease, background-color 150ms ease;
 }
 
 .view-btn:hover {
@@ -226,7 +226,7 @@
   font-size: 14px;
   border-radius: 12px;
   text-decoration: none;
-  transition: all 150ms ease;
+  transition: background-color 150ms ease;
 }
 
 .empty-action-btn:hover {

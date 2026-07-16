@@ -12,7 +12,7 @@
   border-radius: var(--r-md, 12px);
   font-size: 14px;
   font-weight: 600;
-  transition: all 150ms ease;
+  transition: background-color 150ms ease, color 150ms ease, transform 150ms ease, box-shadow 150ms ease, opacity 150ms ease;
   border: none;
   cursor: pointer;
   text-decoration: none;

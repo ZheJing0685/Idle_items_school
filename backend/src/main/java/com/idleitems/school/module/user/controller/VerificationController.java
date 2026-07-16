@@ -46,12 +46,4 @@ public class VerificationController {
         return Result.success("获取状态成功", status);
     }
 
-    @Operation(summary = "重新提交认证", description = "认证被驳回后重新提交认证信息")
-    @PostMapping("/resubmit")
-    public Result<Void> resubmitVerification(
-            @RequestAttribute("userId") Long userId,
-            @Valid @RequestBody SubmitVerificationRequest request) {
-        verificationService.submit(userId, request);
-        return Result.success("重新提交成功", null);
-    }
 }

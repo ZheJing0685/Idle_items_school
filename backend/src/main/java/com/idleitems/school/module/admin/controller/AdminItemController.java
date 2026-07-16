@@ -192,35 +192,52 @@ public class AdminItemController {
             @RequestParam(value = "status", required = false) String status,
             @RequestParam(value = "categoryId", required = false) Long categoryId,
             HttpServletResponse response) throws IOException {
-        Item.ItemStatus itemStatus = status != null ? Item.ItemStatus.valueOf(status) : null;
-
-        List<Item> items = itemAdminService.getItemsForExport(keyword, itemStatus, categoryId);
-        if (items.size() > 5000) {
-            items = items.subList(0, 5000);
+        Item.ItemStatus itemStatus = null;
+        if (status != null) {
+            try {
+                itemStatus = Item.ItemStatus.valueOf(status);
+            } catch (IllegalArgumentException e) {
+                log.warn("导出物品状态参数无效: {}", status);
+                throw new BusinessException(ErrorCode.BAD_REQUEST, "状态参数无效");
+            }
         }
 
         response.setContentType("text/csv;charset=UTF-8");
         response.setHeader("Content-Disposition",
             "attachment;filename=items_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".csv");
 
-        StringBuilder csv = new StringBuilder();
-        csv.append("ID,标题,价格,原价,状态,分类ID,卖家ID,浏览量,收藏量,发布时间\n");
+        var writer = response.getWriter();
+        writer.write("ID,标题,价格,原价,状态,分类ID,卖家ID,浏览量,收藏量,发布时间\n");
 
-        for (Item item : items) {
-            csv.append(item.getId()).append(",")
-               .append(escapeCsv(item.getTitle())).append(",")
-               .append(item.getPrice() != null ? item.getPrice() : "").append(",")
-               .append(item.getOriginalPrice() != null ? item.getOriginalPrice() : "").append(",")
-               .append(escapeCsv(item.getStatus() != null ? item.getStatus().name() : "")).append(",")
-               .append(item.getCategoryId() != null ? item.getCategoryId() : "").append(",")
-               .append(item.getUserId()).append(",")
-               .append(item.getViewCount()).append(",")
-               .append(item.getFavoriteCount()).append(",")
-               .append(item.getCreatedAt() != null ? item.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) : "").append("\n");
-        }
+        int page = 0;
+        int pageSize = 500;
+        long totalExported = 0;
+        long maxExport = 5000;
+        Page<Item> itemPage;
+        do {
+            Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
+            itemPage = itemAdminService.getAdminItems(pageable, itemStatus);
+            for (Item item : itemPage.getContent()) {
+                writer.write(item.getId() + ",");
+                writer.write(escapeCsv(item.getTitle()) + ",");
+                writer.write((item.getPrice() != null ? item.getPrice() : "") + ",");
+                writer.write((item.getOriginalPrice() != null ? item.getOriginalPrice() : "") + ",");
+                writer.write(escapeCsv(item.getStatus() != null ? item.getStatus().name() : "") + ",");
+                writer.write((item.getCategoryId() != null ? item.getCategoryId() : "") + ",");
+                writer.write(item.getUserId() + ",");
+                writer.write((item.getViewCount() != null ? item.getViewCount() : 0) + ",");
+                writer.write((item.getFavoriteCount() != null ? item.getFavoriteCount() : 0) + ",");
+                writer.write(item.getCreatedAt() != null ? item.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) : "");
+                writer.write("\n");
 
-        response.getOutputStream().write(csv.toString().getBytes("UTF-8"));
-        response.getOutputStream().flush();
+                totalExported++;
+                if (totalExported >= maxExport) break;
+            }
+            page++;
+            if (totalExported >= maxExport) break;
+        } while (itemPage.hasNext());
+
+        writer.flush();
     }
 
     private String escapeCsv(String value) {

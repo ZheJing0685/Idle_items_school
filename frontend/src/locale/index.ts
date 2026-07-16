@@ -11,7 +11,7 @@ const i18n = createI18n({
   globalInjection: true,
   messages: {
     'zh-CN': zhCN,
-    'en': en as any,
+    'en': en,
   },
   missingWarn: false,
   fallbackWarn: false,

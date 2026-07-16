@@ -91,7 +91,7 @@ import { useRouter, useRoute } from 'vue-router';
 import { ElMessage, type FormInstance } from 'element-plus';
 import { Plus } from '@element-plus/icons-vue';
 import api from '../../api';
-import type { DisputeForm, DisputeItem } from '../../types/dispute';
+import type { DisputeForm } from '../../types/dispute';
 
 const router = useRouter();
 const route = useRoute();
@@ -140,7 +140,7 @@ const getOrderStatusLabel = (status: string): string => {
   return map[status] || status;
 };
 
-const handleUploadSuccess = (res: { code: number; data?: string; message?: string }, _file: unknown): void => {
+const handleUploadSuccess = (res: { code: number; data?: string; message?: string }, _file: any): void => {
   if (res.code === 200 && res.data) {
     evidenceImages.value.push(res.data);
     ElMessage.success('上传成功');
@@ -153,7 +153,7 @@ const handleUploadError = (): void => {
   ElMessage.error('上传失败，请重试');
 };
 
-const handleRemove = (file: { response?: { data?: string }; url?: string }, _fileList: unknown[]): void => {
+const handleRemove = (file: any, _fileList: any[]): void => {
   const url = file.response?.data || file.url;
   if (url) {
     evidenceImages.value = evidenceImages.value.filter(img => img !== url);
@@ -183,7 +183,7 @@ const submitForm = async (): Promise<void> => {
 
   try {
     await formRef.value.validate();
-  } catch (_e: unknown) {
+  } catch {
     return;
   }
 
@@ -213,7 +213,7 @@ const submitForm = async (): Promise<void> => {
     } else {
       ElMessage.error(res.message || '提交失败');
     }
-  } catch (_e: unknown) {
+  } catch {
     ElMessage.error('网络错误，请重试');
   } finally {
     submitting.value = false;
@@ -224,13 +224,14 @@ const fetchOrderInfo = async (): Promise<void> => {
   try {
     const res = await api.user.disputes.canDispute(orderId.value);
     if (res.code === 200 && res.data) {
+      const data = res.data as any;
       orderInfo.value = {
-        itemTitle: res.data.itemTitle,
-        price: res.data.orderAmount || res.data.price || 0,
-        orderStatus: res.data.orderStatus,
+        itemTitle: data.itemTitle,
+        price: data.orderAmount || data.price || 0,
+        orderStatus: data.orderStatus,
       };
     }
-  } catch (_e: unknown) { /* 静默处理 */ }
+  } catch { /* 静默处理 */ }
 };
 
 onMounted(() => {

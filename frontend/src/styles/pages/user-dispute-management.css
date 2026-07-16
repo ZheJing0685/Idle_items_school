@@ -34,7 +34,7 @@
   text-align: center;
   cursor: pointer;
   border: 2px solid transparent;
-  transition: all var(--duration-fast);
+  transition: border-color var(--duration-fast), background-color var(--duration-fast);
 }
 
 .stat-item:hover,

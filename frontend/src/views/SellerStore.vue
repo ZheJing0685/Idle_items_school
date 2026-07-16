@@ -133,7 +133,7 @@
               <h3 class="item-card-title">{{ item.title }}</h3>
               <!-- 分类标签 -->
               <div class="item-card-category" v-if="item.categoryName || item.categoryId">
-                <span class="category-dot">{{ categoryStore.getCategoryIcon(item.categoryName) }}</span>
+                <span class="category-dot">{{ categoryStore.getCategoryIcon(item.categoryName || '') }}</span>
                 <span class="category-label">{{ getCategoryPathLabel(item) }}</span>
               </div>
               <div class="item-card-price">¥{{ formatPrice(item.price) }}</div>
@@ -360,7 +360,7 @@ async function loadProfile() {
     } else {
       error.value = res.message || '卖家不存在';
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('加载卖家信息失败', err);
     error.value = '加载卖家信息失败';
   } finally {
@@ -417,15 +417,16 @@ async function contactSeller() {
       router.push('/login');
       return;
     }
-    const res = await api.chat.createChat(sellerId.value, null as any);
+    const res: any = await api.chat.createChat(sellerId.value, null as any);
     if (res.code === 200 && res.data) {
       router.push(`/user/chat?chatId=${res.data.id}`);
     } else {
       ElMessage.error('创建聊天失败');
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('联系卖家失败', err);
-    ElMessage.error(err.response?.data?.message || '联系卖家失败，请稍后再试');
+    const apiErr = err as { response?: { data?: { message?: string } } };
+    ElMessage.error(apiErr.response?.data?.message || '联系卖家失败，请稍后再试');
   }
 }
 

@@ -206,7 +206,7 @@ const getStatusType = (status: string) => {
     REFUND_REQUESTED: 'danger',
     REFUNDED: 'warning',
   };
-  return map[status] || 'info';
+  return (map[status] || 'info') as 'primary' | 'success' | 'warning' | 'info' | 'danger';
 };
 
 const getStatusText = (status: string) => {
@@ -216,7 +216,7 @@ const getStatusText = (status: string) => {
 const fetchDashboard = async () => {
   loading.value = true;
   try {
-    const params: Record<string, any> = { timeRange: timeRange.value };
+    const params: Record<string, unknown> = { timeRange: timeRange.value };
     if (timeRange.value === 'custom' && customDateRange.value) {
       params.startDate = customDateRange.value[0].toISOString().split('T')[0];
       params.endDate = customDateRange.value[1].toISOString().split('T')[0];
@@ -224,11 +224,11 @@ const fetchDashboard = async () => {
 
     const response = await api.admin.statistics.getDashboard(params);
     if (response.code === 200) {
-      dashboardData.value = response.data;
+      dashboardData.value = response.data as any;
     } else {
       ElMessage.error(response.message || '获取统计数据失败');
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching dashboard:', error);
     if (!error.response) {
       ElMessage.error('网络连接失败，请检查网络');

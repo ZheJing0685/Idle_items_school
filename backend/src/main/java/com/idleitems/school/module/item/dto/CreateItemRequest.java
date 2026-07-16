@@ -3,6 +3,7 @@ package com.idleitems.school.module.item.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
@@ -39,6 +40,7 @@ public class CreateItemRequest {
     @Schema(description = "分类ID")
     private Long categoryId;
 
+    @Pattern(regexp = "^(NEW|LIKE_NEW|GOOD|FAIR|POOR)$", message = "成色无效，可选值: NEW, LIKE_NEW, GOOD, FAIR, POOR")
     @Schema(description = "物品成色", example = "GOOD")
     private String condition;
 

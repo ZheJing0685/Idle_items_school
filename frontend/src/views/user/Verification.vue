@@ -96,13 +96,11 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue';
 import { ElMessage, ElMessageBox, ElForm } from 'element-plus';
-import { userStore } from '../../store';
 import api from '../../api';
 import PageHeader from '../../components/user/PageHeader.vue';
 import VerificationStatus from '../../components/user/VerificationStatus.vue';
 import UploadArea from '../../components/user/UploadArea.vue';
 
-const store = userStore();
 const formRef = ref<InstanceType<typeof ElForm> | null>(null);
 const loading = ref(false);
 const verificationStatus = ref<Record<string, string> | null>(null);
@@ -136,7 +134,7 @@ const rules = {
   ],
   idCard: [
     {
-      validator: (rule: any, value: string, callback: any) => {
+      validator: (_rule: unknown, value: string, callback: (err?: Error) => void) => {
         if (form.verificationType === '1') {
           if (!value) {
             callback(new Error('请输入身份证号'));
@@ -166,7 +164,7 @@ const rules = {
   ],
   idCardFront: [
     {
-      validator: (rule: any, value: string, callback: any) => {
+      validator: (_rule: unknown, value: string, callback: (err?: Error) => void) => {
         if (form.verificationType === '1' && !value) {
           callback(new Error('请上传身份证正面照片'));
         } else {
@@ -178,7 +176,7 @@ const rules = {
   ],
   idCardBack: [
     {
-      validator: (rule: any, value: string, callback: any) => {
+      validator: (_rule: unknown, value: string, callback: (err?: Error) => void) => {
         if (form.verificationType === '1' && !value) {
           callback(new Error('请上传身份证反面照片'));
         } else {
@@ -190,7 +188,7 @@ const rules = {
   ],
   studentId: [
     {
-      validator: (rule: any, value: string, callback: any) => {
+      validator: (_rule: unknown, value: string, callback: (err?: Error) => void) => {
         if (form.verificationType === '2') {
           if (!value) {
             callback(new Error('请输入学号'));
@@ -208,7 +206,7 @@ const rules = {
   ],
   school: [
     {
-      validator: (rule: any, value: string, callback: any) => {
+      validator: (_rule: unknown, value: string, callback: (err?: Error) => void) => {
         if ((form.verificationType === '2' || form.verificationType === '3') && !value) {
           callback(new Error('请输入学校名称'));
         } else {
@@ -220,7 +218,7 @@ const rules = {
   ],
   studentCard: [
     {
-      validator: (rule: any, value: string, callback: any) => {
+      validator: (_rule: unknown, value: string, callback: (err?: Error) => void) => {
         if (form.verificationType === '2' && !value) {
           callback(new Error('请上传学生证照片'));
         } else {
@@ -232,7 +230,7 @@ const rules = {
   ],
   teacherId: [
     {
-      validator: (rule: any, value: string, callback: any) => {
+      validator: (_rule: unknown, value: string, callback: (err?: Error) => void) => {
         if (form.verificationType === '3') {
           if (!value) {
             callback(new Error('请输入教师工号'));
@@ -250,7 +248,7 @@ const rules = {
   ],
   teacherCard: [
     {
-      validator: (rule: any, value: string, callback: any) => {
+      validator: (_rule: unknown, value: string, callback: (err?: Error) => void) => {
         if (form.verificationType === '3' && !value) {
           callback(new Error('请上传教师证照片'));
         } else {
@@ -267,9 +265,8 @@ const checkVerificationStatus = async () => {
   try {
     const response = await api.verification.getStatus();
     if (response.code === 200) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const data = response.data as any;
-      const status = data?.status;
+      const status = data?.status as string;
       if (status && status !== 'unverified') {
         verificationStatus.value = data;
       } else {
@@ -341,7 +338,7 @@ const submitForm = async () => {
         } else if (form.verificationType === '3') {
           teacherCard = uploadFiles.teacherCard ? await uploadImage(uploadFiles.teacherCard) : teacherCard;
         }
-        const submitData: Record<string, any> = {
+        const submitData: any = {
           verificationType: form.verificationType,
           realName: form.name,
         };
@@ -358,15 +355,16 @@ const submitForm = async () => {
           submitData.school = form.school;
           submitData.teacherCard = teacherCard;
         }
-        const response = await api.verification.submit(submitData as any);
+        const response: any = await api.verification.submit(submitData);
         if (response.code === 200) {
           ElMessage.success('认证信息提交成功，正在审核中');
           await checkVerificationStatus();
         } else {
           ElMessage.error(response.message || '提交失败');
         }
-      } catch (error: any) {
-        const msg = error?.response?.data?.message || error?.message || '提交失败，请稍后重试';
+      } catch (error: unknown) {
+        const apiErr = error as { response?: { data?: { message?: string } }; message?: string };
+        const msg = apiErr?.response?.data?.message || apiErr?.message || '提交失败，请稍后重试';
         ElMessage.error(msg);
       } finally {
         loading.value = false;

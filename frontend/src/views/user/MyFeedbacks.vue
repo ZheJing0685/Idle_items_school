@@ -84,9 +84,9 @@ const feedbackTypeText = (type: string) => {
   return map[type] || type;
 };
 
-const feedbackTypeTag = (type: string) => {
+const feedbackTypeTag = (type: string): 'primary' | 'success' | 'warning' | 'info' | 'danger' => {
   const map: Record<string, string> = { INVALID: 'danger', MISSING: 'warning', OTHER: 'info' };
-  return map[type] || 'info';
+  return (map[type] || 'info') as 'primary' | 'success' | 'warning' | 'info' | 'danger';
 };
 
 const statusText = (status: string) => {
@@ -94,9 +94,9 @@ const statusText = (status: string) => {
   return map[status] || status;
 };
 
-const statusTag = (status: string) => {
+const statusTag = (status: string): 'primary' | 'success' | 'warning' | 'info' | 'danger' => {
   const map: Record<string, string> = { PENDING: 'warning', ACCEPTED: 'success', REJECTED: 'danger' };
-  return map[status] || 'info';
+  return (map[status] || 'info') as 'primary' | 'success' | 'warning' | 'info' | 'danger';
 };
 
 const formatTime = (time: string) => {

@@ -123,6 +123,9 @@ export interface ItemInfo {
   brand?: string
   purchaseDate?: string
   warrantyInfo?: string
+  phone?: string
+  wechat?: string
+  qq?: string
 }
 
 export interface ItemSummary {
@@ -136,6 +139,8 @@ export interface ItemSummary {
   username?: string
   sellerNickname?: string
   city?: string
+  categoryName?: string
+  categoryId?: number
 }
 
 // ============================================
@@ -232,6 +237,7 @@ export interface SellerProfile {
   totalItems: number
   soldItems: number
   completedDeals: number
+  favorites: number
   rating: number
   reviewCount: number
 }

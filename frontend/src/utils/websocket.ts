@@ -4,17 +4,13 @@
  * 支持自动重连（指数退避，最多 5 次）
  */
 
+import { logger } from './logger';
+
 interface StompHeaders {
   [key: string]: string
 }
 
-type MessageHandler = (message: any) => void
-
-/** 订阅记录 */
-interface Subscription {
-  topic: string
-  handler: MessageHandler
-}
+type MessageHandler = (message: unknown) => void
 
 class WebSocketManager {
   private static instance: WebSocketManager;
@@ -35,6 +31,8 @@ class WebSocketManager {
   private maxReconnectAttempts = 5;
   private baseDelay = 1000;
   private timer: ReturnType<typeof setTimeout> | null = null;
+  /** 标记是否为主动断开，主动断开时不触发自动重连 */
+  private intentionalClose = false;
 
   private constructor() {}
 
@@ -45,10 +43,15 @@ class WebSocketManager {
     return WebSocketManager.instance;
   }
 
-  /** 建立 WebSocket 连接 */
-  connect(token: string, userId?: string): Promise<void> {
-    this.token = token;
-    if (userId) this.userId = userId;
+  /**
+   * 建立 WebSocket 连接
+   * @param userId 用户 ID（必填）
+   * @param _token 已废弃，Cookie 认证下不再需要，保留仅为向后兼容
+   */
+  connect(userId: string, _token?: string): Promise<void> {
+    this.intentionalClose = false;
+    this.token = _token || '';
+    this.userId = userId;
     this.connectionState = 'connecting';
 
     return new Promise((resolve, reject) => {
@@ -69,8 +72,9 @@ class WebSocketManager {
             'accept-version': '1.1,1.0',
             'heart-beat': '4000,4000',
           };
-          if (token) {
-            headers['Authorization'] = `Bearer ${token}`;
+          // Cookie 认证下无需 Authorization 头，保留仅向后兼容
+          if (_token) {
+            headers['Authorization'] = `Bearer ${_token}`;
           }
           this.sendFrame('CONNECT', headers);
         };
@@ -83,7 +87,10 @@ class WebSocketManager {
           this.connected = false;
           this.connectionState = 'disconnected';
           this.stompSubscribedTopics.clear();
-          this.scheduleReconnect();
+          // 仅在非主动断开时才自动重连
+          if (!this.intentionalClose) {
+            this.scheduleReconnect();
+          }
         };
 
         this.ws.onerror = () => {
@@ -139,6 +146,7 @@ class WebSocketManager {
 
   /** 断开连接 */
   disconnect(): void {
+    this.intentionalClose = true;
     this.clearTimer();
     if (this.ws) {
       this.ws.close();
@@ -247,7 +255,7 @@ class WebSocketManager {
           const handlers = this.subscriptions.get(matchedTopic);
           if (handlers) {
             handlers.forEach(h => {
-              try { h(message); } catch (e) { console.error('WebSocket 处理器异常:', e); }
+              try { h(message); } catch (e) { logger.error('WebSocket 处理器异常:', e); }
             });
           }
         }
@@ -262,7 +270,7 @@ class WebSocketManager {
     this.clearTimer();
 
     if (this.reconnectAttempt >= this.maxReconnectAttempts) {
-      console.error('WebSocket 重连已达上限，停止重连');
+      logger.error('WebSocket 重连已达上限，停止重连');
       return;
     }
 
@@ -271,14 +279,14 @@ class WebSocketManager {
       30000,
     );
 
-    console.log(`WebSocket 将在 ${Math.round(delay)}ms 后重连（第 ${this.reconnectAttempt + 1}/${this.maxReconnectAttempts} 次）`);
+    logger.log(`WebSocket 将在 ${Math.round(delay)}ms 后重连（第 ${this.reconnectAttempt + 1}/${this.maxReconnectAttempts} 次）`);
 
     this.timer = setTimeout(() => {
       this.reconnectAttempt++;
       this.connectionState = 'reconnecting';
-      this.connect(this.token, this.userId)
+      this.connect(this.userId)
         .then(() => {
-          console.log('WebSocket 重连成功');
+          logger.log('WebSocket 重连成功');
           this.reconnectAttempt = 0;
         })
         .catch(() => {

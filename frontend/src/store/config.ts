@@ -1,9 +1,10 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import configService from '../api/services/config';
+import { logger } from '@/utils/logger';
 
 interface ConfigRecord {
-  [configKey: string]: any
+  [configKey: string]: unknown
 }
 
 export const useConfigStore = defineStore('config', () => {
@@ -37,8 +38,8 @@ export const useConfigStore = defineStore('config', () => {
       lastFetchTime.value = Date.now();
       return configs.value;
     } catch (err: any) {
-      error.value = err.message || '获取配置数据失败';
-      console.error('获取配置数据失败:', err);
+      error.value = (err as Error).message || '获取配置数据失败';
+      logger.error('获取配置数据失败:', err);
       throw err;
     } finally {
       loading.value = false;
@@ -58,15 +59,15 @@ export const useConfigStore = defineStore('config', () => {
       configs.value[configKey] = response.data;
       return response.data;
     } catch (err: any) {
-      error.value = err.message || `获取配置 ${configKey} 失败`;
-      console.error(`获取配置 ${configKey} 失败:`, err);
+      error.value = (err as Error).message || `获取配置 ${configKey} 失败`;
+      logger.error(`获取配置 ${configKey} 失败:`, err);
       throw err;
     } finally {
       loading.value = false;
     }
   }
 
-  function getConfigSync(configKey: string, defaultValue: any = null) {
+  function getConfigSync(configKey: string, defaultValue: unknown = null) {
     const value = configs.value[configKey];
     return value !== undefined ? value : defaultValue;
   }
@@ -79,7 +80,7 @@ export const useConfigStore = defineStore('config', () => {
   function getConfigInt(configKey: string, defaultValue = 0) {
     const value = configs.value[configKey];
     if (value !== undefined) {
-      const intValue = parseInt(value, 10);
+      const intValue = parseInt(value as string, 10);
       return isNaN(intValue) ? defaultValue : intValue;
     }
     return defaultValue;
@@ -88,7 +89,7 @@ export const useConfigStore = defineStore('config', () => {
   function getConfigFloat(configKey: string, defaultValue = 0.0) {
     const value = configs.value[configKey];
     if (value !== undefined) {
-      const floatValue = parseFloat(value);
+      const floatValue = parseFloat(value as string);
       return isNaN(floatValue) ? defaultValue : floatValue;
     }
     return defaultValue;
@@ -114,8 +115,8 @@ export const useConfigStore = defineStore('config', () => {
       Object.assign(configs.value, response.data);
       return response.data;
     } catch (err: any) {
-      error.value = err.message || `获取配置分组 ${groupName} 失败`;
-      console.error(`获取配置分组 ${groupName} 失败:`, err);
+      error.value = (err as Error).message || `获取配置分组 ${groupName} 失败`;
+      logger.error(`获取配置分组 ${groupName} 失败:`, err);
       throw err;
     } finally {
       loading.value = false;

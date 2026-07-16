@@ -38,4 +38,13 @@ public final class SecurityConstants {
     // ==================== 角色标识 ====================
     public static final String ROLE_ADMIN = "ADMIN";
     public static final String ROLE_STUDENT = "STUDENT";
+
+    // ==================== 密码校验 ====================
+    public static final int PASSWORD_MIN_LENGTH = 8;
+    public static final int PASSWORD_MAX_LENGTH = 32;
+    public static final String PASSWORD_PATTERN = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,32}$";
+    public static final String PASSWORD_MESSAGE = "密码必须包含大小写字母、数字和特殊字符，长度8-32位";
+
+    // ==================== Token版本号 ====================
+    public static final long INITIAL_TOKEN_VERSION = 0L;
 }

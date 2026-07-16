@@ -37,7 +37,7 @@ interface AxiosErrorLike {
   message?: string
 }
 
-export function classifyError(error: any): ErrorTypeValue {
+export function classifyError(error: unknown): ErrorTypeValue {
   if (!error) return ErrorType.UNKNOWN_ERROR;
 
   const err: AxiosErrorLike = error;

@@ -34,7 +34,6 @@
         <el-table
           :data="feedbacks"
           style="width: 100%"
-          @selection-change="handleSelectionChange"
           row-key="id"
         >
           <el-table-column type="selection" width="50" />
@@ -208,11 +207,6 @@ const total = ref(0);
 const reviewDialogVisible = ref(false);
 const currentFeedback = ref<{ id: number; status: string; type: string; categoryName?: string; description?: string; adminReply?: string; username?: string; userId?: number; createdAt?: string } | null>(null);
 const submitting = ref(false);
-const selectedFeedbacks = ref<any[]>([]);
-
-const handleSelectionChange = (selection: any[]) => {
-  selectedFeedbacks.value = selection;
-};
 
 const reviewForm = ref({
   status: 'ACCEPTED',
@@ -225,8 +219,6 @@ const statusTabs = computed(() => [
   { label: '已采纳', value: 'ACCEPTED', count: null },
   { label: '已拒绝', value: 'REJECTED', count: null },
 ]);
-
-const totalPages = computed(() => Math.ceil(total.value / pageSize.value) || 1);
 
 const feedbackTypeMap = {
   INVALID_CATEGORY: { label: '分类无效', class: 'type-warning' },
@@ -273,13 +265,14 @@ const formatDate = (dateString: string) => {
 
 const fetchFeedbacks = async () => {
   try {
-    const params: Record<string, any> = { page: page.value, size: pageSize.value };
+    const params: Record<string, unknown> = { page: page.value, size: pageSize.value };
     if (currentStatus.value) params.status = currentStatus.value;
 
     const res = await api.admin.categories.getFeedbacks(params);
     if (res.code === 200) {
-      feedbacks.value = res.data.content || [];
-      total.value = res.data.totalElements || 0;
+      const data = res.data as any;
+      feedbacks.value = data.content || [];
+      total.value = data.totalElements || 0;
     }
   } catch {
     ElMessage.error('网络错误');

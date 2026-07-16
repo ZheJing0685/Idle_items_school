@@ -3,10 +3,10 @@ import type { OrderInfo, CreateOrderRequest } from '../../types/api';
 
 const order = {
   createOrder: (data: CreateOrderRequest) => post<OrderInfo>('/orders', data),
-  getBuyerOrders: (params?: Record<string, any>) =>
-    get<any>('/orders', { params }),
-  getSellerOrders: (params?: Record<string, any>) =>
-    get<any>('/orders/seller', { params }),
+  getBuyerOrders: (params?: Record<string, unknown>) =>
+    get<unknown>('/orders', { params }),
+  getSellerOrders: (params?: Record<string, unknown>) =>
+    get<unknown>('/orders/seller', { params }),
   getOrder: (id: number | string) => get<OrderInfo>(`/orders/${id}`),
   payOrder: (id: number | string, paymentMethod: string = 'OFFLINE') =>
     post<null>(`/orders/${id}/pay`, null, { params: { paymentMethod } }),

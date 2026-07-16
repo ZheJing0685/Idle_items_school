@@ -58,37 +58,11 @@ public class VerificationRecordDTO {
     private LocalDateTime updatedAt;
 
     /**
-     * 从实体创建DTO，身份证号脱敏显示
+     * 从实体创建DTO，身份证号始终显示掩码
      */
     public static VerificationRecordDTO fromEntity(VerificationRecord record) {
-        return fromEntity(record, false);
-    }
-
-    /**
-     * 从实体创建DTO
-     *
-     * @param record       认证记录
-     * @param decryptIdCard 是否解密身份证号（管理端使用）
-     */
-    public static VerificationRecordDTO fromEntity(VerificationRecord record, boolean decryptIdCard) {
         if (record == null) {
             return null;
-        }
-
-        String displayIdCard = null;
-        if (record.getIdCard() != null && !record.getIdCard().isEmpty()) {
-            if (decryptIdCard) {
-                // 管理端：解密后原样显示
-                try {
-                    // 注意：解密逻辑应在Service层处理，这里仅做脱敏展示
-                    displayIdCard = IdCardValidator.mask(record.getIdCard());
-                } catch (Exception e) {
-                    displayIdCard = "****";
-                }
-            } else {
-                // 前端：脱敏显示
-                displayIdCard = "****";
-            }
         }
 
         return VerificationRecordDTO.builder()
@@ -96,7 +70,7 @@ public class VerificationRecordDTO {
                 .userId(record.getUserId())
                 .realName(record.getRealName())
                 .studentId(record.getStudentId())
-                .idCard(displayIdCard)
+                .idCard("****")
                 .teacherId(record.getTeacherId())
                 .school(record.getSchool())
                 .studentCard(record.getStudentCard())

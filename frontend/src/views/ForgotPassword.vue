@@ -129,8 +129,9 @@ const sendCode = async () => {
     await api.auth.forgotPassword(form.email);
     ElMessage.success('验证码已发送');
     step.value = 2;
-  } catch (error: any) {
-    const msg = error.response?.data?.message || error.message || '发送失败';
+  } catch (error: unknown) {
+    const err = error as { response?: { data?: { message?: string } }; message?: string };
+    const msg = err.response?.data?.message || err.message || '发送失败';
     ElMessage.error(msg);
   } finally {
     loading.value = false;
@@ -147,8 +148,9 @@ const verifyCode = async () => {
     await api.auth.verifyCode(form.email, form.code);
     ElMessage.success('验证成功');
     step.value = 3;
-  } catch (error: any) {
-    const msg = error.response?.data?.message || error.message || '验证失败';
+  } catch (error: unknown) {
+    const err = error as { response?: { data?: { message?: string } }; message?: string };
+    const msg = err.response?.data?.message || err.message || '验证失败';
     ElMessage.error(msg);
   } finally {
     loading.value = false;
@@ -169,8 +171,9 @@ const resetPassword = async () => {
     await api.auth.resetPassword(form.email, form.code, form.newPassword);
     ElMessage.success('密码重置成功');
     step.value = 4;
-  } catch (error: any) {
-    const msg = error.response?.data?.message || error.message || '重置失败';
+  } catch (error: unknown) {
+    const err = error as { response?: { data?: { message?: string } }; message?: string };
+    const msg = err.response?.data?.message || err.message || '重置失败';
     ElMessage.error(msg);
   } finally {
     loading.value = false;

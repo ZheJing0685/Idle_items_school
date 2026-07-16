@@ -14,16 +14,30 @@ public class CookieUtil {
     private static final String REFRESH_TOKEN_NAME = "refresh_token";
     private static final String COOKIE_PATH = "/";
 
+    private static boolean secure = false;
+
+    /**
+     * 设置 Cookie 的 Secure 标志
+     * 生产环境通过 CookieSecureConfig 注入为 true
+     */
+    public static void setSecure(boolean secure) {
+        CookieUtil.secure = secure;
+    }
+
+    private static ResponseCookie.ResponseCookieBuilder baseCookie(String name, String value) {
+        return ResponseCookie.from(name, value)
+                .httpOnly(true)
+                .secure(secure)
+                .path(COOKIE_PATH)
+                .sameSite("Lax");
+    }
+
     /**
      * 设置 Access Token Cookie
      */
     public static void setAccessTokenCookie(HttpServletResponse response, String token, long maxAge) {
-        ResponseCookie cookie = ResponseCookie.from(ACCESS_TOKEN_NAME, token)
-                .httpOnly(true)
-                .secure(false) // 开发环境用 false，生产环境改为 true
-                .path(COOKIE_PATH)
+        ResponseCookie cookie = baseCookie(ACCESS_TOKEN_NAME, token)
                 .maxAge(maxAge)
-                .sameSite("Lax")
                 .build();
         response.addHeader("Set-Cookie", cookie.toString());
     }
@@ -32,12 +46,8 @@ public class CookieUtil {
      * 设置 Refresh Token Cookie
      */
     public static void setRefreshTokenCookie(HttpServletResponse response, String token, long maxAge) {
-        ResponseCookie cookie = ResponseCookie.from(REFRESH_TOKEN_NAME, token)
-                .httpOnly(true)
-                .secure(false)
-                .path(COOKIE_PATH)
+        ResponseCookie cookie = baseCookie(REFRESH_TOKEN_NAME, token)
                 .maxAge(maxAge)
-                .sameSite("Lax")
                 .build();
         response.addHeader("Set-Cookie", cookie.toString());
     }
@@ -46,12 +56,8 @@ public class CookieUtil {
      * 清除 Access Token Cookie
      */
     public static void clearAccessTokenCookie(HttpServletResponse response) {
-        ResponseCookie cookie = ResponseCookie.from(ACCESS_TOKEN_NAME, "")
-                .httpOnly(true)
-                .secure(false)
-                .path(COOKIE_PATH)
+        ResponseCookie cookie = baseCookie(ACCESS_TOKEN_NAME, "")
                 .maxAge(0)
-                .sameSite("Lax")
                 .build();
         response.addHeader("Set-Cookie", cookie.toString());
     }
@@ -60,12 +66,8 @@ public class CookieUtil {
      * 清除 Refresh Token Cookie
      */
     public static void clearRefreshTokenCookie(HttpServletResponse response) {
-        ResponseCookie cookie = ResponseCookie.from(REFRESH_TOKEN_NAME, "")
-                .httpOnly(true)
-                .secure(false)
-                .path(COOKIE_PATH)
+        ResponseCookie cookie = baseCookie(REFRESH_TOKEN_NAME, "")
                 .maxAge(0)
-                .sameSite("Lax")
                 .build();
         response.addHeader("Set-Cookie", cookie.toString());
     }

@@ -93,7 +93,7 @@ const loadFavorites = async () => {
     } else {
       error.value = response.message || '加载收藏失败';
     }
-  } catch (err) {
+  } catch {
     error.value = '网络错误，请稍后重试';
   } finally {
     loading.value = false;
@@ -110,7 +110,7 @@ const removeFavorite = async (itemId: string) => {
     } else {
       ElMessage.error(response.message || '取消收藏失败');
     }
-  } catch (err) {
+  } catch {
     ElMessage.error('网络错误，请稍后重试');
   }
 };

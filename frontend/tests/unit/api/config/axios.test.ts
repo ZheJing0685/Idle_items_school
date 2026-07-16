@@ -87,31 +87,6 @@ describe('Axios配置', () => {
     expect(instance.interceptors.response.use).toBeDefined();
   });
 
-  describe('Token管理', () => {
-    it('setToken 和 getToken 现在是空实现（token 由 HttpOnly Cookie 管理）', async () => {
-      const { setToken, getToken } = await import('@/api/config/axios');
-
-      setToken('test-token-123');
-      expect(getToken()).toBe('');
-    });
-
-    it('clearToken 现在是空实现', async () => {
-      const { clearToken, getToken } = await import('@/api/config/axios');
-
-      clearToken();
-      expect(getToken()).toBe('');
-    });
-
-    it('getToken 始终返回空字符串', async () => {
-      sessionStorage.setItem('access_token', 'stored-token');
-
-      vi.resetModules();
-
-      const { getToken } = await import('@/api/config/axios');
-      expect(getToken()).toBe('');
-    });
-  });
-
   describe('未授权处理器', () => {
     it('应该设置未授权处理器', async () => {
       const { setUnauthorizedHandler } = await import('@/api/config/axios');
@@ -139,10 +114,8 @@ describe('Axios配置', () => {
     it('应该导出所有必要函数', async () => {
       const axiosModule = await import('@/api/config/axios');
 
-      expect(typeof axiosModule.setToken).toBe('function');
-      expect(typeof axiosModule.getToken).toBe('function');
-      expect(typeof axiosModule.clearToken).toBe('function');
       expect(typeof axiosModule.setUnauthorizedHandler).toBe('function');
+      expect(typeof axiosModule.clearAuthState).toBe('function');
       expect(axiosModule.default).toBeDefined();
     });
 

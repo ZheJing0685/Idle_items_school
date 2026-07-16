@@ -59,6 +59,9 @@ public class SecurityConfig {
     @Value("${rate-limit.login-window:60}")
     private int loginWindow;
 
+    @Value("${rate-limit.auth-limit:20}")
+    private int authLimit;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -68,7 +71,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/doc.html", "/webjars/**", "/swagger-resources/**").permitAll()
                 .requestMatchers("/actuator/**").permitAll()
-                .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/refresh", "/api/auth/me", "/api/auth/forgot-password", "/api/auth/verify-code", "/api/auth/reset-password", "/api/items/search", "/api/items/hot", "/api/items/{id}", "/api/categories", "/api/categories/tree", "/api/home/**", "/api/test/**").permitAll()
+                .requestMatchers("/api/auth/**", "/api/items/search", "/api/items/hot", "/api/items/{id}", "/api/categories/**", "/api/home/**", "/api/test/**").permitAll()
                 .requestMatchers("/api/user/*/profile", "/api/user/*/items", "/api/user/*/reviews").permitAll()
                 .requestMatchers("/uploads/**").permitAll()
                 .requestMatchers("/ws/**", "/ws-native/**").permitAll()
@@ -104,7 +107,7 @@ public class SecurityConfig {
     @Bean
     public FilterRegistrationBean<RateLimitFilter> rateLimitFilterRegistration(RedisTemplate<String, Object> redisTemplate, DefaultRedisScript<Long> rateLimitScript) {
         FilterRegistrationBean<RateLimitFilter> registration = new FilterRegistrationBean<>();
-        registration.setFilter(new RateLimitFilter(redisTemplate, rateLimitScript, defaultLimit, defaultWindow, loginLimit, loginWindow));
+        registration.setFilter(new RateLimitFilter(redisTemplate, rateLimitScript, defaultLimit, defaultWindow, loginLimit, loginWindow, authLimit));
         registration.addUrlPatterns("/api/*");
         registration.setName("rateLimitFilter");
         registration.setOrder(Ordered.HIGHEST_PRECEDENCE + 2);
@@ -139,6 +142,19 @@ public class SecurityConfig {
                     } else if (jwtUtil.validateToken(token)) {
                         String userIdStr = jwtUtil.getUserIdFromToken(token);
                         Long userId = Long.parseLong(userIdStr);
+
+                        long tokenVersion = jwtUtil.getTokenVersionFromToken(token);
+                        long currentVersion = jwtTokenBlacklistService.getUserTokenVersion(userId);
+                        if (tokenVersion < currentVersion) {
+                            String uri = request.getRequestURI();
+                            if (!isPermitAll(uri)) {
+                                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                                response.setContentType("application/json;charset=UTF-8");
+                                response.getWriter().write("{\"code\":40102,\"message\":\"Token已失效，请重新登录\",\"data\":null}");
+                                return;
+                            }
+                        }
+
                         String username = jwtUtil.getUsernameFromToken(token);
                         String role = jwtUtil.getRoleFromToken(token);
 
@@ -166,18 +182,7 @@ public class SecurityConfig {
             }
 
             private boolean isPermitAll(String uri) {
-                return uri.startsWith("/api/auth/")
-                        || uri.equals("/api/items/search")
-                        || uri.equals("/api/items/hot")
-                        || uri.matches("/api/items/\\d+")
-                        || uri.startsWith("/api/categories")
-                        || uri.startsWith("/api/home")
-                        || uri.startsWith("/api/test")
-                        || uri.matches("/api/user/\\d+/profile")
-                        || uri.matches("/api/user/\\d+/items")
-                        || uri.matches("/api/user/\\d+/reviews")
-                        || uri.startsWith("/uploads/")
-                        || uri.startsWith("/ws");
+                return ApiPaths.isPublicPath(uri);
             }
         };
     }

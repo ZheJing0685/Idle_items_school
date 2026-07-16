@@ -74,7 +74,7 @@ const rules = {
   confirmPassword: [
     { required: true, message: '请再次输入新密码', trigger: 'blur' },
     {
-      validator: (_rule: any, value: string, callback: any) => {
+      validator: (_rule: unknown, value: string, callback: (err?: Error) => void) => {
         if (!value) {
           callback(new Error('请再次输入新密码'));
         } else if (value !== form.newPassword) {
@@ -102,8 +102,9 @@ const handleSubmit = async () => {
       type: 'success',
     });
     router.push('/login');
-  } catch (error: any) {
-    const msg = error.response?.data?.message || error.message || '修改密码失败';
+  } catch (error: unknown) {
+    const err = error as { response?: { data?: { message?: string } }; message?: string };
+    const msg = err.response?.data?.message || err.message || '修改密码失败';
     ElMessage.error(msg);
   } finally {
     submitting.value = false;

@@ -28,7 +28,7 @@
       </div>
     </div>
 
-    <div class="content-card">
+    <div class="content-card" aria-live="polite">
       <div class="filters-bar">
         <div class="filter-search">
           <Search class="search-icon" :size="16" />
@@ -226,7 +226,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { userStore } from '../../store';
 import api from '../../api';
 import { Search } from 'lucide-vue-next';
 import {
@@ -244,7 +243,6 @@ import {
 
 const fallbackCover =
   'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=placeholder&image_size=square';
-const store = userStore();
 const searchKeyword = ref('');
 const orderStatus = ref('');
 const paymentMethod = ref('');
@@ -266,16 +264,6 @@ const stats = ref({
   completed: 0,
   amount: 0,
 });
-
-const totalPages = computed(() =>
-  Math.max(1, Math.ceil(total.value / pageSize.value))
-);
-const paginationStart = computed(() =>
-  total.value ? (page.value - 1) * pageSize.value + 1 : 0
-);
-const paginationEnd = computed(() =>
-  Math.min(page.value * pageSize.value, total.value)
-);
 
 const primaryStatCards = computed(() => [
   {
@@ -346,35 +334,36 @@ const fetchOrders = async () => {
       paymentMethod: paymentMethod.value || undefined,
     };
     const response = await api.admin.orders.getOrders(params);
-    orders.value = (response.data.content || []).map(normalizeAdminOrder);
-    total.value = response.data.totalElements || 0;
+    const orderData = response.data as any;
+    orders.value = (orderData.content || []).map(normalizeAdminOrder);
+    total.value = orderData.totalElements || 0;
     selectedOrders.value = selectedOrders.value.filter((id) =>
       orders.value.some(
         (order) => order.id === id && canAdminCancelOrder(order.orderStatus)
       )
     );
-  } catch (error) {
-    ElMessage.error(error.message || '获取订单失败');
+  } catch (error: any) {
+    ElMessage.error(error?.message || '获取订单失败');
   } finally {
     loading.value = false;
   }
 };
 
-const fetchStats = async () => {
-  const response = await api.admin.orders.getStats();
-  stats.value = { ...stats.value, ...response.data };
-};
+  const fetchStats = async () => {
+    const response = await api.admin.orders.getStats();
+    stats.value = { ...stats.value, ...(response.data as any) };
+  };
 
-const fetchOrderDetail = async (orderId: number) => {
-  const response = await api.admin.orders.getOrder(orderId);
-  return normalizeAdminOrder(response.data);
-};
+  const fetchOrderDetail = async (orderId: number) => {
+    const response: any = await api.admin.orders.getOrder(orderId);
+    return normalizeAdminOrder(response.data);
+  };
 
 const refreshData = async () => {
   try {
     await Promise.all([fetchOrders(), fetchStats()]);
-  } catch (error) {
-    ElMessage.error(error.message || '刷新数据失败');
+  } catch (error: any) {
+    ElMessage.error(error?.message || '刷新数据失败');
   }
 };
 
@@ -405,8 +394,8 @@ const handleView = async (order: any) => {
   try {
     currentOrder.value = await fetchOrderDetail(order.id);
     detailDialogVisible.value = true;
-  } catch (error) {
-    ElMessage.error(error.message || '获取详情失败');
+  } catch (error: any) {
+    ElMessage.error(error?.message || '获取详情失败');
   }
 };
 
@@ -422,9 +411,9 @@ const handleApproveRefund = async (order: any) => {
       currentOrder.value = normalizeAdminOrder(response.data);
     ElMessage.success('退款已审批');
     await refreshData();
-  } catch (error) {
+  } catch (error: any) {
     if (error !== 'cancel' && error !== 'close')
-      ElMessage.error(error.message || '退款审批失败');
+      ElMessage.error(error?.message || '退款审批失败');
   }
 };
 
@@ -438,9 +427,9 @@ const handleCancel = async (order: any) => {
       currentOrder.value = normalizeAdminOrder(response.data);
     ElMessage.success('订单已取消');
     await refreshData();
-  } catch (error) {
+  } catch (error: any) {
     if (error !== 'cancel' && error !== 'close')
-      ElMessage.error(error.message || '取消失败');
+      ElMessage.error(error?.message || '取消失败');
   }
 };
 
@@ -467,9 +456,9 @@ const handleBulkCancel = async () => {
     selectedOrders.value = [];
     ElMessage.success(`已批量取消 ${cancellableIds.length} 个订单`);
     await refreshData();
-  } catch (error) {
+  } catch (error: any) {
     if (error !== 'cancel' && error !== 'close')
-      ElMessage.error(error.message || '批量取消失败');
+      ElMessage.error(error?.message || '批量取消失败');
   } finally {
     bulkLoading.value = false;
   }

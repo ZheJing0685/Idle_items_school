@@ -179,7 +179,7 @@
 import { ref, onMounted } from 'vue';
 import { ElMessage } from 'element-plus';
 import api from '../../api';
-import type { DisputeItem, DisputeStats, DisputeForm, DisputeReplyForm, DisputeEvaluateForm, DisputeLog } from '../../types/dispute';
+import type { DisputeItem, DisputeStats, DisputeReplyForm, DisputeEvaluateForm, DisputeLog } from '../../types/dispute';
 
 const disputes = ref<DisputeItem[]>([]);
 const loading = ref(false);
@@ -267,16 +267,17 @@ const canEvaluate = (dispute: DisputeItem): boolean => {
 const fetchDisputes = async (): Promise<void> => {
   loading.value = true;
   try {
-    const params: Record<string, unknown> = { page: page.value, size: pageSize.value };
+    const params: any = { page: page.value, size: pageSize.value };
     if (filterStatus.value) params.status = filterStatus.value;
     const res = await api.user.disputes.list(params);
     if (res.code === 200) {
-      disputes.value = res.data.content || [];
-      total.value = res.data.totalElements || 0;
+      const data = res.data as any;
+      disputes.value = data.content || [];
+      total.value = data.totalElements || 0;
     } else {
       ElMessage.error(res.message || '获取纠纷列表失败');
     }
-  } catch (e: unknown) {
+  } catch {
     ElMessage.error('网络错误');
   } finally {
     loading.value = false;
@@ -285,41 +286,41 @@ const fetchDisputes = async (): Promise<void> => {
 
 const fetchStats = async (): Promise<void> => {
   try {
-    const res = await api.user.disputes.list({ size: 1 });
+    const res: any = await api.user.disputes.list({ size: 1 });
     if (res.code === 200) {
       stats.value.total = res.data.totalElements || 0;
     }
-  } catch (_e: unknown) { /* 非关键数据，静默失败 */ }
+  } catch { /* 非关键数据，静默失败 */ }
   try {
-    const res = await api.user.disputes.list({ status: 'PENDING', size: 1 });
+    const res: any = await api.user.disputes.list({ status: 'PENDING', size: 1 });
     if (res.code === 200) {
       stats.value.pending = res.data.totalElements || 0;
     }
-  } catch (_e: unknown) { /* 非关键数据，静默失败 */ }
+  } catch { /* 非关键数据，静默失败 */ }
   try {
-    const res = await api.user.disputes.list({ status: 'PROCESSING', size: 1 });
+    const res: any = await api.user.disputes.list({ status: 'PROCESSING', size: 1 });
     if (res.code === 200) {
       stats.value.processing = res.data.totalElements || 0;
     }
-  } catch (_e: unknown) { /* 非关键数据，静默失败 */ }
+  } catch { /* 非关键数据，静默失败 */ }
   try {
-    const res = await api.user.disputes.list({ status: 'RESOLVED', size: 1 });
+    const res: any = await api.user.disputes.list({ status: 'RESOLVED', size: 1 });
     if (res.code === 200) {
       stats.value.resolved = res.data.totalElements || 0;
     }
-  } catch (_e: unknown) { /* 非关键数据，静默失败 */ }
+  } catch { /* 非关键数据，静默失败 */ }
 };
 
 const viewDetail = async (dispute: DisputeItem): Promise<void> => {
   try {
     const res = await api.user.disputes.get(dispute.id!);
     if (res.code === 200) {
-      currentDispute.value = res.data;
+      currentDispute.value = res.data as any;
       detailVisible.value = true;
     } else {
       ElMessage.error(res.message || '获取详情失败');
     }
-  } catch (_e: unknown) {
+  } catch {
     ElMessage.error('网络错误');
   }
 };
@@ -345,7 +346,7 @@ const submitReply = async (): Promise<void> => {
     } else {
       ElMessage.error(res.message || '回复失败');
     }
-  } catch (_e: unknown) {
+  } catch {
     ElMessage.error('网络错误');
   } finally {
     replyLoading.value = false;
@@ -373,7 +374,7 @@ const submitEvaluate = async (): Promise<void> => {
     } else {
       ElMessage.error(res.message || '评价失败');
     }
-  } catch (_e: unknown) {
+  } catch {
     ElMessage.error('网络错误');
   } finally {
     evaluateLoading.value = false;

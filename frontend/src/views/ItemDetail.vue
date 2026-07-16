@@ -10,7 +10,8 @@
       </router-link>
 
       <!-- Loading State -->
-      <div v-if="loading" class="loading-state">
+      <div v-if="loading" class="loading-state" aria-live="polite" role="status">
+        <span style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0;">正在加载物品详情…</span>
         <div class="loading-grid">
           <div class="loading-image loading-skeleton"></div>
           <div class="loading-info">
@@ -231,11 +232,12 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElMessageBox } from 'element-plus';
 import api from '../api';
 import { useUserStore } from '../store/modules/user';
 import { getCategoryColorById, getConditionText, getDeliveryText, getTimeAgo } from '../utils/item-helper';
 import { useCategoryStore } from '../store/category';
+import type { ItemSummary } from '../types/api';
 
 const route = useRoute();
 const router = useRouter();
@@ -251,8 +253,8 @@ const showLightbox = ref(false);
 const allImages = ref([] as string[]);
 const lightboxRef = ref<HTMLElement | null>(null);
 const closeBtnRef = ref<HTMLElement | null>(null);
-const similarItems = ref<any[]>([]);
-const sellerItems = ref<any[]>([]);
+const similarItems = ref<ItemSummary[]>([]);
+const sellerItems = ref<ItemSummary[]>([]);
 
 /** 当前物品的分类路径（一级 > 二级） */
 const categoryPath = computed(() => {
@@ -268,7 +270,7 @@ const getGalleryBg = () => {
 const fetchItemDetail = async () => {
   try {
     loading.value = true;
-    const itemId = route.params.id;
+    const itemId = String(route.params.id);
     const response = await api.item.getItem(itemId);
     item.value = response.data;
     item.value.eco = item.value.price < 100;
@@ -302,8 +304,8 @@ const fetchItemDetail = async () => {
 
     // Fetch related items
     fetchRelatedItems(itemId);
-  } catch (error) {
-    ElMessage.error(error.message || '获取物品详情失败');
+  } catch (error: unknown) {
+    ElMessage.error(error instanceof Error ? error.message : '获取物品详情失败');
     router.push('/');
   } finally {
     loading.value = false;
@@ -314,8 +316,9 @@ const fetchRelatedItems = async (itemId: number | string) => {
   try {
     const res = await api.item.getRelatedItems(itemId);
     if (res.data) {
-      similarItems.value = (res.data.similarItems || []).slice(0, 6);
-      sellerItems.value = (res.data.sellerItems || []).slice(0, 4);
+      const data = res.data as any;
+      similarItems.value = (data.similarItems || []).slice(0, 6);
+      sellerItems.value = (data.sellerItems || []).slice(0, 4);
     }
   } catch {
     // Non-critical data, silent fail
@@ -330,16 +333,16 @@ const toggleFavorite = async () => {
   }
   try {
     if (isFavorited.value) {
-      await api.favorite.removeFavorite(route.params.id);
+      await api.favorite.removeFavorite(String(route.params.id));
       isFavorited.value = false;
       ElMessage.success('已取消收藏');
     } else {
-      await api.favorite.addFavorite(route.params.id);
+      await api.favorite.addFavorite(String(route.params.id));
       isFavorited.value = true;
       ElMessage.success('收藏成功');
     }
-  } catch (error) {
-    ElMessage.error(error.message || '操作失败');
+  } catch (error: unknown) {
+    ElMessage.error(error instanceof Error ? error.message : '操作失败');
   }
 };
 
@@ -355,13 +358,13 @@ const handleChat = async () => {
       ElMessage.error('无法获取卖家信息');
       return;
     }
-    const response = await api.chat.createChat(sellerId, item.value.id);
+    const response = await api.chat.createChat(sellerId as number, item.value!.id);
     if (response.code === 200 && response.data) {
       const chatId = response.data.id || response.data;
       router.push(`/user/chat?chatId=${chatId}`);
     }
-  } catch (error) {
-    ElMessage.error(error.message || '联系卖家失败');
+  } catch (error: unknown) {
+    ElMessage.error(error instanceof Error ? error.message : '联系卖家失败');
   }
 };
 
@@ -375,8 +378,6 @@ const handleBuy = async () => {
     return;
   }
   try {
-    const { ElMessageBox } = await import('element-plus');
-
     // 使用自定义 HTML 实现分字段输入
     const htmlContent = `
       <div style="display:flex;flex-direction:column;gap:16px;">
@@ -402,7 +403,7 @@ const handleBuy = async () => {
       confirmButtonText: '确认下单',
       cancelButtonText: '取消',
       closeOnClickModal: false,
-      beforeClose: async (action: string, instance: any, done: () => void) => {
+      beforeClose: async (action: string, _instance: any, done: () => void) => {
         if (action === 'confirm') {
           const nameEl = document.getElementById('buyer-name-input') as HTMLInputElement;
           const phoneEl = document.getElementById('buyer-phone-input') as HTMLInputElement;
@@ -431,15 +432,15 @@ const handleBuy = async () => {
             } else {
               ElMessage.error(response.message || '下单失败');
             }
-          } catch (err: any) {
-            ElMessage.error(err.message || '下单失败');
+          } catch (err: unknown) {
+            ElMessage.error(err instanceof Error ? err.message : '下单失败');
           }
         } else {
           done();
         }
       },
     });
-  } catch (error) {
+  } catch {
     // 取消操作不处理
   }
 };

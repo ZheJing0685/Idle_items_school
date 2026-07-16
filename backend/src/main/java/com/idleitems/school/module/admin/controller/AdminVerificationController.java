@@ -14,6 +14,7 @@ import com.idleitems.school.module.user.repository.VerificationRecordRepository;
 import com.idleitems.school.module.admin.service.AdminLogService;
 import com.idleitems.school.module.notification.entity.Notification;
 import com.idleitems.school.module.notification.service.NotificationService;
+import com.idleitems.school.util.IdCardValidator;
 import com.idleitems.school.module.user.service.VerificationService;
 import com.idleitems.school.config.ApiPaths;
 import jakarta.servlet.http.HttpServletRequest;
@@ -304,14 +305,11 @@ public class AdminVerificationController {
         return Result.success("批量拒绝成功", null);
     }
 
-    /**
-     * 构建包含解密身份证号的DTO（管理端使用）
-     */
     private VerificationRecordDTO buildDtoWithDecryptedIdCard(VerificationRecord record) {
         VerificationRecordDTO dto = VerificationRecordDTO.fromEntity(record);
         if (record.getIdCard() != null && !record.getIdCard().isEmpty()) {
-            String decryptedIdCard = verificationService.decryptIdCard(record.getIdCard());
-            dto.setIdCard(decryptedIdCard);
+            String decrypted = verificationService.decryptIdCard(record.getIdCard());
+            dto.setIdCard(IdCardValidator.mask(decrypted != null ? decrypted : record.getIdCard()));
         }
         return dto;
     }

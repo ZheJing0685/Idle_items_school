@@ -70,6 +70,7 @@ websocket:
 # 服务器配置
 server:
   port: 7000
+  address: 0.0.0.0
   servlet:
     multipart:
       max-file-size: 10MB

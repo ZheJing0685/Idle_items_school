@@ -238,7 +238,6 @@ import { ElMessage, type FormInstance } from 'element-plus';
 import { userStore } from '../../store';
 import api from '../../api';
 import PageHeader from '../../components/user/PageHeader.vue';
-import { formRules } from '../../utils/validator';
 import Cropper from 'cropperjs';
 import { X, Check, Move, ZoomIn } from 'lucide-vue-next';
 
@@ -406,7 +405,7 @@ const confirmCrop = async () => {
     formData.append('file', blob, 'avatar.png');
 
     // 使用 XMLHttpRequest 获取上传进度
-    const result = await new Promise<any>((resolve, reject) => {
+    const result = await new Promise<unknown>((resolve, reject) => {
       const xhr = new XMLHttpRequest();
       xhr.open('POST', '/api/upload');
       xhr.timeout = 30000;
@@ -443,15 +442,16 @@ const confirmCrop = async () => {
     // 短暂展示 100% 带给用户的完成感
     await new Promise((r) => setTimeout(r, 300));
 
-    if (result?.code === 200 && result?.data?.url) {
-      form.value.avatar = result.data.url;
+    const uploadResult = result as any;
+    if (uploadResult?.code === 200 && uploadResult?.data?.url) {
+      form.value.avatar = uploadResult.data.url;
       ElMessage.success({ message: '头像上传成功', duration: 2000 });
       cropDialogVisible.value = false;
     } else {
-      throw new Error(result?.message || '上传失败');
+      throw new Error(uploadResult?.message || '上传失败');
     }
-  } catch (error: any) {
-    ElMessage.error(error.message || '头像上传失败');
+  } catch (error: unknown) {
+    ElMessage.error(error instanceof Error ? error.message : '头像上传失败');
   } finally {
     cropUploading.value = false;
   }
@@ -460,10 +460,11 @@ const confirmCrop = async () => {
 const handleSave = async () => {
   saving.value = true;
   try {
-    const res = await store.updateProfile(form.value);
+    await store.updateProfile(form.value);
     ElMessage.success('保存成功');
-  } catch (error: any) {
-    const msg = error.response?.data?.message || error.message || '保存失败';
+  } catch (error: unknown) {
+    const err = error as { response?: { data?: { message?: string } }; message?: string };
+    const msg = err.response?.data?.message || err.message || '保存失败';
     ElMessage.error(msg);
   } finally {
     saving.value = false;

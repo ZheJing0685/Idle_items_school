@@ -46,7 +46,7 @@
     <section class="categories">
       <div class="container">
         <!-- 骨架屏 -->
-        <div class="category-row" v-if="!categoryStore.loaded && !categoryStore.error">
+        <div class="category-row" v-if="!categoryStore.loaded && !categoryStore.error" aria-live="polite" role="status">
           <div v-for="n in 6" :key="n" class="category-chip-skeleton">
             <div class="skeleton-icon skeleton-shimmer" />
             <div class="skeleton-label skeleton-shimmer" />
@@ -199,6 +199,7 @@ import { useCategoryStore } from '../store/category';
 import { useUserStore } from '../store/modules/user';
 import api from '../api';
 import type { CarbonStats } from '../api/services/carbon';
+import { logger } from '../utils/logger';
 import ItemSection from '../components/home/ItemSection.vue';
 
 const router = useRouter();
@@ -337,17 +338,17 @@ const fetchRecommendedItems = async () => {
   try {
     const res = await api.item.getRecommendedItems();
     if (res?.data?.length) {
-      recommendedItems.value = res.data.slice(0, 8).map((item: any) => ({
-        id: item.id,
-        title: item.title,
-        price: item.price,
-        originalPrice: item.originalPrice,
-        coverImage: item.coverImage,
-        categoryId: item.categoryId,
-        category: item.categoryName?.toLowerCase() || 'other',
-        categoryName: item.categoryName,
-        sellerName: item.sellerNickname || '未知卖家',
-        eco: item.price < 100,
+      recommendedItems.value = (res.data as any[]).slice(0, 8).map((item: any) => ({
+        id: item.id as number,
+        title: item.title as string,
+        price: item.price as number,
+        originalPrice: item.originalPrice as number,
+        coverImage: item.coverImage as string,
+        categoryId: item.categoryId as number,
+        category: ((item.categoryName as string)?.toLowerCase()) || 'other',
+        categoryName: item.categoryName as string,
+        sellerName: (item.sellerNickname as string) || '未知卖家',
+        eco: (item.price as number) < 100,
         time: '',
       }));
     }
@@ -370,24 +371,10 @@ onMounted(async () => {
       fetchRecommendedItems();
     }
 
-    // 加载热门分类
-    try {
-    const catRes = await api.category.getHotCategories?.();
-    if (catRes?.data?.length) {
-      hotCategories.value = catRes.data.map((c: any) => ({
-        id: c.id,
-        name: c.name,
-        icon: c.icon || categoryStore.getCategoryIcon(c.name),
-        count: c.count || 0,
-      }));
-    }
-  } catch {
-    console.warn('热门分类接口不可用，使用本地降级');
-  }
-  // 降级：接口数据不足时用本地分类填充
+  // 加载热门分类（降级：使用本地分类填充）
   if (hotCategories.value.length === 0 && categoryStore.flatCategories.length > 0) {
     const level1 = categoryStore.flatCategories.filter(c => c.level === 1);
-    hotCategories.value = level1.slice(0, 4).map((c, i) => ({
+    hotCategories.value = level1.slice(0, 4).map((c) => ({
       id: c.id,
       name: c.name,
       icon: c.icon || categoryStore.getCategoryIcon(c.name),
@@ -409,44 +396,44 @@ onMounted(async () => {
         };
         carbonStatsLoaded.value = true;
       }
-    } catch (_e: unknown) {
+    } catch (err) {
       // 非关键数据，降级显示为 --
       carbonStatsLoaded.value = false;
-      console.error('获取碳减排统计失败，使用默认值');
+      logger.error('获取碳减排统计失败，使用默认值', err);
     }
 
     await store.fetchHotItems();
     if (store.hotItems?.length > 0) {
-      hotItems.value = store.hotItems.slice(0, 8).map((item: any) => ({
-        id: item.id,
-        title: item.title,
-        price: item.price,
-        originalPrice: item.originalPrice,
-        coverImage: item.coverImage,
-        categoryId: item.categoryId,
-        category: item.categoryName?.toLowerCase() || 'other',
-        categoryName: item.categoryName,
-        sellerName: item.sellerNickname || '未知卖家',
+      hotItems.value = (store.hotItems as any[]).slice(0, 8).map((item: any) => ({
+        id: item.id as number,
+        title: item.title as string,
+        price: item.price as number,
+        originalPrice: item.originalPrice as number,
+        coverImage: item.coverImage as string,
+        categoryId: item.categoryId as number,
+        category: ((item.categoryName as string)?.toLowerCase()) || 'other',
+        categoryName: item.categoryName as string,
+        sellerName: (item.sellerNickname as string) || '未知卖家',
         eco: true,
         time: '2小时前',
       }));
-      latestItems.value = store.hotItems.slice(4, 12).map((item: any) => ({
-        id: item.id,
-        title: item.title,
-        price: item.price,
-        originalPrice: item.originalPrice,
-        coverImage: item.coverImage,
-        categoryId: item.categoryId,
-        category: item.categoryName?.toLowerCase() || 'other',
-        categoryName: item.categoryName,
-        sellerName: item.sellerNickname || '未知卖家',
+      latestItems.value = (store.hotItems as any[]).slice(4, 12).map((item: any) => ({
+        id: item.id as number,
+        title: item.title as string,
+        price: item.price as number,
+        originalPrice: item.originalPrice as number,
+        coverImage: item.coverImage as string,
+        categoryId: item.categoryId as number,
+        category: ((item.categoryName as string)?.toLowerCase()) || 'other',
+        categoryName: item.categoryName as string,
+        sellerName: (item.sellerNickname as string) || '未知卖家',
         eco: true,
         time: '5小时前',
       }));
     }
-  } catch (_e: unknown) {
+  } catch (err) {
     error.value = '获取物品数据失败，请稍后重试';
-    console.error('获取热门物品失败');
+    logger.error('获取热门物品失败', err);
   } finally {
     loading.value = false;
   }

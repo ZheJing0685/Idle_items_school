@@ -35,8 +35,8 @@ export const useUserStore = defineStore('user', () => {
         return response;
       }
       throw new Error(response.message || '登录失败');
-    } catch (error) {
-      ErrorHandler.handle(error);
+    } catch (error: any) {
+      ErrorHandler.handle(error, { silent: true });
       throw error;
     } finally {
       loading.value = false;
@@ -55,8 +55,8 @@ export const useUserStore = defineStore('user', () => {
         return response;
       }
       throw new Error(response.message || '注册失败');
-    } catch (error) {
-      ErrorHandler.handle(error);
+    } catch (error: any) {
+      ErrorHandler.handle(error, { silent: true });
       throw error;
     } finally {
       loading.value = false;
@@ -84,7 +84,8 @@ export const useUserStore = defineStore('user', () => {
       }
       return null;
     } catch (error: any) {
-      if (error?.response?.status === 401 || error?.code === 401) {
+      const httpErr = error as { response?: { status?: number }; code?: number };
+      if (httpErr?.response?.status === 401 || httpErr?.code === 401) {
         clearLocalState();
       }
       return null;
@@ -130,8 +131,8 @@ export const useUserStore = defineStore('user', () => {
         return response;
       }
       throw new Error(response.message || '更新失败');
-    } catch (error) {
-      ErrorHandler.handle(error);
+    } catch (error: any) {
+      ErrorHandler.handle(error, { silent: true });
       throw error;
     }
   };

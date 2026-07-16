@@ -103,25 +103,25 @@ public class ItemController {
 
     @Operation(summary = "获取用户物品", description = "获取当前登录用户的闲置物品列表，可按状态筛选")
     @GetMapping(ApiPaths.Item.USER_ITEMS_PATH)
-    public Result<Page<Item>> getUserItems(
+    public Result<Page<ItemSummaryDTO>> getUserItems(
             @RequestAttribute("userId") Long userId,
             @RequestParam(value = "status", required = false) Item.ItemStatus status,
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "size", defaultValue = "20") int size) {
-        Page<Item> items = itemQueryService.getUserItems(userId, status, page, size);
+        Page<ItemSummaryDTO> items = itemQueryService.getUserItemsAsSummary(userId, status, page, size);
         return Result.success(items);
     }
 
     @Operation(summary = "获取物品详情", description = "根据物品ID获取闲置物品的详细信息")
     @GetMapping(ApiPaths.Item.DETAIL_PATH)
-    public Result<Item> getItem(
+    public Result<ItemDTO> getItem(
             @PathVariable Long id,
             @RequestAttribute(value = "userId", required = false) Long userId) {
         Item item = itemQueryService.getItemById(id);
         if (userId != null && item != null) {
             recommendationService.recordView(userId, id, item.getCategoryId());
         }
-        return Result.success(item);
+        return Result.success(ItemDTO.fromEntity(item));
     }
 
     @Operation(summary = "个性化推荐", description = "根据用户浏览历史推荐闲置物品（基于分类偏好）")

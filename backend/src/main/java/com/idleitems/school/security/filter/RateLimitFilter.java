@@ -19,17 +19,20 @@ public class RateLimitFilter implements Filter {
     private final int defaultWindow;
     private final int loginLimit;
     private final int loginWindow;
+    private final int authLimit;
 
     public RateLimitFilter(RedisTemplate<String, Object> redisTemplate,
                            DefaultRedisScript<Long> rateLimitScript,
                            int defaultLimit, int defaultWindow,
-                           int loginLimit, int loginWindow) {
+                           int loginLimit, int loginWindow,
+                           int authLimit) {
         this.redisTemplate = redisTemplate;
         this.rateLimitScript = rateLimitScript;
         this.defaultLimit = defaultLimit;
         this.defaultWindow = defaultWindow;
         this.loginLimit = loginLimit;
         this.loginWindow = loginWindow;
+        this.authLimit = authLimit;
     }
 
     @Override
@@ -52,8 +55,7 @@ public class RateLimitFilter implements Filter {
             window = loginWindow;
             key = "rate_limit:login:" + clientIP;
         } else if (uri.startsWith("/api/auth/")) {
-            // 认证相关接口（注册/刷新/忘记密码等）：共享一个限流桶
-            limit = 20;
+            limit = authLimit;
             window = defaultWindow;
             key = "rate_limit:auth:" + clientIP;
         } else {

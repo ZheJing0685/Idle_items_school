@@ -1,5 +1,6 @@
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { classifyError, ErrorType, type ErrorTypeValue } from './errorTypes';
+import { logger } from '../logger';
 import router from '../../router';
 
 interface ErrorReportInfo {
@@ -141,11 +142,10 @@ class ErrorHandler {
 }
 
 function reportError(errorInfo: ErrorReportInfo): void {
-  console.log('错误上报:', errorInfo);
-
   fetch('/api/error/report', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
     body: JSON.stringify(errorInfo),
   }).catch(() => {
     // 静默处理上报失败
@@ -183,7 +183,7 @@ function showSuccessNotification(message: string): void {
 
 export function setupGlobalErrorHandler(): void {
   window.addEventListener('error', (event) => {
-    console.error('未捕获的异常:', event.error);
+    logger.error('未捕获的异常:', event.error);
 
     reportError({
       type: 'uncaughtException',
@@ -198,7 +198,7 @@ export function setupGlobalErrorHandler(): void {
   });
 
   window.addEventListener('unhandledrejection', (event) => {
-    console.error('未处理的Promise拒绝:', event.reason);
+    logger.error('未处理的Promise拒绝:', event.reason);
 
     reportError({
       type: 'unhandledRejection',

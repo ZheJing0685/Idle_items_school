@@ -95,22 +95,6 @@ class UserServiceTest {
     }
 
     @Test
-    void findById_Success() {
-        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
-        User result = userService.findById(1L);
-        assertNotNull(result);
-        assertEquals(1L, result.getId());
-        verify(userRepository).findById(1L);
-    }
-
-    @Test
-    void findById_NotFound() {
-        when(userRepository.findById(999L)).thenReturn(Optional.empty());
-        assertThrows(BusinessException.class, () -> userService.findById(999L));
-        verify(userRepository).findById(999L);
-    }
-
-    @Test
     void findByUsername_Found() {
         when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(testUser));
         Optional<User> result = userService.findByUsername("testuser");
@@ -474,12 +458,14 @@ class UserServiceTest {
 
         when(userRepository.findById(2L)).thenReturn(Optional.of(user1));
         when(userRepository.findById(3L)).thenReturn(Optional.of(user2));
-        doNothing().when(userRepository).deleteById(anyLong());
+        when(userRepository.save(any(User.class))).thenReturn(user1);
 
         userService.deleteUsers(Arrays.asList(2L, 3L));
 
-        verify(userRepository).deleteById(2L);
-        verify(userRepository).deleteById(3L);
+        assertTrue(user1.getIsDeleted());
+        assertTrue(user2.getIsDeleted());
+        verify(userRepository).save(user1);
+        verify(userRepository).save(user2);
     }
 
     @Test

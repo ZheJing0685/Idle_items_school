@@ -12,6 +12,7 @@ import com.idleitems.school.security.JwtUtil;
 import com.idleitems.school.module.auth.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -36,19 +37,22 @@ public class AuthServiceImpl implements AuthService {
 
     private static final String LOGIN_FAIL_PREFIX = "login:fail:";
     private static final String LOGIN_LOCK_PREFIX = "login:lock:";
-    private static final int MAX_LOGIN_FAILURES = 5;
-    private static final int LOCK_DURATION_MINUTES = 15;
-    private static final int FAIL_COUNT_EXPIRE_MINUTES = 30;
+
+    @Value("${security.login.max-failures:5}")
+    private int maxLoginFailures;
+
+    @Value("${security.login.lock-duration-minutes:15}")
+    private int lockDurationMinutes;
+
+    @Value("${security.login.fail-count-expire-minutes:30}")
+    private int failCountExpireMinutes;
 
     @Override
     public Map<String, Object> login(LoginRequest loginRequest) {
         String username = loginRequest.getUsername();
 
-        // 检查账号是否被锁定
         if (isAccountLocked(username)) {
-            long remainingTtl = getRemainingLockTime(username);
-            throw new BusinessException(ErrorCode.OPERATION_NOT_ALLOWED,
-                    "账号已锁定，请" + remainingTtl + "分钟后重试");
+            throw new BusinessException(ErrorCode.UNAUTHORIZED, "用户名或密码错误");
         }
 
         Optional<User> userOptional = userRepository.findByUsername(username);
@@ -78,6 +82,7 @@ public class AuthServiceImpl implements AuthService {
         claims.put("userId", user.getId());
         claims.put("username", user.getUsername());
         claims.put("role", user.getRole());
+        claims.put("tv", jwtTokenBlacklistService.getUserTokenVersion(user.getId()));
 
         String token = jwtUtil.generateToken(user.getId().toString(), claims);
         String refreshToken = jwtUtil.generateRefreshToken(user.getId().toString());
@@ -96,19 +101,17 @@ public class AuthServiceImpl implements AuthService {
     private void recordLoginFailure(String username) {
         try {
             String failKey = LOGIN_FAIL_PREFIX + username;
-            // 使用 Redis INCR 原子递增，避免并发竞态
             Long count = redisTemplate.opsForValue().increment(failKey);
             if (count != null && count == 1) {
-                // 首次失败时设置过期时间
-                redisTemplate.expire(failKey, FAIL_COUNT_EXPIRE_MINUTES, TimeUnit.MINUTES);
+                redisTemplate.expire(failKey, failCountExpireMinutes, TimeUnit.MINUTES);
             }
 
-            if (count != null && count >= MAX_LOGIN_FAILURES) {
+            if (count != null && count >= maxLoginFailures) {
                 String lockKey = LOGIN_LOCK_PREFIX + username;
-                redisTemplate.opsForValue().set(lockKey, "1", LOCK_DURATION_MINUTES, TimeUnit.MINUTES);
-                log.warn("账号{}连续登录失败{}次，已锁定{}分钟", username, count, LOCK_DURATION_MINUTES);
+                redisTemplate.opsForValue().set(lockKey, "1", lockDurationMinutes, TimeUnit.MINUTES);
+                log.warn("账号{}连续登录失败{}次，已锁定{}分钟", username, count, lockDurationMinutes);
             } else {
-                log.info("账号{}登录失败，当前失败次数: {}/{}", username, count, MAX_LOGIN_FAILURES);
+                log.warn("账号{}登录失败，当前失败次数: {}/{}", username, count, maxLoginFailures);
             }
         } catch (Exception e) {
             log.warn("Redis不可用，跳过登录失败记录: {}", e.getMessage());
@@ -149,10 +152,10 @@ public class AuthServiceImpl implements AuthService {
         try {
             String lockKey = LOGIN_LOCK_PREFIX + username;
             Long ttl = redisTemplate.getExpire(lockKey, TimeUnit.MINUTES);
-            return (ttl != null && ttl > 0) ? ttl : LOCK_DURATION_MINUTES;
+            return (ttl != null && ttl > 0) ? ttl : lockDurationMinutes;
         } catch (Exception e) {
             log.warn("Redis不可用，返回默认锁定时间: {}", e.getMessage());
-            return LOCK_DURATION_MINUTES;
+            return lockDurationMinutes;
         }
     }
 
@@ -212,6 +215,7 @@ public class AuthServiceImpl implements AuthService {
             claims.put("userId", user.getId());
             claims.put("username", user.getUsername());
             claims.put("role", user.getRole());
+            claims.put("tv", jwtTokenBlacklistService.getUserTokenVersion(user.getId()));
 
             String newToken = jwtUtil.generateToken(userId, claims);
             String newRefreshToken = jwtUtil.generateRefreshToken(userId);
@@ -244,11 +248,11 @@ public class AuthServiceImpl implements AuthService {
         try {
             Date expiration = jwtUtil.getExpirationDate(token);
             long ttl = expiration.getTime() - System.currentTimeMillis();
-            jwtTokenBlacklistService.addToBlacklist(token, ttl);
+            jwtTokenBlacklistService.addToBlacklist(token, Math.max(ttl, 60_000));
             log.info("用户登出成功，Token已失效");
         } catch (Exception e) {
             log.error("用户登出处理失败: {}", e.getMessage());
-            jwtTokenBlacklistService.addToBlacklist(token, 0);
+            jwtTokenBlacklistService.addToBlacklist(token, 60_000);
         }
     }
     

@@ -2,7 +2,7 @@ import { get, post, del } from '../config/http';
 import type { NotificationInfo } from '../../types/api';
 
 const notification = {
-  getNotifications: (params?: Record<string, any>) =>
+  getNotifications: (params?: Record<string, unknown>) =>
     get<{ content: NotificationInfo[]; totalElements: number }>('/notifications', { params }),
 
   getUnreadCount: () =>

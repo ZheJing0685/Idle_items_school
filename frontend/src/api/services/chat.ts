@@ -2,13 +2,13 @@ import { get, post } from '../config/http';
 import type { ChatInfo, ChatMessage } from '../../types/api';
 
 const chat = {
-  getChats: (params?: Record<string, any>) =>
+  getChats: (params?: Record<string, unknown>) =>
     get<ChatInfo[] | { content: ChatInfo[]; totalElements: number }>('/chats', { params }),
 
   createChat: (sellerId: number | string, itemId: number | string) =>
     post<ChatInfo>('/chats', null, { params: { sellerId, itemId } }),
 
-  getMessages: (chatId: number | string, params?: Record<string, any>) =>
+  getMessages: (chatId: number | string, params?: Record<string, unknown>) =>
     get<ChatMessage[] | { content: ChatMessage[]; totalElements: number }>(`/chats/${chatId}/messages`, { params }),
 
   sendMessage: (chatId: number | string, receiverId: number | string, content: string, messageType: string = 'TEXT') =>

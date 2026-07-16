@@ -191,8 +191,8 @@ onMounted(async () => {
     ]);
 
     order.value = (orderRes.data || orderRes) as OrderDetail;
-    dispute.value = disputeRes?.data || null;
-    canDispute.value = canDisputeRes?.data || null;
+    dispute.value = (disputeRes?.data || null) as DisputeItem | null;
+    canDispute.value = (canDisputeRes?.data || null) as CanDisputeResult | null;
   } catch (error: unknown) {
     ElMessage.error(error instanceof Error ? error.message : '获取订单详情失败');
   } finally {

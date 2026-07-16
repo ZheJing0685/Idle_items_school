@@ -1,5 +1,7 @@
 package com.idleitems.school.module.item.service;
 
+import com.idleitems.school.common.BusinessException;
+import com.idleitems.school.common.ErrorCode;
 import com.idleitems.school.module.item.entity.Item;
 import com.idleitems.school.module.item.repository.ItemRepository;
 import com.idleitems.school.module.notification.service.NotificationService;
@@ -27,7 +29,7 @@ public class ItemAdminService {
     @Transactional
     public Item approveItem(Long id) {
         Item item = itemRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Item not found"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.ITEM_NOT_FOUND));
         item.setStatus(Item.ItemStatus.ON_SALE);
         Item savedItem = itemRepository.save(item);
         try {
@@ -49,7 +51,7 @@ public class ItemAdminService {
     @Transactional
     public Item rejectItem(Long id, String reason) {
         Item item = itemRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Item not found"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.ITEM_NOT_FOUND));
         item.setStatus(Item.ItemStatus.REJECTED);
         item.setRejectReason(reason);
         Item savedItem = itemRepository.save(item);
@@ -72,7 +74,7 @@ public class ItemAdminService {
     @Transactional
     public Item forceOffShelfItem(Long id, String reason) {
         Item item = itemRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Item not found"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.ITEM_NOT_FOUND));
         item.setStatus(Item.ItemStatus.OFF_SHELF);
         if (reason != null) {
             item.setRejectReason(reason);

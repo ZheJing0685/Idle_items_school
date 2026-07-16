@@ -36,7 +36,7 @@
           <div class="item-card-img">
             <img v-if="item.coverImage" :src="item.coverImage" :alt="item.title" class="item-img" loading="lazy" />
             <div v-else class="img-placeholder" :style="{ background: getItemColor(item.category, index) }">
-              {{ categoryStore.getCategoryIcon(item.categoryName) }}
+              {{ categoryStore.getCategoryIcon(item.categoryName ?? '') }}
             </div>
             <span class="tag tag-category category-badge" v-if="getCategoryPathLabel(item)">{{ getCategoryPathLabel(item) }}</span>
             <span v-if="item.eco" class="tag tag-eco eco-badge">环保</span>

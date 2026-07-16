@@ -9,19 +9,19 @@ interface DisputeListParams {
 
 const dispute = {
   list: (params?: DisputeListParams) =>
-    get<any>('/disputes', { params }),
+    get<unknown>('/disputes', { params }),
   get: (id: number | string) =>
-    get<any>(`/disputes/${id}`),
+    get<unknown>(`/disputes/${id}`),
   getByOrder: (orderId: number | string) =>
-    get<any>(`/disputes/order/${orderId}`),
+    get<unknown>(`/disputes/order/${orderId}`),
   canDispute: (orderId: number | string) =>
-    get<any>(`/disputes/can-dispute/${orderId}`),
+    get<unknown>(`/disputes/can-dispute/${orderId}`),
   create: (data: Record<string, unknown>) =>
-    post<any>('/disputes', data),
+    post<unknown>('/disputes', data),
   reply: (id: number | string, data: Record<string, unknown>) =>
-    post<any>(`/disputes/${id}/reply`, data),
+    post<unknown>(`/disputes/${id}/reply`, data),
   satisfaction: (id: number | string, data: Record<string, unknown>) =>
-    post<any>(`/disputes/${id}/satisfaction`, data),
+    post<unknown>(`/disputes/${id}/satisfaction`, data),
 };
 
 export default dispute;

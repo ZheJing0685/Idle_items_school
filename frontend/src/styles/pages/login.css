@@ -214,7 +214,7 @@
   color: var(--text-inverse);
   border: none;
   cursor: pointer;
-  transition: all 150ms ease;
+  transition: background-color 150ms ease, transform 150ms ease, box-shadow 150ms ease;
   margin-top: 8px;
 }
 

@@ -102,7 +102,6 @@ import { ElMessage, type FormInstance } from 'element-plus';
 import { userStore } from '../store';
 import api from '../api';
 import type { CarbonStats } from '../api/services/carbon';
-import { formRules } from '../utils/validator';
 
 const router = useRouter();
 const loading = ref(false);
@@ -158,8 +157,9 @@ const handleLogin = async () => {
     } else {
       router.push('/');
     }
-  } catch (error: any) {
-    const msg = error.response?.data?.message || error.message || '登录失败';
+  } catch (error: unknown) {
+    const err = error as { response?: { data?: { message?: string } }; message?: string };
+    const msg = err.response?.data?.message || err.message || '登录失败';
     ElMessage.error(msg);
   } finally {
     loading.value = false;

@@ -79,7 +79,6 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { Plus } from '@element-plus/icons-vue';
-import { ArrowUp, ArrowDown } from 'lucide-vue-next';
 import api from '../../api';
 import { useDictStore } from '../../store/dict';
 import PageHeader from '../../components/user/PageHeader.vue';
@@ -121,7 +120,7 @@ const loadItems = async () => {
     } else {
       error.value = response.message || '加载物品失败';
     }
-  } catch (err) {
+  } catch {
     error.value = '网络错误，请稍后重试';
   } finally {
     loading.value = false;
@@ -147,8 +146,9 @@ const deleteItem = async (id: string) => {
     } else {
       ElMessage.error(res.message || '删除失败');
     }
-  } catch (err: any) {
-    if (err?.response?.status === 404) {
+  } catch (err: unknown) {
+    const apiErr = err as { response?: { status?: number }; message?: string };
+    if (apiErr.response?.status === 404) {
       ElMessage.error('删除失败，物品不存在');
     } else if (err !== 'cancel') {
       ElMessage.error('删除失败');

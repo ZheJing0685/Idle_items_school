@@ -38,7 +38,7 @@ interface MenuItem {
   badge?: string | number
 }
 
-const iconComponentMap: Record<string, any> = {
+const iconComponentMap: Record<string, unknown> = {
   user: User,
   box: Package,
   'shopping-bag': ShoppingBag,
@@ -55,7 +55,7 @@ const getIcon = (iconName: string) => {
   return iconComponentMap[iconName] || Package;
 };
 
-const props = defineProps({
+defineProps({
   collapsed: Boolean,
   menuItems: {
     type: Array as PropType<MenuItem[]>,

@@ -1,5 +1,6 @@
 package com.idleitems.school.module.auth.dto;
 
+import com.idleitems.school.common.constant.SecurityConstants;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -20,10 +21,10 @@ public class ResetPasswordRequest {
     private String code;
 
     @NotBlank(message = "新密码不能为空")
-    @Size(min = 8, max = 32, message = "密码长度必须在8-32个字符之间")
+    @Size(min = SecurityConstants.PASSWORD_MIN_LENGTH, max = SecurityConstants.PASSWORD_MAX_LENGTH, message = SecurityConstants.PASSWORD_MESSAGE)
     @Pattern(
-        regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).*$",
-        message = "密码必须包含大小写字母、数字和特殊字符"
+        regexp = SecurityConstants.PASSWORD_PATTERN,
+        message = SecurityConstants.PASSWORD_MESSAGE
     )
     @Schema(description = "新密码")
     private String newPassword;

@@ -1,5 +1,4 @@
 import { createApp } from 'vue';
-import { setupElementPlus } from './plugins/element-plus';
 import 'element-plus/dist/index.css';
 import 'cropperjs/dist/cropper.min.css';
 import './styles/element-theme.css';
@@ -17,7 +16,6 @@ import CategorySearch from './components/common/CategorySearch.vue';
 setupGlobalErrorHandler();
 
 const app = createApp(App);
-setupElementPlus(app);
 app.use(router);
 app.use(pinia);
 app.use(i18n);

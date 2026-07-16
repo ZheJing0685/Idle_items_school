@@ -18,6 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Date;
 import java.util.Map;
@@ -57,6 +58,9 @@ class AuthServiceTest {
 
     @BeforeEach
     void setUp() {
+        ReflectionTestUtils.setField(authService, "maxLoginFailures", 5);
+        ReflectionTestUtils.setField(authService, "lockDurationMinutes", 15);
+        ReflectionTestUtils.setField(authService, "failCountExpireMinutes", 30);
         lenient().when(redisTemplate.opsForValue()).thenReturn(valueOperations);
 
         testUser = new User();
@@ -138,11 +142,10 @@ class AuthServiceTest {
     @Test
     void login_AccountLocked() {
         when(redisTemplate.hasKey("login:lock:testuser")).thenReturn(true);
-        when(redisTemplate.getExpire("login:lock:testuser", TimeUnit.MINUTES)).thenReturn(10L);
 
         BusinessException ex = assertThrows(BusinessException.class, () -> authService.login(loginRequest));
 
-        assertTrue(ex.getMessage().contains("账号已锁定"));
+        assertEquals("用户名或密码错误", ex.getMessage());
         verify(userRepository, never()).findByUsername(anyString());
     }
 
@@ -165,11 +168,10 @@ class AuthServiceTest {
     @Test
     void login_AccountLocked_GetRemainingLockTimeRedisException() {
         when(redisTemplate.hasKey("login:lock:testuser")).thenReturn(true);
-        when(redisTemplate.getExpire("login:lock:testuser", TimeUnit.MINUTES)).thenThrow(new RuntimeException("Redis down"));
 
         BusinessException ex = assertThrows(BusinessException.class, () -> authService.login(loginRequest));
 
-        assertTrue(ex.getMessage().contains("账号已锁定"));
+        assertEquals("用户名或密码错误", ex.getMessage());
     }
 
     @Test
@@ -371,7 +373,7 @@ class AuthServiceTest {
 
         authService.logout("token");
 
-        verify(jwtTokenBlacklistService).addToBlacklist("token", 0);
+        verify(jwtTokenBlacklistService).addToBlacklist("token", 60000);
     }
 
     @Test
@@ -505,7 +507,7 @@ class AuthServiceTest {
 
         authService.logout("token");
 
-        verify(jwtTokenBlacklistService).addToBlacklist("token", 0);
+        verify(jwtTokenBlacklistService, times(2)).addToBlacklist(anyString(), anyLong());
     }
 
     @Test

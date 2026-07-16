@@ -95,7 +95,7 @@
   height: 4px;
   background: var(--border-strong);
   border-radius: var(--radius-full);
-  transition: all var(--transition-fast);
+  transition: background-color var(--transition-fast), width var(--transition-fast);
 }
 
 .footer-links a:hover {

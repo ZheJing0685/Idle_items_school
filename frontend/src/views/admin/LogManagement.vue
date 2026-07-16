@@ -224,7 +224,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import {
   ElMessage,
   ElDialog,
@@ -262,8 +262,6 @@ const selectedLogs = ref<any[]>([]);
 const handleSelectionChange = (selection: any[]) => {
   selectedLogs.value = selection;
 };
-
-const totalPages = computed(() => Math.ceil(total.value / pageSize.value) || 1);
 
 const getTypeClass = (type: string) => {
   const map: Record<string, string> = {
@@ -318,7 +316,7 @@ const formatDetails = (details: any) => {
 
 const fetchLogs = async () => {
   try {
-    const params: Record<string, any> = { page: page.value, size: pageSize.value };
+    const params: Record<string, unknown> = { page: page.value, size: pageSize.value };
     if (searchKeyword.value) params.keyword = searchKeyword.value;
     if (operationType.value) params.type = operationType.value;
     if (logType.value) params.logType = logType.value;
@@ -327,8 +325,9 @@ const fetchLogs = async () => {
 
     const res = await api.admin.logs.getLogs(params);
     if (res.code === 200) {
-      logs.value = res.data.content || [];
-      total.value = res.data.totalElements || 0;
+      const data = res.data as any;
+      logs.value = data.content || [];
+      total.value = data.totalElements || 0;
     } else {
       ElMessage.error(res.message || '获取日志列表失败');
     }
@@ -340,11 +339,6 @@ const fetchLogs = async () => {
 };
 
 const handleSearch = () => {
-  page.value = 1;
-  fetchLogs();
-};
-
-const handleDateSearch = () => {
   page.value = 1;
   fetchLogs();
 };
@@ -376,7 +370,7 @@ const handleViewDetails = (log: any) => {
 
 const handleExport = async () => {
   try {
-    const params: Record<string, any> = {};
+    const params: Record<string, unknown> = {};
     if (searchKeyword.value) params.keyword = searchKeyword.value;
     if (operationType.value) params.type = operationType.value;
     if (logType.value) params.logType = logType.value;

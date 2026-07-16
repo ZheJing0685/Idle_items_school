@@ -230,7 +230,7 @@
   --btn-radius-lg: 12px;
 
   --btn-font-weight: 600;
-  --btn-transition: all 0.2s ease;
+  --btn-transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 /* ============================================

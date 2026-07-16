@@ -10,7 +10,7 @@ const CACHE_EXPIRY = {
 };
 
 const item = {
-  getItems: (params?: Record<string, any>) =>
+  getItems: (params?: Record<string, unknown>) =>
     requestManager.request(
       API_PATHS.ITEM.LIST,
       () => get<PageResponse<ItemSummary>>(API_PATHS.ITEM.LIST, { params }),
@@ -81,7 +81,7 @@ const item = {
   getRelatedItems: (id: number | string) =>
     requestManager.request(
       API_PATHS.ITEM.RELATED(id),
-      () => get<{ similarItems: any[]; sellerItems: any[] }>(API_PATHS.ITEM.RELATED(id)),
+      () => get<{ similarItems: unknown[]; sellerItems: unknown[] }>(API_PATHS.ITEM.RELATED(id)),
       {
         useCache: true,
         useMerge: true,
@@ -89,8 +89,8 @@ const item = {
         cacheExpiry: CACHE_EXPIRY.SHORT,
       },
     ),
-  getItemOrders: (id: number | string) => get<any[]>(API_PATHS.ITEM.ORDERS(id)),
-  getItemActiveOrders: (id: number | string) => get<any[]>(API_PATHS.ITEM.ACTIVE_ORDERS(id)),
+  getItemOrders: (id: number | string) => get<unknown[]>(API_PATHS.ITEM.ORDERS(id)),
+  getItemActiveOrders: (id: number | string) => get<unknown[]>(API_PATHS.ITEM.ACTIVE_ORDERS(id)),
   deleteItem: (id: number | string) => del<null>(API_PATHS.ITEM.DETAIL(id)),
 };
 

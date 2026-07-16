@@ -128,19 +128,4 @@ class VerificationControllerTest {
                 .andExpect(jsonPath("$.data.status").value("PENDING"));
     }
 
-    @Test
-    @DisplayName("重新提交认证 - 成功")
-    void testResubmitVerificationSuccess() throws Exception {
-        VerificationRecord record = new VerificationRecord();
-        record.setId(1L);
-        when(verificationService.submit(eq(1L), any(SubmitVerificationRequest.class))).thenReturn(record);
-
-        mockMvc.perform(post("/api/verification/resubmit")
-                        .requestAttr("userId", 1L)
-                        .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(verificationRequest)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(200))
-                .andExpect(jsonPath("$.message").value("重新提交成功"));
-    }
 }

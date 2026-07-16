@@ -48,7 +48,7 @@
       <div class="card-header">
         <div class="header-left">
           <h3 class="card-title">物品列表</h3>
-          <span class="data-range">共 {{ total }} 条记录</span>
+          <span class="data-range" aria-live="polite">共 {{ total }} 条记录</span>
         </div>
         <div class="header-actions">
           <button class="btn btn-ghost" @click="handleExport">
@@ -391,7 +391,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import api from '../../api';
 import { useDictStore } from '../../store/dict.js';
@@ -415,7 +415,6 @@ const currentItem = ref<any>(null);
 const bulkLoading = ref(false);
 
 const stats = ref({ total: 0, pending: 0, onSale: 0, sold: 0 });
-const totalPages = computed(() => Math.ceil(total.value / pageSize.value) || 1);
 
 const getConditionClass = (condition: string) => {
   const map: Record<string, string> = {
@@ -468,7 +467,7 @@ const formatDate = (dateString: string) => {
 
 const fetchItems = async () => {
   try {
-    const params: Record<string, any> = {};
+    const params: Record<string, unknown> = {};
     params.page = page.value;
     params.size = pageSize.value;
     if (searchKeyword.value) params.keyword = searchKeyword.value;
@@ -479,8 +478,9 @@ const fetchItems = async () => {
 
     const res = await api.admin.items.getItems(params);
     if (res.code === 200) {
-      items.value = res.data.content || [];
-      total.value = res.data.totalElements || 0;
+      const data = res.data as any;
+      items.value = data.content || [];
+      total.value = data.totalElements || 0;
     }
   } catch {
     ElMessage.error('网络错误');
@@ -491,7 +491,7 @@ const fetchCategories = async () => {
   try {
     const res = await api.admin.categories.getCategories({ page: 1, size: 50 });
     if (res.code === 200) {
-      categories.value = res.data.content || [];
+      categories.value = (res.data as any).content || [];
     }
   } catch {
     categories.value = [];
@@ -502,7 +502,7 @@ const fetchStats = async () => {
   try {
     const res = await api.admin.items.getItemStats();
     if (res.code === 200) {
-      stats.value = res.data;
+      stats.value = res.data as any;
     }
   } catch {
     stats.value = { total: 0, pending: 0, onSale: 0, sold: 0 };
@@ -535,11 +535,11 @@ const handleView = (item: any) => {
   detailDialogVisible.value = true;
 };
 
-const parseImages = (images: any) => {
+const parseImages = (images: unknown) => {
   if (!images) return [];
   if (Array.isArray(images)) return images;
   try {
-    const parsed = JSON.parse(images);
+    const parsed = JSON.parse(images as string);
     return Array.isArray(parsed) ? parsed : [];
   } catch {
     return [];
@@ -572,7 +572,7 @@ const handleApprove = (item: any) => {
 
 const handleReject = (item: any) => {
   ElMessageBox.prompt('请输入驳回原因', '驳回物品', {
-    inputValidator: (v) => !!v || '原因不能为空',
+    inputValidator: (v: string) => !!v || '原因不能为空',
   })
     .then(async ({ value }) => {
       try {
@@ -637,15 +637,14 @@ const handleDelete = (item: any) => {
       try {
         const res = await api.admin.items.deleteItem(item.id);
         if (res.code === 200) {
-          items.value = items.value.filter((i) => i.id !== item.id);
+          items.value = items.value.filter((it) => it.id !== item.id);
           total.value--;
           ElMessage.success('已删除');
         } else {
           ElMessage.error(res.message || '操作失败');
         }
-      } catch (err) {
-        // 处理后端返回的业务错误
-        if (err && err.message) {
+      } catch (err: any) {
+        if (err instanceof Error) {
           ElMessage.error(err.message);
         } else {
           ElMessage.error('操作失败');
@@ -709,7 +708,7 @@ const handleBulkDelete = () => {
 
 const handleExport = async () => {
   try {
-    const params: Record<string, any> = {};
+    const params: Record<string, unknown> = {};
     if (searchKeyword.value) params.keyword = searchKeyword.value;
     if (itemStatus.value) params.status = itemStatus.value;
     if (categoryId.value) params.categoryId = categoryId.value;
@@ -723,7 +722,7 @@ const handleExport = async () => {
     link.click();
     link.remove();
     ElMessage.success('导出成功');
-  } catch (error) {
+  } catch {
     ElMessage.error('导出失败');
   }
 };

@@ -621,7 +621,7 @@ const categoryTree = ref<any[]>([]);
 const treeRef = ref<any>(null);
 const treeFilterText = ref('');
 const allExpanded = ref(true);
-const selectedTreeKeys = ref([]);
+const selectedTreeKeys = ref<any[]>([]);
 
 const currentCategory = ref<any>(null);
 const panelMode = ref('empty');
@@ -650,16 +650,8 @@ const level2Ratio = computed(() => {
   return Math.round((stats.value.level2 / stats.value.total) * 100);
 });
 
-const tableTotalPages = computed(
-  () => Math.ceil(tableTotal.value / tablePageSize.value) || 1
-);
 const logTotalPages = computed(
   () => Math.ceil(logTotal.value / logPageSize.value) || 1
-);
-const isAllSelected = computed(
-  () =>
-    tableCategories.value.length > 0 &&
-    selectedCategories.value.length === tableCategories.value.length
 );
 
 const filteredTreeData = computed(() => {
@@ -671,33 +663,36 @@ watch(treeFilterText, (val: string) => {
   treeRef.value?.filter(val);
 });
 
-const buildTree = (list: any[]) => {
-  const map: Record<string, any> = {};
-  const roots: any[] = [];
-  list.forEach((item: any) => {
-    map[item.id] = { ...item, children: [] as any[] };
+const buildTree = (list: unknown[]) => {
+  const map: Record<string, unknown> = {};
+  const roots: unknown[] = [];
+  list.forEach((item: unknown) => {
+    const i = item as Record<string, unknown>;
+    map[i.id as string] = { ...i, children: [] as unknown[] };
   });
-  list.forEach((item: any) => {
+  list.forEach((item: unknown) => {
+    const i = item as Record<string, unknown>;
     if (
-      item.parentId &&
-      item.parentId !== '0' &&
-      item.parentId !== 0 &&
-      map[item.parentId]
+      i.parentId &&
+      i.parentId !== '0' &&
+      i.parentId !== 0 &&
+      map[i.parentId as string]
     ) {
-      map[item.parentId].children.push(map[item.id]);
+      ((map[i.parentId as string] as Record<string, unknown>).children as unknown[]).push(map[i.id as string]);
     } else {
-      roots.push(map[item.id]);
+      roots.push(map[i.id as string]);
     }
   });
-  roots.forEach((root: any) => {
-    if (root.children.length === 0) delete root.children;
+  roots.forEach((root: unknown) => {
+    const r = root as Record<string, unknown>;
+    if ((r.children as unknown[]).length === 0) delete r.children;
   });
   return roots;
 };
 
-const filterTreeNode = (value: string, data: any) => {
+const filterTreeNode = (value: string, data: unknown) => {
   if (!value) return true;
-  return data.name.includes(value);
+  return ((data as Record<string, unknown>).name as string).includes(value);
 };
 
 const formatDate = (dateString: string) => {
@@ -734,7 +729,7 @@ const getLogTypeClass = (type: string) => {
 
 const fetchStats = async () => {
   try {
-    const res = await api.admin.categories.getCategoryStats();
+    const res: any = await api.admin.categories.getCategoryStats();
     if (res.code === 200) {
       stats.value = res.data || { total: 0, active: 0, level1: 0, level2: 0 };
     }
@@ -745,12 +740,12 @@ const fetchStats = async () => {
 
 const fetchAllCategories = async () => {
   try {
-    const res = await api.admin.categories.getCategories({ size: 9999 });
+    const res: any = await api.admin.categories.getCategories({ size: 9999 });
     if (res.code === 200) {
       const list = res.data.content || res.data || [];
       allCategories.value = list;
       categoryTree.value = buildTree(list);
-      level1Categories.value = list.filter((c: any) => c.level === 1);
+      level1Categories.value = list.filter((c: unknown) => (c as Record<string, unknown>).level === 1);
     }
   } catch {
     ElMessage.error('获取分类数据失败');
@@ -759,9 +754,9 @@ const fetchAllCategories = async () => {
 
 const fetchTableCategories = async () => {
   try {
-    const params: Record<string, any> = { page: tablePage.value, size: tablePageSize.value };
+    const params: Record<string, unknown> = { page: tablePage.value, size: tablePageSize.value };
     if (tableStatus.value) params.status = tableStatus.value;
-    const res = await api.admin.categories.getCategories(params);
+    const res: any = await api.admin.categories.getCategories(params);
     if (res.code === 200) {
       tableCategories.value = res.data.content || [];
       tableTotal.value = res.data.totalElements || 0;
@@ -774,7 +769,7 @@ const fetchTableCategories = async () => {
 const fetchChangeLogs = async () => {
   try {
     const params = { page: logPage.value, size: logPageSize.value };
-    const res = await api.admin.categories.getChangeLogs(params);
+    const res: any = await api.admin.categories.getChangeLogs(params);
     if (res.code === 200) {
       changeLogs.value = res.data.content || res.data || [];
       logTotal.value = res.data.totalElements || changeLogs.value.length || 0;
@@ -787,14 +782,14 @@ const fetchChangeLogs = async () => {
 const handleExpandAll = () => {
   allExpanded.value = !allExpanded.value;
   nextTick(() => {
-    const nodes = (treeRef.value?.store?.root?.childNodes || []) as any[];
-    const toggleAll = (nodeList: any[], expand: boolean) => {
-      nodeList.forEach((node: any) => {
-        node.expanded = expand;
-        if (node.childNodes?.length) toggleAll(node.childNodes, expand);
+    const nodes = (treeRef.value?.store?.root?.childNodes || []) as unknown[];
+    const toggleAll = (nodeList: unknown[], expand: boolean) => {
+      nodeList.forEach((node: unknown) => {
+        (node as Record<string, unknown>).expanded = expand;
+        if ((node as any).childNodes?.length) toggleAll((node as any).childNodes as any[], expand);
       });
     };
-    toggleAll(nodes as any[], allExpanded.value);
+    toggleAll(nodes as unknown[], allExpanded.value);
   });
 };
 
@@ -803,8 +798,8 @@ const handleRefreshTree = () => {
   fetchStats();
 };
 
-const handleNodeClick = (data: any) => {
-  currentCategory.value = { ...data };
+const handleNodeClick = (data: unknown) => {
+  currentCategory.value = { ...(data as Record<string, unknown>) };
   panelMode.value = 'detail';
 };
 
@@ -824,10 +819,11 @@ const handleAddRoot = () => {
   panelMode.value = 'create';
 };
 
-const handleAddChild = (parent: any) => {
+const handleAddChild = (parent: unknown) => {
+  const p = parent as Record<string, unknown>;
   editForm.value = {
     name: '',
-    parentId: parent.id,
+    parentId: p.id,
     sort: 1,
     status: 1,
     icon: '',
@@ -836,8 +832,9 @@ const handleAddChild = (parent: any) => {
   panelMode.value = 'create';
 };
 
-const handleEditNode = (data: any) => {
-  editForm.value = { ...data, status: data.status ? 1 : 0 };
+const handleEditNode = (data: unknown) => {
+  const d = data as Record<string, unknown>;
+  editForm.value = { ...d, status: d.status ? 1 : 0 };
   panelMode.value = 'edit';
 };
 
@@ -889,22 +886,23 @@ const handleSave = async () => {
   }
 };
 
-const handleDeleteNode = (data: any) => {
-  if (data.itemCount > 0) {
+const handleDeleteNode = (data: unknown) => {
+  const d = data as Record<string, unknown>;
+  if (d.itemCount as number > 0) {
     ElMessage.warning('该分类下有物品，无法删除');
     return;
   }
-  ElMessageBox.confirm(`确定删除分类「${data.name}」？`, '确认删除', {
+  ElMessageBox.confirm(`确定删除分类「${d.name}」？`, '确认删除', {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning',
   })
     .then(async () => {
       try {
-        const res = await api.admin.categories.deleteCategory(data.id);
+        const res = await api.admin.categories.deleteCategory(d.id as number);
         if (res.code === 200) {
           ElMessage.success('分类已删除');
-          if (currentCategory.value?.id === data.id) {
+          if ((currentCategory.value as Record<string, unknown>)?.id === d.id) {
             currentCategory.value = null;
             panelMode.value = 'empty';
           }
@@ -921,19 +919,13 @@ const handleDeleteNode = (data: any) => {
     .catch(() => {});
 };
 
-const handleSelectAll = (e: any) => {
-  selectedCategories.value = e.target.checked
-    ? tableCategories.value.map((c) => c.id)
-    : [];
-};
-
 const handleTableSizeChange = () => {
   tablePage.value = 1;
   fetchTableCategories();
 };
 
-const handleSelectionChange = (selection: any[]) => {
-  selectedCategories.value = selection.map((item: any) => item.id);
+const handleSelectionChange = (selection: unknown[]) => {
+  selectedCategories.value = selection.map((item: unknown) => (item as Record<string, unknown>).id);
 };
 
 const handleBatchEnable = async () => {
@@ -1121,12 +1113,13 @@ const triggerImport = () => {
   importInputRef.value?.click();
 };
 
-const handleImportFile = async (event: any) => {
-  const file = event.target.files?.[0];
+const handleImportFile = async (event: Event) => {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
   if (!file) return;
   if (!file.name.endsWith('.csv')) {
     ElMessage.error('请选择 CSV 文件');
-    event.target.value = '';
+    input.value = '';
     return;
   }
   try {
@@ -1144,16 +1137,17 @@ const handleImportFile = async (event: any) => {
   } catch {
     ElMessage.error('导入失败');
   }
-  event.target.value = '';
+  input.value = '';
 };
 
-const handleIconSuccess = (response: any) => {
-  if (response.code === 200) {
-    editForm.value.icon = response.data.url;
+const handleIconSuccess = (response: unknown) => {
+  const r = response as Record<string, unknown>;
+  if (r.code === 200) {
+    (editForm.value as Record<string, unknown>).icon = (r.data as Record<string, unknown>).url;
   }
 };
 
-const beforeIconUpload = (file: any) => {
+const beforeIconUpload = (file: File) => {
   const isJpgOrPng =
     file.type === 'image/jpeg' ||
     file.type === 'image/png' ||

@@ -377,7 +377,7 @@
   justify-content: center;
   color: var(--content-secondary);
   cursor: pointer;
-  transition: all 200ms ease;
+  transition: background-color 200ms ease, color 200ms ease;
 }
 
 .action-btn:hover {
@@ -475,7 +475,7 @@
   justify-content: center;
   color: var(--content-secondary);
   cursor: pointer;
-  transition: all 200ms ease;
+  transition: border-color 200ms ease, color 200ms ease;
 }
 
 .page-btn:hover:not(:disabled) {
@@ -511,7 +511,7 @@
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 150ms var(--ease-out-quart);
+  transition: background-color 150ms var(--ease-out-quart), color 150ms var(--ease-out-quart), border-color 150ms var(--ease-out-quart);
 }
 
 .btn:disabled {

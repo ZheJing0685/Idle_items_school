@@ -1,11 +1,14 @@
 package com.idleitems.school.module.admin.controller;
 
 import com.idleitems.school.common.annotation.RequireRole;
+import com.idleitems.school.common.BusinessException;
+import com.idleitems.school.common.ErrorCode;
 import com.idleitems.school.common.Result;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import com.idleitems.school.module.user.dto.UserDTO;
 import com.idleitems.school.module.admin.dto.CreateUserRequest;
+import com.idleitems.school.util.DataMaskUtil;
 import com.idleitems.school.module.admin.dto.UpdateUserRequest;
 import com.idleitems.school.module.user.entity.User;
 import com.idleitems.school.module.user.repository.UserRepository;
@@ -120,7 +123,8 @@ public class AdminUserController {
             
             return Result.success(stats);
         } catch (Exception e) {
-            return Result.error(e.getMessage());
+            log.error("获取用户统计失败", e);
+            return Result.error("获取用户统计失败");
         }
     }
 
@@ -128,7 +132,7 @@ public class AdminUserController {
     @Operation(summary = "获取用户详情", description = "根据ID获取指定用户的详细信息")
     public Result<UserDTO> getUser(@PathVariable Long id) {
         User user = userRepository.findById(id.longValue())
-                .orElseThrow(() -> new IllegalArgumentException("用户不存在"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND, "用户不存在"));
         return Result.success(UserDTO.fromEntity(user));
     }
 
@@ -140,7 +144,7 @@ public class AdminUserController {
             @RequestParam User.UserStatus status,
             HttpServletRequest request) {
         User user = userRepository.findById(id.longValue())
-                .orElseThrow(() -> new IllegalArgumentException("用户不存在"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND, "用户不存在"));
         User.UserStatus oldStatus = user.getStatus();
         user.setStatus(status);
         User savedUser = userRepository.save(user);
@@ -199,7 +203,8 @@ public class AdminUserController {
 
             return Result.success("用户创建成功", UserDTO.fromEntity(user));
         } catch (IllegalArgumentException e) {
-            return Result.error(e.getMessage());
+            log.warn("创建用户参数错误: {}", e.getMessage());
+            return Result.error("参数错误，请检查角色或状态值");
         }
     }
 
@@ -240,7 +245,8 @@ public class AdminUserController {
 
             return Result.success("用户更新成功", UserDTO.fromEntity(user));
         } catch (IllegalArgumentException e) {
-            return Result.error(e.getMessage());
+            log.warn("更新用户参数错误: {}", e.getMessage());
+            return Result.error("参数错误，请检查角色或状态值");
         }
     }
 
@@ -251,8 +257,15 @@ public class AdminUserController {
             @RequestParam(value = "role", required = false) String role,
             @RequestParam(value = "status", required = false) String status,
             HttpServletResponse response) throws IOException {
-        User.Role userRole = role != null ? User.Role.valueOf(role) : null;
-        User.UserStatus userStatus = status != null ? User.UserStatus.valueOf(status) : null;
+        User.Role userRole = null;
+        User.UserStatus userStatus = null;
+        try {
+            userRole = role != null ? User.Role.valueOf(role) : null;
+            userStatus = status != null ? User.UserStatus.valueOf(status) : null;
+        } catch (IllegalArgumentException e) {
+            log.warn("导出用户参数错误: role={}, status={}", role, status);
+            throw new BusinessException(ErrorCode.BAD_REQUEST, "角色或状态参数无效");
+        }
         
         List<User> users = userService.getUsersForExport(keyword, userRole, userStatus);
         
@@ -266,12 +279,12 @@ public class AdminUserController {
         for (User user : users) {
             csv.append(user.getId()).append(",")
                .append(user.getUsername()).append(",")
-               .append(user.getEmail() != null ? user.getEmail() : "").append(",")
-               .append(user.getPhone() != null ? user.getPhone() : "").append(",")
+               .append(DataMaskUtil.maskEmail(user.getEmail())).append(",")
+               .append(DataMaskUtil.maskPhone(user.getPhone())).append(",")
                .append(user.getNickname() != null ? user.getNickname() : "").append(",")
                .append(user.getRole()).append(",")
                .append(user.getStatus()).append(",")
-               .append(user.getStudentId() != null ? user.getStudentId() : "").append(",")
+               .append(user.getStudentId() != null ? "***" : "").append(",")
                .append(user.getCreatedAt() != null ? user.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) : "").append("\n");
         }
         
@@ -294,8 +307,11 @@ public class AdminUserController {
             adminLogService.logOperation(adminId, "批量删除用户", "USER", null, details, request);
             
             return Result.success("批量删除成功", null);
+        } catch (BusinessException e) {
+            throw e;
         } catch (IllegalArgumentException e) {
-            return Result.error(e.getMessage());
+            log.warn("批量删除用户参数错误: {}", e.getMessage());
+            return Result.error("参数错误");
         }
     }
 }

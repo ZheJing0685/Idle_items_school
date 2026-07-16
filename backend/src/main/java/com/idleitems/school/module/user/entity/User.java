@@ -15,7 +15,9 @@ import java.time.LocalDateTime;
     @Index(name = "idx_users_role", columnList = "role"),
     @Index(name = "idx_users_status", columnList = "status"),
     @Index(name = "idx_users_is_deleted", columnList = "is_deleted"),
-    @Index(name = "idx_users_role_status", columnList = "role, status")
+    @Index(name = "idx_users_role_status", columnList = "role, status"),
+    @Index(name = "idx_users_email", columnList = "email"),
+    @Index(name = "idx_users_phone", columnList = "phone")
 })
 public class User {
 

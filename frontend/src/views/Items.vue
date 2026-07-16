@@ -112,7 +112,7 @@
             {{ option.label }}
           </button>
         </div>
-        <span class="items-count">共 {{ total }} 件</span>
+        <span class="items-count" aria-live="polite">共 {{ total }} 件</span>
       </div>
 
       <!-- Items Grid -->
@@ -169,7 +169,7 @@
       </div>
 
       <!-- Empty State -->
-      <div class="empty-state" v-else>
+      <div class="empty-state" v-else aria-live="assertive">
         <template v-if="keyword.trim()">
           <div class="empty-state-icon">🔍</div>
           <div class="empty-state-title">没有匹配"{{ keyword }}"的物品</div>
@@ -296,7 +296,6 @@ import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useItemStore } from '../store';
 import { useCategoryStore } from '../store/category';
-import api from '../api';
 import { getCategoryColorById, getTimeAgo } from '../utils/item-helper';
 
 const route = useRoute();
@@ -452,7 +451,7 @@ const applyFilters = () => {
 const loadItems = async () => {
   loadingItems.value = true;
   try {
-    const params: Record<string, any> = {
+    const params: Record<string, unknown> = {
       page: currentPage.value,
       size: pageSize.value,
       sortBy: sortBy.value,

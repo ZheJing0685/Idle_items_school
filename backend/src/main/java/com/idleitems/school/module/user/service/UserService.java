@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -35,10 +36,6 @@ public class UserService {
     public User getUserById(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND, "用户不存在"));
-    }
-
-    public User findById(Long id) {
-        return getUserById(id);
     }
 
     public Optional<User> findByUsername(String username) {
@@ -76,6 +73,7 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    @Transactional
     public User updateUser(Long userId, UpdateProfileRequest request) {
         User user = getUserById(userId);
 
@@ -98,7 +96,11 @@ public class UserService {
             user.setGender(request.getGender());
         }
         if (request.getBirthday() != null && !request.getBirthday().isEmpty()) {
-            user.setBirthday(java.time.LocalDate.parse(request.getBirthday()));
+            try {
+                user.setBirthday(java.time.LocalDate.parse(request.getBirthday()));
+            } catch (java.time.format.DateTimeParseException e) {
+                throw new BusinessException(ErrorCode.BAD_REQUEST, "生日日期格式不正确，请使用 yyyy-MM-dd 格式");
+            }
         } else if (request.getBirthday() != null) {
             user.setBirthday(null);
         }
@@ -123,6 +125,7 @@ public class UserService {
 
     // ========== 管理员方法 ==========
 
+    @Transactional
     public User createUser(String username, String email, String password, String phone,
                           User.Role role, User.UserStatus status, String nickname, String studentId) {
         if (existsByUsername(username)) {
@@ -186,6 +189,7 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    @Transactional
     public void deleteUsers(List<Long> userIds) {
         for (Long userId : userIds) {
             User user = userRepository.findById(userId)
@@ -193,7 +197,8 @@ public class UserService {
             if (user.getRole() == User.Role.ADMIN) {
                 throw new BusinessException(ErrorCode.OPERATION_NOT_ALLOWED, "不能删除管理员用户");
             }
-            userRepository.deleteById(userId);
+            user.setIsDeleted(true);
+            userRepository.save(user);
         }
     }
 

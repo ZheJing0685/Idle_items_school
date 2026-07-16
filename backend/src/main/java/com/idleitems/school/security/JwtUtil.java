@@ -159,4 +159,13 @@ public class JwtUtil {
     public String getRoleFromToken(String token) {
         return parseToken(token).get("role", String.class);
     }
+
+    public long getTokenVersionFromToken(String token) {
+        try {
+            Long version = parseToken(token).get("tv", Long.class);
+            return version != null ? version : 0L;
+        } catch (Exception e) {
+            return 0L;
+        }
+    }
 }

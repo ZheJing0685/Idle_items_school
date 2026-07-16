@@ -1,4 +1,5 @@
 import axios, { AxiosInstance, InternalAxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
+import { ElMessageBox } from 'element-plus';
 import router from '../../router';
 import { ErrorHandler } from '../../utils/error';
 import type { ApiResponse } from '../../types/api';
@@ -57,7 +58,6 @@ instance.interceptors.response.use(
       if (unauthorizedHandler) {
         unauthorizedHandler();
       } else {
-        const { ElMessageBox } = await import('element-plus');
         ElMessageBox.alert('登录已过期，请重新登录', '提示', {
           confirmButtonText: '确定',
           callback: () => router.push('/login'),
@@ -97,14 +97,10 @@ instance.interceptors.response.use(
   },
 );
 
+/** 空实现：认证状态现在只以 /auth/me 的服务端校验结果为准，此处保留仅为兼容调用方签名。 */
 export function clearAuthState(): void {}
 
 // 兼容旧调用：认证状态现在只以 /auth/me 的服务端校验结果为准。
 export const clearCookies = clearAuthState;
-
-// 兼容旧导出（已被移除的函数的空实现，防止其他文件报错）
-export const setToken = (_token: string): void => {};
-export const getToken = (): string => '';
-export const clearToken = (): void => {};
 
 export default instance;

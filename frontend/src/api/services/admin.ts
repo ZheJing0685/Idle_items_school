@@ -3,19 +3,19 @@ import type { UserInfo, CategoryInfo, OrderInfo } from '../../types/api';
 
 const admin = {
   statistics: {
-    getDashboard: (params?: Record<string, any>) =>
-      get<any>('/admin/statistics/dashboard', { params }),
-    getOverview: (params?: Record<string, any>) =>
-      get<any>('/admin/statistics/overview', { params }),
-    getMonthly: (params?: Record<string, any>) =>
-      get<any>('/admin/statistics/monthly', { params }),
-    getCategories: () => get<any[]>('/admin/statistics/categories'),
-    getHotItems: (params?: Record<string, any>) =>
-      get<any[]>('/admin/statistics/hot-items', { params }),
+    getDashboard: (params?: Record<string, unknown>) =>
+      get<unknown>('/admin/statistics/dashboard', { params }),
+    getOverview: (params?: Record<string, unknown>) =>
+      get<unknown>('/admin/statistics/overview', { params }),
+    getMonthly: (params?: Record<string, unknown>) =>
+      get<unknown>('/admin/statistics/monthly', { params }),
+    getCategories: () => get<unknown[]>('/admin/statistics/categories'),
+    getHotItems: (params?: Record<string, unknown>) =>
+      get<unknown[]>('/admin/statistics/hot-items', { params }),
   },
   users: {
-    getUsers: (params?: Record<string, any>) =>
-      get<any>('/admin/users', { params }),
+    getUsers: (params?: Record<string, unknown>) =>
+      get<unknown>('/admin/users', { params }),
     getUser: (userId: number | string) =>
       get<UserInfo>(`/admin/users/${userId}`),
     getUserStats: () => get<{ total: number; active: number; banned: number; verified: number; newThisWeek: number; todayNew?: number }>('/admin/users/stats'),
@@ -30,13 +30,13 @@ const admin = {
       post<null>('/admin/batch/delete', userIds),
     batchDelete: (userIds: number[]) =>
       post<null>('/admin/batch/delete', userIds),
-    exportUsers: (params?: Record<string, any>) =>
+    exportUsers: (params?: Record<string, unknown>) =>
       getBlob('/admin/users/export', { params }),
   },
   items: {
-    getItems: (params?: Record<string, any>) =>
-      get<any>('/admin/items', { params }),
-    getItemStats: () => get<any>('/admin/items/stats'),
+    getItems: (params?: Record<string, unknown>) =>
+      get<unknown>('/admin/items', { params }),
+    getItemStats: () => get<unknown>('/admin/items/stats'),
     updateStatus: (itemId: number | string, status: string) =>
       put<null>(`/admin/items/${itemId}/status`, { status }),
     approveItem: (itemId: number | string) =>
@@ -53,25 +53,25 @@ const admin = {
       post<null>('/admin/batch/items/reject', { itemIds, reason }),
     batchOffShelf: (itemIds: number[], reason?: string) =>
       post<null>('/admin/batch/items/off-shelf', { itemIds, reason }),
-    exportItems: (params?: Record<string, any>) =>
+    exportItems: (params?: Record<string, unknown>) =>
       getBlob('/admin/items/export', { params }),
   },
   orders: {
-    getOrders: (params?: Record<string, any>) =>
-      get<any>('/admin/orders', { params }),
+    getOrders: (params?: Record<string, unknown>) =>
+      get<unknown>('/admin/orders', { params }),
     cancelOrder: (orderId: number | string, reason: string) =>
       post<null>(`/admin/orders/${orderId}/cancel`, { reason }),
     approveRefund: (orderId: number | string) =>
       post<null>(`/admin/orders/${orderId}/refund/approve`),
     batchCancel: (orderIds: number[], reason: string) =>
       post<null>('/admin/batch/orders/cancel', { orderIds, reason }),
-    getStats: () => get<any>('/admin/orders/stats'),
+    getStats: () => get<unknown>('/admin/orders/stats'),
     getOrder: (orderId: number | string) =>
       get<OrderInfo>('/admin/orders/' + orderId),
   },
   categories: {
-    getCategories: (params?: Record<string, any>) =>
-      get<any>('/admin/categories', { params }),
+    getCategories: (params?: Record<string, unknown>) =>
+      get<unknown>('/admin/categories', { params }),
     createCategory: (data: Partial<CategoryInfo>) =>
       post<CategoryInfo>('/admin/categories', data),
     updateCategory: (categoryId: number | string, data: Partial<CategoryInfo>) =>
@@ -88,24 +88,24 @@ const admin = {
       post<null>('/admin/categories/batch/enable', { categoryIds }),
     batchDisable: (categoryIds: number[]) =>
       post<null>('/admin/categories/batch/disable', { categoryIds }),
-    getFeedbacks: (params?: Record<string, any>) =>
-      get<any>('/admin/categories/feedback', { params }),
-    reviewFeedback: (feedbackId: number | string, data: Record<string, any>) =>
+    getFeedbacks: (params?: Record<string, unknown>) =>
+      get<unknown>('/admin/categories/feedback', { params }),
+    reviewFeedback: (feedbackId: number | string, data: Record<string, unknown>) =>
       post<null>(`/admin/categories/feedback/${feedbackId}/review`, data),
     exportCategories: () =>
       getBlob('/admin/categories/export'),
     getCategoryStats: () =>
-      get<any>('/admin/categories/stats'),
-    getChangeLogs: (params?: Record<string, any>) =>
-      get<any>('/admin/categories/change-logs', { params }),
+      get<unknown>('/admin/categories/stats'),
+    getChangeLogs: (params?: Record<string, unknown>) =>
+      get<unknown>('/admin/categories/change-logs', { params }),
     batchDelete: (categoryIds: number[]) =>
       post<null>('/admin/categories/batch', categoryIds),
     importCategories: (formData: FormData) =>
-      post<any>('/admin/categories/import', formData),
+      post<unknown>('/admin/categories/import', formData),
   },
   verifications: {
-    getVerifications: (params?: Record<string, any>) =>
-      get<any>('/admin/verifications', { params }),
+    getVerifications: (params?: Record<string, unknown>) =>
+      get<unknown>('/admin/verifications', { params }),
     approveVerification: (verificationId: number | string) =>
       post<null>(`/admin/verifications/${verificationId}/approve`),
     rejectVerification: (verificationId: number | string, reason: string) =>
@@ -114,26 +114,26 @@ const admin = {
       post<null>('/admin/verifications/batch/approve', verificationIds),
     batchReject: (verificationIds: number[], reason: string) =>
       post<null>('/admin/verifications/batch/reject', { verificationIds, reason }),
-    getStats: () => get<any>('/admin/verifications/stats'),
+    getStats: () => get<unknown>('/admin/verifications/stats'),
   },
   logs: {
-    getLogs: (params?: Record<string, any>) =>
-      get<any>('/admin/logs', { params }),
-    getLogStats: () => get<any>('/admin/logs/analysis'),
-    getExport: (params?: Record<string, any>) =>
+    getLogs: (params?: Record<string, unknown>) =>
+      get<unknown>('/admin/logs', { params }),
+    getLogStats: () => get<unknown>('/admin/logs/analysis'),
+    getExport: (params?: Record<string, unknown>) =>
       getBlob('/admin/logs/export', { params }),
   },
   disputes: {
-    list: (params?: Record<string, any>) =>
-      get<any>('/admin/disputes', { params }),
-    stats: () => get<any>('/admin/disputes/stats'),
-    handleDispute: (disputeId: number | string, data: Record<string, any>) =>
+    list: (params?: Record<string, unknown>) =>
+      get<unknown>('/admin/disputes', { params }),
+    stats: () => get<unknown>('/admin/disputes/stats'),
+    handleDispute: (disputeId: number | string, data: Record<string, unknown>) =>
       post<null>(`/admin/disputes/${disputeId}/handle`, data),
     batchApprove: (disputeIds: number[]) =>
       post<null>('/admin/disputes/batch/approve', { disputeIds }),
     batchClose: (disputeIds: number[]) =>
       post<null>('/admin/disputes/batch/close', { disputeIds }),
-    export: (params?: Record<string, any>) =>
+    export: (params?: Record<string, unknown>) =>
       getBlob('/admin/disputes/export', { params }),
   },
 };

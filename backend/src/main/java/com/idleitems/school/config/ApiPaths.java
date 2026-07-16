@@ -238,4 +238,26 @@ public class ApiPaths {
         public static final String STATS_PATH = "/stats";
         public static final String STATS = BASE + STATS_PATH;
     }
+
+    public static boolean isPublicPath(String uri) {
+        return uri.startsWith("/swagger-ui")
+                || uri.startsWith("/v3/api-docs")
+                || uri.startsWith("/doc.html")
+                || uri.startsWith("/webjars")
+                || uri.startsWith("/swagger-resources")
+                || uri.startsWith("/actuator")
+                || uri.startsWith("/api/auth/")
+                || uri.equals("/api/items/search")
+                || uri.equals("/api/items/hot")
+                || uri.matches("/api/items/\\d+")
+                || uri.equals("/api/items")
+                || uri.startsWith("/api/categories")
+                || uri.startsWith("/api/home")
+                || uri.startsWith("/api/test")
+                || uri.matches("/api/user/\\d+/profile")
+                || uri.matches("/api/user/\\d+/items")
+                || uri.matches("/api/user/\\d+/reviews")
+                || uri.startsWith("/uploads/")
+                || uri.startsWith("/ws");
+    }
 }

@@ -41,7 +41,7 @@
   border-radius: var(--radius-lg);
   padding: var(--space-5);
   border: 1px solid var(--border-subtle);
-  transition: all 150ms var(--ease-out-quart);
+  transition: box-shadow 150ms var(--ease-out-quart), transform 150ms var(--ease-out-quart);
   position: relative;
   overflow: hidden;
 }
@@ -139,7 +139,7 @@
   border-radius: var(--radius-lg);
   border: 1px solid var(--border-subtle);
   text-decoration: none;
-  transition: all 150ms var(--ease-out-quart);
+  transition: box-shadow 150ms var(--ease-out-quart), transform 150ms var(--ease-out-quart), border-color 150ms var(--ease-out-quart);
   cursor: pointer;
 }
 
@@ -228,7 +228,7 @@
   padding: var(--space-4);
   background: var(--surface-section);
   border-radius: var(--radius-md);
-  transition: all 150ms var(--ease-out-quart);
+  transition: background-color 150ms var(--ease-out-quart), box-shadow 150ms var(--ease-out-quart);
 }
 
 .todo-item:hover {

@@ -138,7 +138,7 @@ import { ref, reactive } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage, type FormInstance } from 'element-plus';
 import { userStore } from '../store';
-import { formRules, validatePassword } from '../utils/validator';
+import { formRules } from '../utils/validator';
 
 const router = useRouter();
 const loading = ref(false);
@@ -177,8 +177,9 @@ const handleRegister = async () => {
     ElMessage.success('注册成功！');
     await store.login(registerForm.username, registerForm.password);
     router.push('/');
-  } catch (error: any) {
-    const msg = error.response?.data?.message || error.message || '注册失败';
+  } catch (error: unknown) {
+    const err = error as { response?: { data?: { message?: string } }; message?: string };
+    const msg = err.response?.data?.message || err.message || '注册失败';
     ElMessage.error(msg);
   } finally {
     loading.value = false;

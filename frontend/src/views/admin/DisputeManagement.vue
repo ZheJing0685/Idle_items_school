@@ -336,18 +336,18 @@ const handleSelectionChange = (rows: any[]) => {
 
 const fetchDisputes = async () => {
   try {
-    const params: Record<string, any> = { page: page.value, size: pageSize.value };
+    const params: Record<string, unknown> = { page: page.value, size: pageSize.value };
     if (searchKeyword.value) params.keyword = searchKeyword.value;
     if (filterStatus.value) params.status = filterStatus.value;
 
-    const response = await api.admin.disputes.list(params);
+    const response: any = await api.admin.disputes.list(params);
     if (response.code === 200) {
       disputes.value = response.data.content || [];
       total.value = response.data.totalElements || 0;
     } else {
       ElMessage.error(response.message || '获取纠纷列表失败');
     }
-  } catch (error) {
+  } catch {
     ElMessage.error('网络错误，请稍后重试');
     disputes.value = [];
     total.value = 0;
@@ -358,9 +358,9 @@ const fetchStats = async () => {
   try {
     const response = await api.admin.disputes.stats();
     if (response.code === 200) {
-      stats.value = response.data;
+      stats.value = response.data as any;
     }
-  } catch (error) {
+  } catch {
     stats.value = { total: 0, pending: 0, processing: 0, resolved: 0 };
   }
 };
@@ -413,7 +413,7 @@ const submitProcess = async () => {
     } else {
       ElMessage.error(response.message || '处理失败');
     }
-  } catch (error) {
+  } catch {
     ElMessage.error('处理失败');
   } finally {
     processLoading.value = false;
@@ -443,7 +443,7 @@ const handleBatchApprove = async () => {
     } else {
       ElMessage.error(response.message || '批量处理失败');
     }
-  } catch (error) {
+  } catch {
     ElMessage.error('批量处理失败');
   } finally {
     batchLoading.value = false;
@@ -473,7 +473,7 @@ const handleBatchClose = async () => {
     } else {
       ElMessage.error(response.message || '批量关闭失败');
     }
-  } catch (error) {
+  } catch {
     ElMessage.error('批量关闭失败');
   } finally {
     batchLoading.value = false;
@@ -482,7 +482,7 @@ const handleBatchClose = async () => {
 
 const handleExport = async () => {
   try {
-    const params: Record<string, any> = {};
+    const params: Record<string, unknown> = {};
     if (searchKeyword.value) params.keyword = searchKeyword.value;
     if (filterStatus.value) params.status = filterStatus.value;
     const blob = await api.admin.disputes.export(params);
@@ -493,7 +493,7 @@ const handleExport = async () => {
     link.click();
     window.URL.revokeObjectURL(url);
     ElMessage.success('导出成功');
-  } catch (error) {
+  } catch {
     ElMessage.error('导出失败');
   }
 };

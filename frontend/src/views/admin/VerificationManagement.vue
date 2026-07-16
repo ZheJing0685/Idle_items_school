@@ -420,7 +420,6 @@ const currentVerification = ref<any>(null);
 
 const stats = ref({ total: 0, pending: 0, approved: 0, rejected: 0 });
 
-const totalPages = computed(() => Math.ceil(total.value / pageSize.value) || 1);
 const hasPendingSelected = computed(() =>
   selectedItems.value.some((id) =>
     verifications.value.find((v) => v.id === id && v.status === 'PENDING')
@@ -495,19 +494,20 @@ const formatDateTime = (dateString: string) => {
 
 const fetchVerifications = async () => {
   try {
-    const params: Record<string, any> = { page: page.value, size: pageSize.value };
+    const params: Record<string, unknown> = { page: page.value, size: pageSize.value };
     if (searchKeyword.value) params.keyword = searchKeyword.value;
     if (verificationStatus.value) params.status = verificationStatus.value;
     if (verificationType.value) params.type = verificationType.value;
 
     const res = await api.admin.verifications.getVerifications(params);
     if (res.code === 200) {
-      verifications.value = res.data.content || [];
-      total.value = res.data.totalElements || 0;
+      const data = res.data as any;
+      verifications.value = data.content || [];
+      total.value = data.totalElements || 0;
     } else {
       ElMessage.error(res.message || '获取认证列表失败');
     }
-  } catch (error) {
+  } catch (error: any) {
     ElMessage.error('网络错误，请稍后重试');
     console.error('Error fetching verifications:', error);
     verifications.value = [];
@@ -519,14 +519,14 @@ const fetchStats = async () => {
   try {
     const res = await api.admin.verifications.getStats();
     if (res.code === 200) {
-      stats.value = res.data || {
+      stats.value = (res.data as any) || {
         total: 0,
         pending: 0,
         approved: 0,
         rejected: 0,
       };
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching stats:', error);
     stats.value = { total: 0, pending: 0, approved: 0, rejected: 0 };
   }

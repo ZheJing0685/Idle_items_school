@@ -48,7 +48,7 @@
       <div class="card-header">
         <div class="header-left">
           <h3 class="card-title">用户列表</h3>
-          <span class="data-range">共 {{ total }} 条记录</span>
+          <span class="data-range" aria-live="polite">共 {{ total }} 条记录</span>
         </div>
         <div class="header-actions">
           <button class="btn btn-ghost" @click="handleExport">
@@ -522,8 +522,8 @@ const stats = ref({
 
 
 const getAvatarText = (user: any) => {
-  if (user.nickname && user.nickname.length > 0) return user.nickname.charAt(0);
-  if (user.username && user.username.length > 0) return user.username.charAt(0);
+  if (user.nickname) return user.nickname.charAt(0);
+  if (user.username) return user.username.charAt(0);
   return '用';
 };
 
@@ -557,7 +557,7 @@ const formatDateTime = (dateString: string) => {
 
 const fetchUsers = async () => {
   try {
-    const params: Record<string, any> = {};
+    const params: Record<string, unknown> = {};
     params.page = page.value;
     params.size = pageSize.value;
     if (searchKeyword.value) params.keyword = searchKeyword.value;
@@ -567,15 +567,16 @@ const fetchUsers = async () => {
 
     const response = await api.admin.users.getUsers(params);
     if (response.code === 200) {
-      let userList: any[] = response.data.content || [];
+      const respData = response.data as any;
+      let userList: any[] = respData.content || [];
 
       if (searchKeyword.value) {
         const keyword = searchKeyword.value.toLowerCase();
         userList = userList.filter(
           (user: any) =>
-            (user.username && user.username.toLowerCase().includes(keyword)) ||
-            (user.nickname && user.nickname.toLowerCase().includes(keyword)) ||
-            (user.email && user.email.toLowerCase().includes(keyword))
+            user.username?.toLowerCase().includes(keyword) ||
+            user.nickname?.toLowerCase().includes(keyword) ||
+            user.email?.toLowerCase().includes(keyword)
         );
       }
 
@@ -585,11 +586,11 @@ const fetchUsers = async () => {
       }
 
       users.value = userList;
-      total.value = response.data.totalElements;
+      total.value = respData.totalElements;
     } else {
       ElMessage.error(response.message || '获取用户列表失败');
     }
-  } catch (error) {
+  } catch {
     ElMessage.error('网络错误，请稍后重试');
     users.value = [];
     total.value = 0;
@@ -600,9 +601,9 @@ const fetchStats = async () => {
   try {
     const response = await api.admin.users.getUserStats();
     if (response.code === 200) {
-      stats.value = response.data;
+      stats.value = response.data as any;
     }
-  } catch (error) {
+  } catch {
     stats.value = { total: 0, active: 0, verified: 0, newThisWeek: 0 };
   }
 };
@@ -622,7 +623,7 @@ const handleReset = () => {
 };
 
 const handleSelectionChange = (selection: any[]) => {
-  selectedUsers.value = selection.map((u) => u.id);
+  selectedUsers.value = selection.map((u: any) => u.id);
 };
 
 const handleSortChange = () => {
@@ -639,7 +640,7 @@ const handleSizeChange = () => {
   fetchUsers();
 };
 
-const handleView = (user: any) => {
+const handleView = (user: unknown) => {
   currentUser.value = user;
   dialogVisible.value = true;
 };
@@ -700,7 +701,7 @@ const handleDelete = async (user: any) => {
     );
     const response = await api.admin.users.deleteUsers([user.id]);
     if (response.code === 200) {
-      users.value = users.value.filter((u) => u.id !== user.id);
+      users.value = users.value.filter((item) => item.id !== user.id);
       total.value--;
       ElMessage.success('用户已删除');
     } else {
@@ -793,7 +794,7 @@ const handleBulkDelete = async () => {
 
 const handleExport = async () => {
   try {
-    const params: Record<string, any> = {};
+    const params: Record<string, unknown> = {};
     if (searchKeyword.value) params.keyword = searchKeyword.value;
     if (userRole.value) params.role = userRole.value;
     if (userStatus.value) params.status = userStatus.value;
@@ -807,7 +808,7 @@ const handleExport = async () => {
     link.click();
     link.remove();
     ElMessage.success('导出成功');
-  } catch (error) {
+  } catch {
     ElMessage.error('导出失败');
   }
 };
@@ -837,7 +838,7 @@ const submitEdit = async () => {
       email: editForm.value.email,
       phone: editForm.value.phone,
       nickname: editForm.value.nickname,
-      role: editForm.value.role,
+      role: editForm.value.role as 'STUDENT' | 'ADMIN',
       status: editForm.value.status,
       studentId: editForm.value.studentId,
       gender: editForm.value.gender,
@@ -846,7 +847,7 @@ const submitEdit = async () => {
       department: editForm.value.department,
       major: editForm.value.major,
       grade: editForm.value.grade,
-    } as any);
+    });
     if (response.code === 200) {
       ElMessage.success('更新成功');
       editDialogVisible.value = false;
@@ -854,7 +855,7 @@ const submitEdit = async () => {
     } else {
       ElMessage.error(response.message || '更新失败');
     }
-  } catch (error) {
+  } catch {
     ElMessage.error('更新失败');
   } finally {
     editLoading.value = false;
@@ -889,7 +890,7 @@ const submitAdd = async () => {
     } else {
       ElMessage.error(response.message || '创建失败');
     }
-  } catch (error) {
+  } catch {
     ElMessage.error('创建失败');
   } finally {
     addLoading.value = false;

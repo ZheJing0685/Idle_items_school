@@ -12,10 +12,10 @@ export const useItemStore = defineStore('item', () => {
   const currentItem = ref<ItemInfo | null>(null);
   const searchResults = ref<ItemSummary[]>([]);
   const searchTotal = ref(0);
-  const userItems = ref<any[]>([]);
+  const userItems = ref<ItemSummary[]>([]);
   const userItemsTotal = ref(0);
 
-  const fetchItems = async (params: Record<string, any> = {}) => {
+  const fetchItems = async (params: any = {}) => {
     loading.value = true;
     try {
       const response: any = await api.item.getItems({
@@ -31,7 +31,7 @@ export const useItemStore = defineStore('item', () => {
       total.value = response.data.totalElements;
       return response;
     } catch (error) {
-      ErrorHandler.handle(error);
+      ErrorHandler.handle(error, { silent: true });
       throw error;
     } finally {
       loading.value = false;
@@ -46,7 +46,7 @@ export const useItemStore = defineStore('item', () => {
       }
       return response;
     } catch (error) {
-      ErrorHandler.handle(error);
+      ErrorHandler.handle(error, { silent: true });
       return null;
     }
   };
@@ -66,7 +66,7 @@ export const useItemStore = defineStore('item', () => {
       }
       return response;
     } catch (error) {
-      ErrorHandler.handle(error);
+      ErrorHandler.handle(error, { silent: true });
       throw error;
     } finally {
       loading.value = false;
@@ -81,7 +81,7 @@ export const useItemStore = defineStore('item', () => {
       }
       return response;
     } catch (error) {
-      ErrorHandler.handle(error);
+      ErrorHandler.handle(error, { silent: true });
       throw error;
     }
   };
@@ -95,7 +95,7 @@ export const useItemStore = defineStore('item', () => {
       }
       return response;
     } catch (error) {
-      ErrorHandler.handle(error);
+      ErrorHandler.handle(error, { silent: true });
       throw error;
     } finally {
       loading.value = false;
@@ -112,7 +112,7 @@ export const useItemStore = defineStore('item', () => {
       }
       return response;
     } catch (error) {
-      ErrorHandler.handle(error);
+      ErrorHandler.handle(error, { silent: true });
       throw error;
     } finally {
       loading.value = false;
@@ -129,7 +129,7 @@ export const useItemStore = defineStore('item', () => {
       }
       return response;
     } catch (error) {
-      ErrorHandler.handle(error);
+      ErrorHandler.handle(error, { silent: true });
       throw error;
     } finally {
       loading.value = false;
@@ -146,7 +146,7 @@ export const useItemStore = defineStore('item', () => {
       }
       return response;
     } catch (error) {
-      ErrorHandler.handle(error);
+      ErrorHandler.handle(error, { silent: true });
       throw error;
     } finally {
       loading.value = false;
@@ -159,7 +159,7 @@ export const useItemStore = defineStore('item', () => {
       const response: any = await api.item.uploadImage(formData);
       return response;
     } catch (error) {
-      ErrorHandler.handle(error);
+      ErrorHandler.handle(error, { silent: true });
       throw error;
     } finally {
       loading.value = false;

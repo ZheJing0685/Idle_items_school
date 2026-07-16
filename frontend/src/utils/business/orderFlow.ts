@@ -62,14 +62,14 @@ export interface OrderLike {
   orderStatus?: string
   price?: number
   createdAt?: string
-  [key: string]: any
+  [key: string]: unknown
 }
 
 export interface NormalizedOrder {
   orderStatus: string
   price: number
   createdAt: string
-  [key: string]: any
+  [key: string]: unknown
 }
 
 export const getOrderStatusText = (status: string): string => {

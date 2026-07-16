@@ -59,14 +59,14 @@ export interface OrderLike {
   refundTime?: string
   cancelReason?: string
   refundReason?: string
-  [key: string]: any
+  [key: string]: unknown
 }
 
 export interface NormalizedAdminOrder {
   orderStatus: string
   price: number
   createdAt: string
-  [key: string]: any
+  [key: string]: unknown
 }
 
 export const getOrderStatusText = (status: string): string => {

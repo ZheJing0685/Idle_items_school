@@ -23,7 +23,7 @@
 
     <FilterTabs :modelValue="currentTab" :tabs="tabs" @update:modelValue="handleTabChange" />
 
-    <div class="orders-panel" v-loading="loading">
+    <div class="orders-panel" v-loading="loading" aria-live="polite">
       <div class="orders-list" v-if="orders.length > 0">
         <div v-for="order in orders" :key="order.id" class="order-card">
           <div class="order-header">
@@ -251,7 +251,7 @@ const loadOrders = async () => {
   loading.value = true;
 
   try {
-    const params: Record<string, any> = {
+    const params: Record<string, unknown> = {
       page: currentPage.value,
       size: pageSize.value,
     };
@@ -265,14 +265,14 @@ const loadOrders = async () => {
         ? await api.order.getSellerOrders(params)
         : await api.order.getBuyerOrders(params);
 
-    const pageData = response.data || {};
+    const pageData = (response.data as any) || {};
     orders.value = (pageData.content || []).map(normalizeOrder);
     total.value =
       pageData.totalElements ?? pageData.total ?? orders.value.length;
-  } catch (error) {
+  } catch (error: unknown) {
     orders.value = [];
     total.value = 0;
-    ElMessage.error(error.message || '获取订单失败');
+    ElMessage.error(error instanceof Error ? error.message : '获取订单失败');
   } finally {
     loading.value = false;
   }
@@ -302,15 +302,15 @@ const handleTabChange = async (value: string) => {
 const handlePay = async (order: any) => {
   try {
     await ElMessageBox.confirm('确认支付该订单？', '提示', { type: 'warning' });
-    await api.order.payOrder(order.id);
+    await api.order.payOrder(order.id as number);
     ElMessage.success('支付成功');
     currentTab.value = 'ALL';
     currentPage.value = 1;
     await syncQuery();
     await loadOrders();
-  } catch (error) {
+  } catch (error: unknown) {
     if (error !== 'cancel' && error !== 'close') {
-      ElMessage.error(error.message || '支付失败');
+      ElMessage.error(error instanceof Error ? error.message : '支付失败');
     }
   }
 };
@@ -318,15 +318,15 @@ const handlePay = async (order: any) => {
 const handleCancel = async (order: any) => {
   try {
     await ElMessageBox.confirm('确认取消该订单？', '提示', { type: 'warning' });
-    await api.order.cancelOrder(order.id, '用户主动取消');
+    await api.order.cancelOrder(order.id as number, '用户主动取消');
     ElMessage.success('订单已取消');
     currentTab.value = 'ALL';
     currentPage.value = 1;
     await syncQuery();
     await loadOrders();
-  } catch (error) {
+  } catch (error: unknown) {
     if (error !== 'cancel' && error !== 'close') {
-      ElMessage.error(error.message || '取消失败');
+      ElMessage.error(error instanceof Error ? error.message : '取消失败');
     }
   }
 };
@@ -336,15 +336,15 @@ const handleShip = async (order: any) => {
     await ElMessageBox.confirm('确认已准备好发货？', '提示', {
       type: 'warning',
     });
-    await api.order.shipOrder(order.id);
+    await api.order.shipOrder(order.id as number);
     ElMessage.success('发货成功');
     currentTab.value = 'ALL';
     currentPage.value = 1;
     await syncQuery();
     await loadOrders();
-  } catch (error) {
+  } catch (error: unknown) {
     if (error !== 'cancel' && error !== 'close') {
-      ElMessage.error(error.message || '发货失败');
+      ElMessage.error(error instanceof Error ? error.message : '发货失败');
     }
   }
 };
@@ -352,15 +352,15 @@ const handleShip = async (order: any) => {
 const handleConfirmReceive = async (order: any) => {
   try {
     await ElMessageBox.confirm('确认已收到货物？', '提示', { type: 'warning' });
-    await api.order.confirmReceive(order.id);
+    await api.order.confirmReceive(order.id as number);
     ElMessage.success('已确认收货');
     currentTab.value = 'ALL';
     currentPage.value = 1;
     await syncQuery();
     await loadOrders();
-  } catch (error) {
+  } catch (error: unknown) {
     if (error !== 'cancel' && error !== 'close') {
-      ElMessage.error(error.message || '确认收货失败');
+      ElMessage.error(error instanceof Error ? error.message : '确认收货失败');
     }
   }
 };
@@ -380,15 +380,15 @@ const handleApplyRefund = async (order: any) => {
       }
     );
 
-    await api.order.applyRefund(order.id, { reason: reason.trim() });
+    await api.order.applyRefund(order.id as number, { reason: reason.trim() });
     ElMessage.success('退款申请已提交');
     currentTab.value = 'ALL';
     currentPage.value = 1;
     await syncQuery();
     await loadOrders();
-  } catch (error) {
+  } catch (error: unknown) {
     if (error !== 'cancel' && error !== 'close') {
-      ElMessage.error(error.message || '退款申请失败');
+      ElMessage.error(error instanceof Error ? error.message : '退款申请失败');
     }
   }
 };
@@ -426,8 +426,8 @@ const submitReview = async () => {
     currentPage.value = 1;
     await syncQuery();
     await loadOrders();
-  } catch (error) {
-    ElMessage.error(error.message || '评价失败');
+  } catch (error: unknown) {
+    ElMessage.error(error instanceof Error ? error.message : '评价失败');
   }
 };
 
@@ -457,13 +457,13 @@ const handleAction = async (actionKey: string, order: any) => {
 };
 
 const getActions = (order: any) =>
-  getOrderActions(order.orderStatus, currentView.value);
+  getOrderActions(order.orderStatus as string, currentView.value);
 
 const getOrderHint = (order: any) =>
-  buildOrderHint(order.orderStatus, currentView.value);
+  buildOrderHint(order.orderStatus as string, currentView.value);
 
 const viewDetail = (order: any) => {
-  router.push(`/item/${order.itemId}`);
+  router.push(`/item/${order.itemId as string}`);
 };
 
 const handlePageChange = async (page: number) => {
