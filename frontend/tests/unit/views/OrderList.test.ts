@@ -266,10 +266,6 @@ describe('OrderList Component', () => {
       expect(typeof wrapper.vm.submitReview).toBe('function');
     });
 
-    it('应该有refreshOrders方法', () => {
-      const wrapper = mountOrderList();
-      expect(typeof wrapper.vm.refreshOrders).toBe('function');
-    });
   });
 
   describe('辅助方法', () => {
@@ -343,9 +339,5 @@ describe('OrderList Component', () => {
       expect(typeof wrapper.vm.loadOrders).toBe('function');
     });
 
-    it('应该有refreshOrders方法', async () => {
-      const wrapper = mountOrderList();
-      expect(typeof wrapper.vm.refreshOrders).toBe('function');
-    });
   });
 });

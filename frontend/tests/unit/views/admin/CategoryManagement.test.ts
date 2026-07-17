@@ -130,7 +130,7 @@ describe('CategoryManagement.vue', () => {
   it('应该包含分类统计卡片', () => {
     const wrapper = mountCategoryManagement()
     const statCards = wrapper.findAll('.stat-card')
-    expect(statCards.length).toBe(4)
+    expect(statCards.length).toBe(5)
   })
 
   it('应该显示分类总数', () => {

@@ -56,7 +56,7 @@ const mountRegister = () => {
       stubs: {
         'router-link': { template: '<a><slot /></a>' },
         'el-form': { template: '<form><slot /></form>', props: ['model', 'rules'] },
-        'el-form-item': { template: '<div><slot /></div>', props: ['prop'] },
+        'el-form-item': { template: '<div>{{ label }}<slot /></div>', props: ['prop', 'label'] },
         'el-input': { template: '<input />', props: ['modelValue', 'placeholder'] },
         'el-button': { template: '<button><slot /></button>', props: ['type', 'loading', 'disabled'] },
         'el-checkbox': { template: '<label><input type="checkbox" /><slot /></label>', props: ['modelValue'] },
@@ -84,7 +84,7 @@ describe('Register Component', () => {
 
     it('应该渲染品牌名称', () => {
       const wrapper = mountRegister();
-      expect(wrapper.text()).toContain('闲置好物');
+      expect(wrapper.text()).toContain('GreenLoop');
     });
 
     it('应该渲染功能特性', () => {

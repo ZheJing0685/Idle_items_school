@@ -9,6 +9,7 @@ import { elementPlusStubs, lucideIconsStub } from '../../helpers/elementPlusMock
 const mockGetUserStats = vi.fn()
 const mockGetItemStats = vi.fn()
 const mockGetStats = vi.fn()
+const mockGetDashboard = vi.fn()
 
 vi.mock('@/api', () => ({
   default: {
@@ -21,6 +22,9 @@ vi.mock('@/api', () => ({
       },
       orders: {
         getStats: (...args: any[]) => mockGetStats(...args),
+      },
+      statistics: {
+        getDashboard: (...args: any[]) => mockGetDashboard(...args),
       },
     },
   },
@@ -62,6 +66,20 @@ describe('Dashboard.vue', () => {
     mockGetStats.mockResolvedValue({
       code: 200,
       data: { total: 200, todayNew: 8, totalAmount: 50000, todayAmount: 1200 },
+    })
+    mockGetDashboard.mockResolvedValue({
+      code: 200,
+      data: {
+        todoItems: [
+          { id: 1, title: '待审核用户认证', description: '3个用户等待认证审核', time: '10分钟前', count: 3, priority: 'high', type: 'warning' },
+          { id: 2, title: '待处理退款', description: '2个订单等待退款处理', time: '30分钟前', count: 2, priority: 'medium', type: 'danger' },
+        ],
+        recentActivities: [
+          { id: 1, type: 'user', text: '新用户 张三 完成注册', time: '5分钟前' },
+          { id: 2, type: 'item', text: '用户 李四 发布了新物品 MacBook Pro', time: '15分钟前' },
+          { id: 3, type: 'order', text: '订单 #10086 已完成交易', time: '1小时前' },
+        ],
+      },
     })
   })
 
@@ -158,6 +176,7 @@ describe('Dashboard.vue', () => {
       expect(mockGetUserStats).toHaveBeenCalled()
       expect(mockGetItemStats).toHaveBeenCalled()
       expect(mockGetStats).toHaveBeenCalled()
+      expect(mockGetDashboard).toHaveBeenCalled()
     })
   })
 })

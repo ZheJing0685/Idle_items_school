@@ -27,6 +27,13 @@ vi.mock('@/store', () => ({
 }))
 
 vi.mock('@/utils/websocket', () => ({
+  wsManager: {
+    subscribe: vi.fn(),
+    unsubscribe: vi.fn(),
+    send: vi.fn(),
+    connect: vi.fn().mockResolvedValue(undefined),
+    disconnect: vi.fn(),
+  },
   wsService: {
     connect: vi.fn().mockResolvedValue(undefined),
     disconnect: vi.fn(),

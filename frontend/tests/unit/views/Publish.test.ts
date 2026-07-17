@@ -175,22 +175,12 @@ describe('Publish Component', () => {
 
     it('应该渲染页面副标题', () => {
       const wrapper = mountPublish();
-      expect(wrapper.text()).toContain('让闲置找到新主人');
+      expect(wrapper.text()).toContain('让你的闲置物品找到新主人');
     });
 
     it('应该渲染表单区域', () => {
       const wrapper = mountPublish();
       expect(wrapper.find('.publish-form').exists()).toBe(true);
-    });
-
-    it('应该渲染侧边栏', () => {
-      const wrapper = mountPublish();
-      expect(wrapper.find('.publish-sidebar').exists()).toBe(true);
-    });
-
-    it('应该渲染发布小贴士', () => {
-      const wrapper = mountPublish();
-      expect(wrapper.text()).toContain('发布小贴士');
     });
   });
 
@@ -205,34 +195,24 @@ describe('Publish Component', () => {
       expect(wrapper.vm.form).toHaveProperty('title');
       expect(wrapper.vm.form).toHaveProperty('categoryId');
       expect(wrapper.vm.form).toHaveProperty('condition');
-      expect(wrapper.vm.form).toHaveProperty('deliveryMethod');
       expect(wrapper.vm.form).toHaveProperty('price');
       expect(wrapper.vm.form).toHaveProperty('location');
       expect(wrapper.vm.form).toHaveProperty('description');
-      expect(wrapper.vm.form).toHaveProperty('contactName');
-      expect(wrapper.vm.form).toHaveProperty('contactPhone');
+      expect(wrapper.vm.form).toHaveProperty('images');
     });
 
     it('应该有表单验证规则', () => {
       const wrapper = mountPublish();
       expect(wrapper.vm.rules).toBeDefined();
-      expect(wrapper.vm.rules).toHaveProperty('condition');
-      expect(wrapper.vm.rules).toHaveProperty('deliveryMethod');
-      expect(wrapper.vm.rules).toHaveProperty('contactType');
-      expect(wrapper.vm.rules).toHaveProperty('location');
-      expect(wrapper.vm.rules).toHaveProperty('contactName');
-      expect(wrapper.vm.rules).toHaveProperty('contactPhone');
+      expect(wrapper.vm.rules).toHaveProperty('title');
+      expect(wrapper.vm.rules).toHaveProperty('price');
+      expect(wrapper.vm.rules).toHaveProperty('categoryId');
+      expect(wrapper.vm.rules).toHaveProperty('phone');
     });
 
     it('应该包含交易地点区域', () => {
       const wrapper = mountPublish();
       expect(wrapper.text()).toContain('交易地点');
-    });
-
-    it('应该包含发布小贴士', () => {
-      const wrapper = mountPublish();
-      expect(wrapper.text()).toContain('发布小贴士');
-      expect(wrapper.text()).toContain('清晰真实的图片能提高成交率');
     });
   });
 
@@ -254,22 +234,10 @@ describe('Publish Component', () => {
       expect(wrapper.vm.form).toHaveProperty('images');
     });
 
-    it('应该有tagInput状态', () => {
-      const wrapper = mountPublish();
-      expect(wrapper.vm.tagInput).toBeDefined();
-      expect(typeof wrapper.vm.tagInput).toBe('string');
-    });
-
     it('应该有isEdit计算属性', () => {
       const wrapper = mountPublish();
       expect(wrapper.vm.isEdit).toBeDefined();
       expect(typeof wrapper.vm.isEdit).toBe('boolean');
-    });
-
-    it('应该有categoryTreeOptions数据', () => {
-      const wrapper = mountPublish();
-      expect(wrapper.vm.categoryTreeOptions).toBeDefined();
-      expect(Array.isArray(wrapper.vm.categoryTreeOptions)).toBe(true);
     });
   });
 
@@ -277,16 +245,6 @@ describe('Publish Component', () => {
     it('应该有handleSubmit方法', () => {
       const wrapper = mountPublish();
       expect(typeof wrapper.vm.handleSubmit).toBe('function');
-    });
-
-    it('应该有loadCategories方法', () => {
-      const wrapper = mountPublish();
-      expect(typeof wrapper.vm.loadCategories).toBe('function');
-    });
-
-    it('应该有loadItemForEdit方法', () => {
-      const wrapper = mountPublish();
-      expect(typeof wrapper.vm.loadItemForEdit).toBe('function');
     });
 
     it('应该有triggerUpload方法', () => {
@@ -303,36 +261,6 @@ describe('Publish Component', () => {
       const wrapper = mountPublish();
       expect(typeof wrapper.vm.removeImage).toBe('function');
     });
-
-    it('应该有addTag方法', () => {
-      const wrapper = mountPublish();
-      expect(typeof wrapper.vm.addTag).toBe('function');
-    });
-  });
-
-  describe('标签功能', () => {
-    it('addTag应该添加标签', async () => {
-      const wrapper = mountPublish();
-      wrapper.vm.tagInput = '新标签';
-      wrapper.vm.addTag();
-      expect(wrapper.vm.form.tags).toContain('新标签');
-    });
-
-    it('addTag不应添加重复标签', async () => {
-      const wrapper = mountPublish();
-      wrapper.vm.form.tags = ['已存在'];
-      wrapper.vm.tagInput = '已存在';
-      wrapper.vm.addTag();
-      expect(wrapper.vm.form.tags.filter((t: string) => t === '已存在').length).toBe(1);
-    });
-
-    it('addTag最多添加5个标签', async () => {
-      const wrapper = mountPublish();
-      wrapper.vm.form.tags = ['1', '2', '3', '4', '5'];
-      wrapper.vm.tagInput = '新标签';
-      wrapper.vm.addTag();
-      expect(wrapper.vm.form.tags.length).toBe(5);
-    });
   });
 
   describe('图片功能', () => {
@@ -341,18 +269,6 @@ describe('Publish Component', () => {
       wrapper.vm.form.images = ['img1.jpg', 'img2.jpg'];
       wrapper.vm.removeImage(0);
       expect(wrapper.vm.form.images).toEqual(['img2.jpg']);
-    });
-  });
-
-  describe('数据加载', () => {
-    it('应该有loadCategories方法', async () => {
-      const wrapper = mountPublish();
-      expect(typeof wrapper.vm.loadCategories).toBe('function');
-    });
-
-    it('应该有loadItemForEdit方法', async () => {
-      const wrapper = mountPublish();
-      expect(typeof wrapper.vm.loadItemForEdit).toBe('function');
     });
   });
 

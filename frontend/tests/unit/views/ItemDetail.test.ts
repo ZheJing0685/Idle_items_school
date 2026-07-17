@@ -357,25 +357,5 @@ describe('ItemDetail Component', () => {
     });
   });
 
-  describe('计算属性', () => {
-    it('应该有isOwner计算属性', async () => {
-      const wrapper = mountItemDetail();
-      await wrapper.vm.$nextTick();
-      expect(wrapper.vm.isOwner).toBeDefined();
-      expect(typeof wrapper.vm.isOwner === 'boolean' || wrapper.vm.isOwner === null || wrapper.vm.isOwner === undefined).toBe(true);
-    });
-
-    it('应该有isNew计算属性', async () => {
-      const wrapper = mountItemDetail();
-      await wrapper.vm.$nextTick();
-      expect(wrapper.vm.isNew).toBeDefined();
-      expect(typeof wrapper.vm.isNew === 'boolean' || wrapper.vm.isNew === null || wrapper.vm.isNew === undefined).toBe(true);
-    });
-
-    it('应该有discountPercent计算属性', async () => {
-      const wrapper = mountItemDetail();
-      await wrapper.vm.$nextTick();
-      expect(wrapper.vm.discountPercent).toBeDefined();
-    });
-  });
+  // 计算属性测试已移除：isOwner/isNew/discountPercent 已从组件中移除
 });

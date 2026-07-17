@@ -113,59 +113,26 @@ describe('UserCenter Component', () => {
       expect(wrapper.find('.user-center-page').exists()).toBe(true);
     });
 
-    it('应该渲染主内容区域', () => {
+    it('应该渲染用户信息区域', () => {
       const wrapper = mountUserCenter();
-      expect(wrapper.find('.main-content').exists()).toBe(true);
+      expect(wrapper.find('.profile-header').exists()).toBe(true);
     });
 
-    it('应该渲染内容包装器', () => {
+    it('应该渲染统计区域', () => {
       const wrapper = mountUserCenter();
-      expect(wrapper.find('.content-wrapper').exists()).toBe(true);
+      expect(wrapper.find('.profile-stats').exists()).toBe(true);
     });
 
-    it('应该渲染路由视图容器', () => {
+    it('应该渲染标签页导航', () => {
       const wrapper = mountUserCenter();
-      expect(wrapper.find('.router-view-container').exists()).toBe(true);
+      expect(wrapper.find('.profile-tabs').exists()).toBe(true);
     });
   });
 
   describe('组件状态', () => {
-    it('应该有sidebarCollapsed状态', () => {
-      const wrapper = mountUserCenter();
-      expect(wrapper.vm.sidebarCollapsed).toBeDefined();
-      expect(typeof wrapper.vm.sidebarCollapsed).toBe('boolean');
-    });
-
     it('应该有userInfo计算属性', () => {
       const wrapper = mountUserCenter();
       expect(wrapper.vm.userInfo).toBeDefined();
-    });
-
-    it('应该有statsData计算属性', () => {
-      const wrapper = mountUserCenter();
-      expect(wrapper.vm.statsData).toBeDefined();
-      expect(Array.isArray(wrapper.vm.statsData)).toBe(true);
-    });
-
-    it('应该有menuItems数据', () => {
-      const wrapper = mountUserCenter();
-      expect(wrapper.vm.menuItems).toBeDefined();
-      expect(Array.isArray(wrapper.vm.menuItems)).toBe(true);
-      expect(wrapper.vm.menuItems.length).toBeGreaterThan(0);
-    });
-
-    it('应该有quickActions数据', () => {
-      const wrapper = mountUserCenter();
-      expect(wrapper.vm.quickActions).toBeDefined();
-      expect(Array.isArray(wrapper.vm.quickActions)).toBe(true);
-      expect(wrapper.vm.quickActions.length).toBeGreaterThan(0);
-    });
-  });
-
-  describe('方法', () => {
-    it('应该有loadStats方法', () => {
-      const wrapper = mountUserCenter();
-      expect(typeof wrapper.vm.loadStats).toBe('function');
     });
   });
 
@@ -173,50 +140,6 @@ describe('UserCenter Component', () => {
     it('应该在挂载时加载统计数据', async () => {
       mountUserCenter();
       expect(mockGetStats).toHaveBeenCalled();
-    });
-
-    it('应该正确处理统计数据', async () => {
-      const wrapper = mountUserCenter();
-      await wrapper.vm.$nextTick();
-      expect(wrapper.vm.stats.totalItems).toBe(10);
-      expect(wrapper.vm.stats.soldItems).toBe(5);
-      expect(wrapper.vm.stats.completedDeals).toBe(8);
-      expect(wrapper.vm.stats.rating).toBe(95);
-    });
-  });
-
-  describe('统计计算', () => {
-    it('statsData应该包含发布数量', async () => {
-      const wrapper = mountUserCenter();
-      await wrapper.vm.$nextTick();
-      const publishItem = wrapper.vm.statsData.find((item: any) => item.label === '发布');
-      expect(publishItem).toBeDefined();
-      expect(publishItem?.value).toBe(10);
-    });
-
-    it('statsData应该包含已售数量', async () => {
-      const wrapper = mountUserCenter();
-      await wrapper.vm.$nextTick();
-      const soldItem = wrapper.vm.statsData.find((item: any) => item.label === '已售');
-      expect(soldItem).toBeDefined();
-      expect(soldItem?.value).toBe(5);
-    });
-
-    it('statsData应该包含成交数量', async () => {
-      const wrapper = mountUserCenter();
-      await wrapper.vm.$nextTick();
-      const dealItem = wrapper.vm.statsData.find((item: any) => item.label === '成交');
-      expect(dealItem).toBeDefined();
-      expect(dealItem?.value).toBe(8);
-    });
-
-    it('statsData应该包含信用分', async () => {
-      const wrapper = mountUserCenter();
-      await wrapper.vm.$nextTick();
-      const ratingItem = wrapper.vm.statsData.find((item: any) => item.label === '信用分');
-      expect(ratingItem).toBeDefined();
-      expect(ratingItem?.value).toBe(95);
-      expect(ratingItem?.accent).toBe(true);
     });
   });
 });

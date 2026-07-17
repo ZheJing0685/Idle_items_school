@@ -8,7 +8,10 @@ import { createRouteMock, createRouterMock } from '../../helpers/routerMock'
 
 // Mock vue-router
 vi.mock('vue-router', () => ({
-  useRoute: vi.fn(() => createRouteMock({ path: '/admin' })),
+  useRoute: vi.fn(() => createRouteMock({ 
+    path: '/admin',
+    matched: [{ path: '/admin', meta: { title: '管理后台' } }],
+  })),
   useRouter: vi.fn(() => createRouterMock()),
 }))
 
