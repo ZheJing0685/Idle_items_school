@@ -57,6 +57,8 @@ describe('useDarkMode Composable', () => {
     const { isDark, toggle } = useDarkMode();
     const initialValue = isDark.value;
     toggle();
+    // watch callback needs a tick to update isDark ref
+    await new Promise(r => setTimeout(r, 10));
     expect(isDark.value).toBe(!initialValue);
   });
 

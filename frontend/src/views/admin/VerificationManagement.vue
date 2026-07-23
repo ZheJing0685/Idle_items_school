@@ -509,7 +509,7 @@ const fetchVerifications = async () => {
     }
   } catch (error: any) {
     ElMessage.error('网络错误，请稍后重试');
-    console.error('Error fetching verifications:', error);
+    logger.error('Error fetching verifications:', error);
     verifications.value = [];
     total.value = 0;
   }
@@ -527,7 +527,7 @@ const fetchStats = async () => {
       };
     }
   } catch (error: any) {
-    console.error('Error fetching stats:', error);
+    logger.error('Error fetching stats:', error);
     stats.value = { total: 0, pending: 0, approved: 0, rejected: 0 };
   }
 };
@@ -584,7 +584,7 @@ const handleApprove = async (verification: any) => {
   } catch (error) {
     if (error !== 'cancel') {
       ElMessage.error('网络错误，请稍后重试');
-      console.error('Error approving verification:', error);
+      logger.error('Error approving verification:', error);
     }
   }
 };
@@ -610,7 +610,7 @@ const handleReject = async (verification: any) => {
   } catch (error) {
     if (error !== 'cancel') {
       ElMessage.error('网络错误，请稍后重试');
-      console.error('Error rejecting verification:', error);
+      logger.error('Error rejecting verification:', error);
     }
   }
 };
@@ -635,7 +635,7 @@ const handleBulkApprove = async () => {
   } catch (error) {
     if (error !== 'cancel') {
       ElMessage.error('网络错误，请稍后重试');
-      console.error('Error in bulk approve:', error);
+      logger.error('Error in bulk approve:', error);
     }
   }
 };
@@ -665,7 +665,7 @@ const handleBulkReject = async () => {
   } catch (error) {
     if (error !== 'cancel') {
       ElMessage.error('网络错误，请稍后重试');
-      console.error('Error in bulk reject:', error);
+      logger.error('Error in bulk reject:', error);
     }
   }
 };

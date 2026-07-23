@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router';
+import { nextTick } from 'vue';
 import { userStore } from '../store';
 import { ElMessage } from 'element-plus';
 
@@ -383,7 +384,7 @@ router.beforeEach(async (to, from, next) => {
             await store.restoreSession();
           }
         } catch (error) {
-          console.error('获取用户信息失败', error);
+          logger.error('获取用户信息失败', error);
           store.logout();
           next('/login');
           return;
@@ -399,7 +400,7 @@ router.beforeEach(async (to, from, next) => {
           try {
             await store.restoreSession();
           } catch (error) {
-            console.error('获取用户信息失败', error);
+            logger.error('获取用户信息失败', error);
             store.logout();
             next('/login');
             return;
@@ -416,10 +417,9 @@ router.beforeEach(async (to, from, next) => {
 router.afterEach((to, _from) => {
   const savedPosition = scrollPositions.get(to.fullPath);
   if (savedPosition !== undefined) {
-    // 使用 nextTick 确保 DOM 渲染完成后再恢复滚动
-    setTimeout(() => {
+    nextTick(() => {
       window.scrollTo({ top: savedPosition, behavior: 'auto' });
-    }, 50);
+    });
   } else {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }

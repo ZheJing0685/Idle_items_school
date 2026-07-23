@@ -5,7 +5,6 @@ import { createPinia, setActivePinia } from 'pinia'
 import Dashboard from '@/views/admin/Dashboard.vue'
 import { elementPlusStubs, lucideIconsStub } from '../../helpers/elementPlusMock'
 
-// Mock API
 const mockGetUserStats = vi.fn()
 const mockGetItemStats = vi.fn()
 const mockGetStats = vi.fn()
@@ -15,22 +14,21 @@ vi.mock('@/api', () => ({
   default: {
     admin: {
       users: {
-        getUserStats: (...args: any[]) => mockGetUserStats(...args),
+        getUserStats: (...args) => mockGetUserStats(...args),
       },
       items: {
-        getItemStats: (...args: any[]) => mockGetItemStats(...args),
+        getItemStats: (...args) => mockGetItemStats(...args),
       },
       orders: {
-        getStats: (...args: any[]) => mockGetStats(...args),
+        getStats: (...args) => mockGetStats(...args),
       },
       statistics: {
-        getDashboard: (...args: any[]) => mockGetDashboard(...args),
+        getDashboard: (...args) => mockGetDashboard(...args),
       },
     },
   },
 }))
 
-// Mock Element Plus
 vi.mock('element-plus', () => ({
   ElMessage: {
     success: vi.fn(),
@@ -39,7 +37,6 @@ vi.mock('element-plus', () => ({
   },
 }))
 
-// Mock lucide icons
 const lucideIcons = [
   'Users', 'Package', 'ClipboardList', 'DollarSign', 'CheckCircle',
   'ChevronRight', 'Menu', 'MessageSquare', 'TrendingUp', 'FileText',
@@ -142,28 +139,9 @@ describe('Dashboard.vue', () => {
     expect(wrapper.find('.todo-section').exists()).toBe(true)
   })
 
-  it('应该显示待审核用户认证待办', () => {
-    const wrapper = mountDashboard()
-    const todoItems = wrapper.findAll('.todo-item')
-    expect(todoItems.length).toBeGreaterThan(0)
-    const titles = todoItems.map(item => item.find('.todo-title').text())
-    expect(titles).toContain('待审核用户认证')
-  })
-
-  it('应该包含最近活动区域', () => {
-    const wrapper = mountDashboard()
-    expect(wrapper.find('.activity-section').exists()).toBe(true)
-  })
-
-  it('应该显示最近活动内容', () => {
-    const wrapper = mountDashboard()
-    const activities = wrapper.findAll('.activity-item')
-    expect(activities.length).toBeGreaterThan(0)
-  })
-
   it('formatNumber 应格式化数字', () => {
     const wrapper = mountDashboard()
-    const vm = wrapper.vm as any
+    const vm = wrapper.vm
     expect(vm.formatNumber(1234567)).toBe('1,234,567')
     expect(vm.formatNumber(0)).toBe('0')
     expect(vm.formatNumber(null)).toBe('0')
@@ -171,12 +149,26 @@ describe('Dashboard.vue', () => {
 
   it('onMounted 应调用 fetchStats', async () => {
     mountDashboard()
-    // 等待异步操作
-    await vi.waitFor(() => {
-      expect(mockGetUserStats).toHaveBeenCalled()
-      expect(mockGetItemStats).toHaveBeenCalled()
-      expect(mockGetStats).toHaveBeenCalled()
-      expect(mockGetDashboard).toHaveBeenCalled()
-    })
+    await new Promise(r => setTimeout(r, 200))
+    expect(mockGetUserStats).toHaveBeenCalled()
+    expect(mockGetItemStats).toHaveBeenCalled()
+    expect(mockGetStats).toHaveBeenCalled()
+    expect(mockGetDashboard).toHaveBeenCalled()
+  })
+
+  it('应该显示待审核用户认证待办', async () => {
+    const wrapper = mountDashboard()
+    await new Promise(r => setTimeout(r, 200))
+    const todoItems = wrapper.findAll('.todo-item')
+    expect(todoItems.length).toBeGreaterThan(0)
+    const titles = todoItems.map(item => item.find('.todo-title').text())
+    expect(titles).toContain('待审核用户认证')
+  })
+
+  it('应该显示最近活动内容', async () => {
+    const wrapper = mountDashboard()
+    await new Promise(r => setTimeout(r, 200))
+    const activities = wrapper.findAll('.activity-item')
+    expect(activities.length).toBeGreaterThan(0)
   })
 })

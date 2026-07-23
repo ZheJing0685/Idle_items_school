@@ -168,7 +168,6 @@ websocket-*-report.md
 sql/idle_items_school.sql
 skills-lock.json
 nul
-.gitignore
 
 # AI agent & MCP tooling
 .od/

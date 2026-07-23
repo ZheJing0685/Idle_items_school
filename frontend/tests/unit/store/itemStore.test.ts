@@ -72,6 +72,7 @@ describe('Item Store', () => {
 
     it('should call API fetchItems', async () => {
       mockGetItems.mockResolvedValue({
+        code: 200,
         data: { content: [{ id: 1, title: '测试物品' }], totalElements: 1 },
       });
 
@@ -84,6 +85,7 @@ describe('Item Store', () => {
 
     it('should set items after fetch', async () => {
       mockGetItems.mockResolvedValue({
+        code: 200,
         data: { content: [{ id: 1, title: '测试物品' }], totalElements: 1 },
       });
 
@@ -105,7 +107,7 @@ describe('Item Store', () => {
       const fetchPromise = store.fetchItems();
       expect(store.loading).toBe(true);
 
-      resolveFetch({ data: { content: [], totalElements: 0 } });
+      resolveFetch({ code: 200, data: { content: [], totalElements: 0 } });
       await fetchPromise;
 
       expect(store.loading).toBe(false);

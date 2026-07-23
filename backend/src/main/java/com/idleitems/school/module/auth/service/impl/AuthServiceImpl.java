@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Date;
@@ -48,6 +49,7 @@ public class AuthServiceImpl implements AuthService {
     private int failCountExpireMinutes;
 
     @Override
+    @Transactional
     public Map<String, Object> login(LoginRequest loginRequest) {
         String username = loginRequest.getUsername();
 

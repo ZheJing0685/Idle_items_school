@@ -179,9 +179,11 @@ onMounted(async () => {
       };
     }
   } catch (error) {
-    console.error('获取碳减排统计失败，使用默认值', error);
+    logger.error('获取碳减排统计失败，使用默认值', error);
   }
 });
+
+defineExpose({ rules: loginRules });
 </script>
 
 <style scoped src="../styles/pages/login.css"></style>

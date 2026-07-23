@@ -168,7 +168,7 @@ const loadChatList = async () => {
       }
     }
   } catch (error) {
-    console.error('加载聊天列表失败:', error);
+    logger.error('加载聊天列表失败:', error);
   }
 };
 
@@ -220,7 +220,7 @@ const loadMessages = async (chatId: string) => {
 
     scrollToBottom();
   } catch (error) {
-    console.error('加载消息失败:', error);
+    logger.error('加载消息失败:', error);
   }
 };
 
@@ -263,7 +263,7 @@ const loadMoreMessages = async () => {
       }
     }
   } catch (error) {
-    console.error('加载历史消息失败:', error);
+    logger.error('加载历史消息失败:', error);
   } finally {
     loadingMore.value = false;
   }
@@ -515,7 +515,7 @@ onMounted(() => {
   loadChatList();
   if (currentUserId.value) {
     wsManager.connect(String(currentUserId.value)).catch((err) => {
-      console.error('WebSocket连接失败:', err);
+      logger.error('WebSocket连接失败:', err);
     });
   }
 

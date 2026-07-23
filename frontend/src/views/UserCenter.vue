@@ -13,14 +13,14 @@
           <div class="profile-school">{{ [userInfo?.schoolName, userInfo?.department].filter(Boolean).join(' · ') || userInfo?.school || '未知学校' }}{{ userInfo?.grade ? ' · ' + userInfo.grade : '' }}</div>
           <div class="profile-bio">{{ userInfo?.bio || '热爱环保的码农，闲置物品换新主人 ♻️' }}</div>
         </div>
-        <a v-if="store.isAdmin" href="/admin" class="admin-btn">
+        <router-link v-if="store.isAdmin" to="/admin" class="admin-btn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
             <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" />
             <path d="M12 8V12" />
             <path d="M12 16H12.01" />
           </svg>
           管理后台
-        </a>
+        </router-link>
       </div>
 
       <!-- Stats -->
@@ -109,7 +109,7 @@ onMounted(async () => {
       stats.rating = res.data.rating ?? 0;
     }
   } catch (error: unknown) {
-    console.error('获取统计数据失败', error);
+    logger.error('获取统计数据失败', error);
   } finally {
     statsLoading.value = false;
   }

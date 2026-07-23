@@ -3,17 +3,19 @@ import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest';
 import { mount } from '@vue/test-utils';
 import { setActivePinia, createPinia } from 'pinia';
 
-// Mock route
-const mockRoute = {
-  query: {},
-  path: '/user',
-};
+const mockRoute = { query: {}, path: '/user', matched: [{ path: '/user', meta: { title: '用户中心' } }] };
 
 vi.mock('vue-router', () => ({
   useRoute: () => mockRoute,
+  useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
+  createRouter: vi.fn(() => ({
+    beforeEach: vi.fn(),
+    afterEach: vi.fn(),
+    isReady: vi.fn(() => Promise.resolve()),
+  })),
+  createWebHistory: vi.fn(),
 }));
 
-// Mock store
 vi.mock('@/store', () => ({
   userStore: () => ({
     user: {
@@ -21,12 +23,19 @@ vi.mock('@/store', () => ({
       nickname: '测试用户',
       username: 'testuser',
       avatar: '',
+      schoolName: '测试大学',
+      department: '计算机学院',
+      grade: '2022级',
+      bio: '热爱环保的码农',
     },
   }),
 }));
 
-// Mock API
-const mockGetStats = vi.fn();
+const mockGetStats = vi.fn().mockResolvedValue({
+  code: 200,
+  data: { totalItems: 10, soldItems: 5, favorites: 3, rating: 95 },
+});
+
 vi.mock('@/api', () => ({
   default: {
     user: {
@@ -35,47 +44,7 @@ vi.mock('@/api', () => ({
   },
 }));
 
-// Mock navigation config
-vi.mock('@/config/navigation', () => ({
-  userMenuConfig: {
-    items: [
-      { name: '我的发布', path: '/user/items', icon: 'package' },
-      { name: '我的订单', path: '/user/orders', icon: 'shopping-bag' },
-      { name: '我的收藏', path: '/user/favorites', icon: 'heart' },
-    ],
-  },
-}));
-
-// Mock child components
-vi.mock('@/components/user/Sidebar.vue', () => ({
-  default: {
-    template: '<div class="sidebar"><slot /></div>',
-    props: ['collapsed', 'menuItems'],
-  },
-}));
-
-vi.mock('@/components/user/UserInfoCard.vue', () => ({
-  default: {
-    template: '<div class="user-info-card"><slot /></div>',
-    props: ['user'],
-  },
-}));
-
-vi.mock('@/components/user/StatsCard.vue', () => ({
-  default: {
-    template: '<div class="stats-card"><slot /></div>',
-    props: ['stats'],
-  },
-}));
-
-vi.mock('@/components/user/QuickActions.vue', () => ({
-  default: {
-    template: '<div class="quick-actions"><slot /></div>',
-    props: ['actions'],
-  },
-}));
-
-let UserCenter: any;
+let UserCenter;
 beforeAll(async () => {
   const mod = await import('@/views/UserCenter.vue');
   UserCenter = mod.default;
@@ -86,60 +55,92 @@ beforeEach(() => {
   vi.clearAllMocks();
   mockGetStats.mockResolvedValue({
     code: 200,
-    data: {
-      totalItems: 10,
-      soldItems: 5,
-      completedDeals: 8,
-      rating: 95,
-    },
+    data: { totalItems: 10, soldItems: 5, favorites: 3, rating: 95 },
   });
 });
 
-const mountUserCenter = () => {
-  return mount(UserCenter, {
-    global: {
-      stubs: {
-        'router-view': { template: '<div class="router-view"><slot /></div>' },
-        'router-link': { template: '<a><slot /></a>' },
-      },
-    },
-  });
-};
-
 describe('UserCenter Component', () => {
-  describe('组件渲染', () => {
-    it('应该渲染用户中心页面', () => {
-      const wrapper = mountUserCenter();
-      expect(wrapper.find('.user-center-page').exists()).toBe(true);
+  it('应该渲染用户中心页面', async () => {
+    const wrapper = mount(UserCenter, {
+      global: {
+        stubs: {
+          'router-link': { template: '<a><slot /></a>' },
+          'router-view': { template: '<div class="router-view"><slot /></div>' },
+          Transition: false,
+        },
+      },
     });
-
-    it('应该渲染用户信息区域', () => {
-      const wrapper = mountUserCenter();
-      expect(wrapper.find('.profile-header').exists()).toBe(true);
-    });
-
-    it('应该渲染统计区域', () => {
-      const wrapper = mountUserCenter();
-      expect(wrapper.find('.profile-stats').exists()).toBe(true);
-    });
-
-    it('应该渲染标签页导航', () => {
-      const wrapper = mountUserCenter();
-      expect(wrapper.find('.profile-tabs').exists()).toBe(true);
-    });
+    await new Promise(r => setTimeout(r, 100));
+    expect(wrapper.find('.user-center-page').exists()).toBe(true);
   });
 
-  describe('组件状态', () => {
-    it('应该有userInfo计算属性', () => {
-      const wrapper = mountUserCenter();
-      expect(wrapper.vm.userInfo).toBeDefined();
+  it('应该渲染用户信息区域', async () => {
+    const wrapper = mount(UserCenter, {
+      global: {
+        stubs: {
+          'router-link': { template: '<a><slot /></a>' },
+          'router-view': { template: '<div class="router-view"><slot /></div>' },
+          Transition: false,
+        },
+      },
     });
+    await new Promise(r => setTimeout(r, 100));
+    expect(wrapper.find('.profile-header').exists()).toBe(true);
   });
 
-  describe('数据加载', () => {
-    it('应该在挂载时加载统计数据', async () => {
-      mountUserCenter();
-      expect(mockGetStats).toHaveBeenCalled();
+  it('应该渲染统计区域', async () => {
+    const wrapper = mount(UserCenter, {
+      global: {
+        stubs: {
+          'router-link': { template: '<a><slot /></a>' },
+          'router-view': { template: '<div class="router-view"><slot /></div>' },
+          Transition: false,
+        },
+      },
     });
+    await new Promise(r => setTimeout(r, 100));
+    expect(wrapper.find('.profile-stats').exists()).toBe(true);
+  });
+
+  it('应该渲染标签页导航', async () => {
+    const wrapper = mount(UserCenter, {
+      global: {
+        stubs: {
+          'router-link': { template: '<a><slot /></a>' },
+          'router-view': { template: '<div class="router-view"><slot /></div>' },
+          Transition: false,
+        },
+      },
+    });
+    await new Promise(r => setTimeout(r, 100));
+    expect(wrapper.find('.profile-tabs').exists()).toBe(true);
+  });
+
+  it('应该有userInfo计算属性', async () => {
+    const wrapper = mount(UserCenter, {
+      global: {
+        stubs: {
+          'router-link': { template: '<a><slot /></a>' },
+          'router-view': { template: '<div class="router-view"><slot /></div>' },
+          Transition: false,
+        },
+      },
+    });
+    await new Promise(r => setTimeout(r, 50));
+    expect(wrapper.vm.userInfo).toBeDefined();
+  });
+
+  it('应该在挂载时加载统计数据', async () => {
+    mount(UserCenter, {
+      global: {
+        stubs: {
+          'router-link': { template: '<a><slot /></a>' },
+          'router-view': { template: '<div class="router-view"><slot /></div>' },
+          Transition: false,
+        },
+      },
+    });
+    await new Promise(r => setTimeout(r, 100));
+    expect(mockGetStats).toHaveBeenCalled();
   });
 });

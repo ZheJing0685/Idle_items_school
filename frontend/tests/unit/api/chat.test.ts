@@ -132,7 +132,7 @@ describe('Chat API', () => {
       const result = await chatApi.sendMessage(1, 2, '你好');
 
       expect(mockPost).toHaveBeenCalledWith('/chats/1/messages', null, {
-        params: { receiverId: 2, content: '你好' },
+        params: { receiverId: 2, content: '你好', messageType: 'TEXT' },
       });
       expect(result).toEqual(mockResponse);
     });
@@ -144,7 +144,7 @@ describe('Chat API', () => {
       await chatApi.sendMessage('chat-abc', 'receiver-abc', '测试消息');
 
       expect(mockPost).toHaveBeenCalledWith('/chats/chat-abc/messages', null, {
-        params: { receiverId: 'receiver-abc', content: '测试消息' },
+        params: { receiverId: 'receiver-abc', content: '测试消息', messageType: 'TEXT' },
       });
     });
 

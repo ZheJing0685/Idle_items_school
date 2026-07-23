@@ -13,13 +13,17 @@ vi.mock('element-plus', () => ({
   },
 }));
 
-// Mock router
+// Mock router - use importOriginal to keep createRouter, createWebHistory etc.
 const mockPush = vi.fn();
-vi.mock('vue-router', () => ({
-  useRouter: () => ({
-    push: mockPush,
-  }),
-}));
+vi.mock('vue-router', async (importOriginal) => {
+  const actual = await importOriginal() as any;
+  return {
+    ...actual,
+    useRouter: () => ({
+      push: mockPush,
+    }),
+  };
+});
 
 // Mock store
 const { mockLogin } = vi.hoisted(() => ({

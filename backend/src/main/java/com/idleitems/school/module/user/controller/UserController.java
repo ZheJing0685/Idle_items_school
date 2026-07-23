@@ -15,6 +15,7 @@ import com.idleitems.school.module.user.entity.User;
 import com.idleitems.school.module.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -43,7 +44,7 @@ public class UserController {
     @PutMapping(ApiPaths.User.UPDATE_PATH)
     public Result<UserDTO> updateProfile(
             @RequestAttribute("userId") Long userId,
-            @RequestBody UpdateProfileRequest request) {
+            @Valid @RequestBody UpdateProfileRequest request) {
         User updatedUser = userService.updateUser(userId, request);
         return Result.success("更新成功", UserDTO.fromEntity(updatedUser));
     }

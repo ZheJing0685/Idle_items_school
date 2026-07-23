@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -156,13 +157,14 @@ class AdminCategoryControllerTest {
     @Test
     @DisplayName("测试批量启用分类")
     void testBatchEnableCategories() throws Exception {
-        Category category = buildCategory();
-        when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
+        when(categoryCommandService.toggleCategoryStatus(any(), any(), any()))
+                .thenReturn(buildCategory());
+        doNothing().when(categoryCommandService).batchEnableCategories(any());
 
         mockMvc.perform(post("/api/admin/categories/batch/enable")
                         .requestAttr("userId", 99L)
                         .contentType("application/json")
-                        .content("[1]"))
+                        .content("{\"ids\": [1]}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200));
     }

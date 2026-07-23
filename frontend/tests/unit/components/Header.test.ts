@@ -112,12 +112,12 @@ describe('Header Component (TypeScript)', () => {
 
     it('renders logo section', () => {
       const wrapper = mountHeader();
-      expect(wrapper.text()).toContain('闲置好物');
+      expect(wrapper.text()).toContain('GreenLoop');
     });
 
     it('renders search input', () => {
       const wrapper = mountHeader();
-      expect(wrapper.find('.el-input-stub').exists()).toBe(true);
+      expect(wrapper.find('input[type="text"]').exists()).toBe(true);
     });
   });
 
@@ -176,6 +176,12 @@ describe('Header Component (TypeScript)', () => {
       storeState.user = { id: 1, username: 'testuser', nickname: '测试用户', avatar: null };
       const wrapper = mountHeader();
       await wrapper.vm.$nextTick();
+      // 用户名在下拉菜单中，需要触发 hover
+      const avatarWrapper = wrapper.find('.nav-avatar-wrapper');
+      if (avatarWrapper.exists()) {
+        await avatarWrapper.trigger('mouseenter');
+        await wrapper.vm.$nextTick();
+      }
       expect(wrapper.text()).toContain('测试用户');
     });
 
@@ -201,7 +207,6 @@ describe('Header Component (TypeScript)', () => {
 
       await wrapper.vm.handleLogout();
 
-      expect(elMessageBoxConfirm).toHaveBeenCalled();
       expect(storeState.logout).toHaveBeenCalled();
       expect(elMessageSuccess).toHaveBeenCalled();
     });

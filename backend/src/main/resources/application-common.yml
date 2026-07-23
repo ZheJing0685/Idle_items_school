@@ -26,6 +26,7 @@ spring:
 # 文件上传默认配置
 file:
   max-size: 5MB
+  chunk-size: 10485760
   allowed-types: jpg,jpeg,png,webp
   allowed-content-types: image/jpeg,image/png,image/webp
 

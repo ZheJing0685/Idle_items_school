@@ -198,7 +198,7 @@ const handleLogout = async () => {
     router.push('/');
     ElMessage.success('已退出登录');
   } catch (error) {
-    console.error('退出登录失败', error);
+    logger.error('退出登录失败', error);
     router.push('/');
   }
 };

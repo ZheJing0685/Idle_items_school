@@ -194,7 +194,6 @@
                     <compilerArgs>
                         <arg>-Xlint:all</arg>
                         <arg>-J-Dfile.encoding=UTF-8</arg>
-                        <arg>-Xlint:-deprecation</arg>
                         <arg>-Xlint:-processing</arg>
                     </compilerArgs>
                 </configuration>

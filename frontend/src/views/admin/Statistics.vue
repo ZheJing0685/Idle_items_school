@@ -229,7 +229,7 @@ const fetchDashboard = async () => {
       ElMessage.error(response.message || '获取统计数据失败');
     }
   } catch (error: any) {
-    console.error('Error fetching dashboard:', error);
+    logger.error('Error fetching dashboard:', error);
     if (!error.response) {
       ElMessage.error('网络连接失败，请检查网络');
     }

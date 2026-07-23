@@ -27,7 +27,7 @@ export default defineConfig({
       name: 'chromium',
       use: {
         ...devices['Desktop Chrome'],
-        executablePath: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
+        executablePath: process.env.CI ? undefined : 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
       }
     },
     // Firefox

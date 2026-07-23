@@ -342,6 +342,30 @@ public class CategoryCommandService {
         }
     }
 
+    @Transactional
+    public void batchEnableCategories(List<Long> categoryIds) {
+        for (Long id : categoryIds) {
+            Category category = categoryRepository.findById(id.longValue())
+                    .orElseThrow(() -> new IllegalArgumentException("分类不存在"));
+            category.setStatus(true);
+            categoryRepository.save(category);
+        }
+        clearCategoryCache();
+        publishCategoryChanged(null, "BATCH_ENABLE");
+    }
+
+    @Transactional
+    public void batchDisableCategories(List<Long> categoryIds) {
+        for (Long id : categoryIds) {
+            Category category = categoryRepository.findById(id.longValue())
+                    .orElseThrow(() -> new IllegalArgumentException("分类不存在"));
+            category.setStatus(false);
+            categoryRepository.save(category);
+        }
+        clearCategoryCache();
+        publishCategoryChanged(null, "BATCH_DISABLE");
+    }
+
     private void recordChangeLog(Category category, CategoryChangeLog.ActionType action, Long operatorId, Map<String, Object> changes) {
         try {
             CategoryChangeLog changeLog = new CategoryChangeLog();

@@ -29,7 +29,7 @@ spring:
       database: 0
 
 jwt:
-  secret: "${JWT_SECRET:dGVzdHNlY3JldGtleWZvcnRlc3RpbmdwdXJwb3Nlc29ubHk=}"
+  secret: "${JWT_SECRET}"
   expiration: "${JWT_EXPIRATION:3600000}"
   refresh-expiration: "${JWT_REFRESH_EXPIRATION:604800000}"
 
@@ -46,4 +46,4 @@ rate-limit:
 # 加密配置
 app:
   encryption:
-    secret-key: "${ENCRYPTION_SECRET_KEY:testSecretKeyForEncryptionOnly12345678}"
+    secret-key: "${ENCRYPTION_SECRET_KEY}"

@@ -27,12 +27,14 @@ export const useItemStore = defineStore('item', () => {
         deliveryMethod: params.deliveryMethod || undefined,
         keyword: params.keyword || undefined,
       });
-      items.value = response.data.content;
-      total.value = response.data.totalElements;
+      if (response?.code === 200 && response.data) {
+        items.value = response.data.content;
+        total.value = response.data.totalElements;
+      }
       return response;
     } catch (error) {
       ErrorHandler.handle(error, { silent: true });
-      throw error;
+      return null;
     } finally {
       loading.value = false;
     }
@@ -41,7 +43,7 @@ export const useItemStore = defineStore('item', () => {
   const fetchHotItems = async () => {
     try {
       const response: any = await api.item.getHotItems();
-      if (response.code === 200) {
+      if (response?.code === 200 && response.data) {
         hotItems.value = response.data;
       }
       return response;
@@ -60,14 +62,14 @@ export const useItemStore = defineStore('item', () => {
     loading.value = true;
     try {
       const response: any = await api.item.searchItems(keyword, page, size, sortBy);
-      if (response.code === 200) {
+      if (response?.code === 200 && response.data) {
         searchResults.value = response.data.content;
         searchTotal.value = response.data.totalElements;
       }
       return response;
     } catch (error) {
       ErrorHandler.handle(error, { silent: true });
-      throw error;
+      return null;
     } finally {
       loading.value = false;
     }
@@ -76,13 +78,13 @@ export const useItemStore = defineStore('item', () => {
   const getItem = async (id: number | string) => {
     try {
       const response: any = await api.item.getItem(id);
-      if (response.code === 200) {
+      if (response?.code === 200 && response.data) {
         currentItem.value = response.data;
       }
       return response;
     } catch (error) {
       ErrorHandler.handle(error, { silent: true });
-      throw error;
+      return null;
     }
   };
 
@@ -96,7 +98,7 @@ export const useItemStore = defineStore('item', () => {
       return response;
     } catch (error) {
       ErrorHandler.handle(error, { silent: true });
-      throw error;
+      return null;
     } finally {
       loading.value = false;
     }
@@ -113,7 +115,7 @@ export const useItemStore = defineStore('item', () => {
       return response;
     } catch (error) {
       ErrorHandler.handle(error, { silent: true });
-      throw error;
+      return null;
     } finally {
       loading.value = false;
     }
@@ -130,7 +132,7 @@ export const useItemStore = defineStore('item', () => {
       return response;
     } catch (error) {
       ErrorHandler.handle(error, { silent: true });
-      throw error;
+      return null;
     } finally {
       loading.value = false;
     }
@@ -140,14 +142,14 @@ export const useItemStore = defineStore('item', () => {
     loading.value = true;
     try {
       const response: any = await api.user.getItems(status, page, size);
-      if (response.code === 200) {
+      if (response?.code === 200 && response.data) {
         userItems.value = response.data.content;
         userItemsTotal.value = response.data.totalElements;
       }
       return response;
     } catch (error) {
       ErrorHandler.handle(error, { silent: true });
-      throw error;
+      return null;
     } finally {
       loading.value = false;
     }
@@ -160,7 +162,7 @@ export const useItemStore = defineStore('item', () => {
       return response;
     } catch (error) {
       ErrorHandler.handle(error, { silent: true });
-      throw error;
+      return null;
     } finally {
       loading.value = false;
     }

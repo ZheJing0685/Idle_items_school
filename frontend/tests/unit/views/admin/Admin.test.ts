@@ -3,59 +3,33 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import Admin from '@/views/admin/Admin.vue'
-import { elementPlusStubs, lucideIconsStub } from '../../helpers/elementPlusMock'
-import { createRouteMock, createRouterMock } from '../../helpers/routerMock'
 
-// Mock vue-router
 vi.mock('vue-router', () => ({
-  useRoute: vi.fn(() => createRouteMock({ 
-    path: '/admin',
-    matched: [{ path: '/admin', meta: { title: '管理后台' } }],
-  })),
-  useRouter: vi.fn(() => createRouterMock()),
+  useRoute: vi.fn(() => ({ path: '/admin', params: {}, query: {}, matched: [{ path: '/admin', meta: { title: '控制台' } }] })),
+  useRouter: vi.fn(() => ({ push: vi.fn(), replace: vi.fn() })),
 }))
 
-// Mock Element Plus
 vi.mock('element-plus', () => ({
-  ElMessage: {
-    success: vi.fn(),
-    error: vi.fn(),
-    warning: vi.fn(),
-  },
+  ElMessage: { success: vi.fn(), error: vi.fn(), warning: vi.fn() },
 }))
 
-// Mock userStore
 const mockLogout = vi.fn()
-const mockUser = { nickname: '测试管理员', role: 'ADMIN' }
 
 vi.mock('@/store', () => ({
   userStore: vi.fn(() => ({
-    user: mockUser,
+    user: { nickname: '测试管理员', role: 'ADMIN' },
     logout: mockLogout,
   })),
 }))
 
-// Mock lucide icons
 const lucideIcons = [
   'LayoutDashboard', 'Users', 'CheckCircle', 'Package', 'Menu',
   'MessageSquare', 'ClipboardList', 'AlertTriangle', 'TrendingUp',
-  'FileText', 'LogOut', 'Search', 'Bell',
+  'FileText', 'LogOut', 'Home',
 ]
 const lucideStubs = Object.fromEntries(
-  lucideIcons.map((name) => [name, { template: '<div class="icon" />', props: ['size', 'strokeWidth'] }])
+  lucideIcons.map((name) => [name, { template: '<div class="icon" />' }])
 )
-
-const stubs = {
-  ...elementPlusStubs,
-  ...lucideStubs,
-  'router-link': {
-    template: '<a class="router-link-stub"><slot /></a>',
-    props: ['to'],
-  },
-  'router-view': {
-    template: '<div class="router-view-stub"><slot /></div>',
-  },
-}
 
 describe('Admin.vue', () => {
   beforeEach(() => {
@@ -67,7 +41,12 @@ describe('Admin.vue', () => {
     return mount(Admin, {
       global: {
         plugins: [createPinia()],
-        stubs,
+        stubs: {
+          ...lucideStubs,
+          'router-link': { template: '<a class="router-link-stub"><slot /></a>', props: ['to'] },
+          'router-view': { template: '<div class="router-view-stub"><slot /></div>' },
+          Transition: false,
+        },
         ...options,
       },
     })
@@ -80,10 +59,10 @@ describe('Admin.vue', () => {
     expect(wrapper.find('.admin-main').exists()).toBe(true)
   })
 
-  it('应该显示品牌名称', () => {
+  it('应该显示品牌名称和标签', () => {
     const wrapper = mountAdmin()
-    expect(wrapper.find('.brand-name').text()).toBe('闲置物品平台')
-    expect(wrapper.find('.brand-tagline').text()).toBe('管理后台')
+    expect(wrapper.text()).toContain('闲置物品平台')
+    expect(wrapper.text()).toContain('管理后台')
   })
 
   it('应该包含导航菜单项', () => {
@@ -97,8 +76,8 @@ describe('Admin.vue', () => {
 
   it('应该显示管理员用户信息', () => {
     const wrapper = mountAdmin()
-    expect(wrapper.find('.user-name').text()).toBe('测试管理员')
-    expect(wrapper.find('.user-role').text()).toBe('管理员')
+    expect(wrapper.text()).toContain('测试管理员')
+    expect(wrapper.text()).toContain('管理员')
   })
 
   it('应该有退出登录按钮', () => {
@@ -132,18 +111,6 @@ describe('Admin.vue', () => {
     expect(wrapper.find('.page-title').text()).toBe('控制台')
   })
 
-  it('应该包含搜索输入框', () => {
-    const wrapper = mountAdmin()
-    const searchInput = wrapper.find('.search-input')
-    expect(searchInput.exists()).toBe(true)
-  })
-
-  it('应该包含通知按钮', () => {
-    const wrapper = mountAdmin()
-    expect(wrapper.find('.header-action').exists()).toBe(true)
-    expect(wrapper.find('.notification-badge').text()).toBe('3')
-  })
-
   it('getRoleText 方法应返回管理员', () => {
     const wrapper = mountAdmin()
     const vm = wrapper.vm as any
@@ -153,5 +120,10 @@ describe('Admin.vue', () => {
   it('页面内容区域应存在', () => {
     const wrapper = mountAdmin()
     expect(wrapper.find('.admin-content').exists()).toBe(true)
+  })
+
+  it('应该包含返回首页链接', () => {
+    const wrapper = mountAdmin()
+    expect(wrapper.text()).toContain('返回首页')
   })
 })

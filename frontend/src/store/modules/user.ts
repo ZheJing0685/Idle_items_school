@@ -37,7 +37,7 @@ export const useUserStore = defineStore('user', () => {
       throw new Error(response.message || '登录失败');
     } catch (error: any) {
       ErrorHandler.handle(error, { silent: true });
-      throw error;
+      return null;
     } finally {
       loading.value = false;
     }
@@ -57,7 +57,7 @@ export const useUserStore = defineStore('user', () => {
       throw new Error(response.message || '注册失败');
     } catch (error: any) {
       ErrorHandler.handle(error, { silent: true });
-      throw error;
+      return null;
     } finally {
       loading.value = false;
     }
@@ -133,7 +133,7 @@ export const useUserStore = defineStore('user', () => {
       throw new Error(response.message || '更新失败');
     } catch (error: any) {
       ErrorHandler.handle(error, { silent: true });
-      throw error;
+      return null;
     }
   };
 

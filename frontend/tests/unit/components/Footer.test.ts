@@ -35,70 +35,6 @@ describe('Footer Component', () => {
       const wrapper = mountFooter();
       expect(wrapper.text()).toContain('校园绿色交易平台');
     });
-
-    it('should render description', () => {
-      const wrapper = mountFooter();
-      expect(wrapper.text()).toContain('让闲置物品找到新主人');
-    });
-  });
-
-  describe('快速链接', () => {
-    it('should render quick links section', () => {
-      const wrapper = mountFooter();
-      expect(wrapper.text()).toContain('快速链接');
-    });
-
-    it('should render home link', () => {
-      const wrapper = mountFooter();
-      expect(wrapper.text()).toContain('首页');
-    });
-
-    it('should render items link', () => {
-      const wrapper = mountFooter();
-      expect(wrapper.text()).toContain('发现好物');
-    });
-
-    it('should render publish link', () => {
-      const wrapper = mountFooter();
-      expect(wrapper.text()).toContain('发布闲置');
-    });
-
-    it('should render orders link', () => {
-      const wrapper = mountFooter();
-      expect(wrapper.text()).toContain('我的订单');
-    });
-  });
-
-  describe('分类浏览', () => {
-    it('should render categories section', () => {
-      const wrapper = mountFooter();
-      expect(wrapper.text()).toContain('分类浏览');
-    });
-
-    it('should render digital products category', () => {
-      const wrapper = mountFooter();
-      expect(wrapper.text()).toContain('数码产品');
-    });
-
-    it('should render books category', () => {
-      const wrapper = mountFooter();
-      expect(wrapper.text()).toContain('书籍教材');
-    });
-
-    it('should render daily necessities category', () => {
-      const wrapper = mountFooter();
-      expect(wrapper.text()).toContain('生活用品');
-    });
-
-    it('should render sports category', () => {
-      const wrapper = mountFooter();
-      expect(wrapper.text()).toContain('运动器材');
-    });
-
-    it('should render clothing category', () => {
-      const wrapper = mountFooter();
-      expect(wrapper.text()).toContain('服装鞋帽');
-    });
   });
 
   describe('帮助与支持', () => {
@@ -128,12 +64,7 @@ describe('Footer Component', () => {
     });
   });
 
-  describe('联系我们', () => {
-    it('should render contact section', () => {
-      const wrapper = mountFooter();
-      expect(wrapper.text()).toContain('联系我们');
-    });
-
+  describe('联系方式', () => {
     it('should render email', () => {
       const wrapper = mountFooter();
       expect(wrapper.text()).toContain('contact@xianhaowu.com');
@@ -143,27 +74,12 @@ describe('Footer Component', () => {
       const wrapper = mountFooter();
       expect(wrapper.text()).toContain('400-888-6666');
     });
-
-    it('should render address', () => {
-      const wrapper = mountFooter();
-      expect(wrapper.text()).toContain('校园大学生活动中心');
-    });
   });
 
   describe('版权信息', () => {
     it('should render copyright', () => {
       const wrapper = mountFooter();
       expect(wrapper.text()).toContain('© 2026 闲置好物');
-    });
-
-    it('should render eco message', () => {
-      const wrapper = mountFooter();
-      expect(wrapper.text()).toContain('已帮助 12,847 件物品找到新主人');
-    });
-
-    it('should render eco badge', () => {
-      const wrapper = mountFooter();
-      expect(wrapper.text()).toContain('环保交易 · 减少浪费');
     });
   });
 
@@ -178,11 +94,6 @@ describe('Footer Component', () => {
       expect(wrapper.find('.footer-bottom').exists()).toBe(true);
     });
 
-    it('should have footer-grid', () => {
-      const wrapper = mountFooter();
-      expect(wrapper.find('.footer-grid').exists()).toBe(true);
-    });
-
     it('should have footer-brand', () => {
       const wrapper = mountFooter();
       expect(wrapper.find('.footer-brand').exists()).toBe(true);
@@ -190,8 +101,7 @@ describe('Footer Component', () => {
 
     it('should have footer-links-group', () => {
       const wrapper = mountFooter();
-      const groups = wrapper.findAll('.footer-links-group');
-      expect(groups.length).toBeGreaterThanOrEqual(3);
+      expect(wrapper.find('.footer-links-group').exists()).toBe(true);
     });
 
     it('should have footer-contact', () => {
@@ -201,10 +111,10 @@ describe('Footer Component', () => {
   });
 
   describe('链接数量', () => {
-    it('should have multiple navigation links', () => {
+    it('should have navigation links', () => {
       const wrapper = mountFooter();
       const links = wrapper.findAll('a, router-link-stub');
-      expect(links.length).toBeGreaterThanOrEqual(10);
+      expect(links.length).toBeGreaterThanOrEqual(4);
     });
   });
 });

@@ -6,10 +6,13 @@ on:
     paths:
       - 'backend/**'
       - '.github/workflows/backend-tests.yml'
+      - '.github/workflows/test.yml'
   pull_request:
     branches: [main, develop]
     paths:
       - 'backend/**'
+      - '.github/workflows/backend-tests.yml'
+      - '.github/workflows/test.yml'
 
 jobs:
   unit-tests:
@@ -113,6 +116,8 @@ jobs:
       
       - name: Run integration tests
         run: mvn test -Dtest="*IntegrationTest"
+        env:
+          JWT_SECRET: dGVzdHNlY3JldGtleWZvcnRlc3RpbmdwdXJwb3Nlc29ubHk=
       
       - name: Upload test results
         if: always()

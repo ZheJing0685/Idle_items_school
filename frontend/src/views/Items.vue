@@ -470,7 +470,7 @@ const loadItems = async () => {
     items.value = store.items || [];
     total.value = store.total || 0;
   } catch (error) {
-    console.error('获取物品失败', error);
+    logger.error('获取物品失败', error);
   } finally {
     loadingItems.value = false;
   }

@@ -147,7 +147,7 @@ const mountPublish = () => {
       stubs: {
         'router-link': { template: '<a><slot /></a>' },
         'el-form': { template: '<form><slot /></form>', props: ['model', 'rules', 'ref'] },
-        'el-form-item': { template: '<div><slot /></div>', props: ['label', 'prop'] },
+        'el-form-item': { template: '<div><label>{{ label }}</label><slot /></div>', props: ['label', 'prop'] },
         'el-input': { template: '<input />', props: ['modelValue', 'placeholder', 'type', 'rows', 'disabled'] },
         'el-select': { template: '<div />', props: ['modelValue', 'placeholder'] },
         'el-option': { template: '<div />', props: ['label', 'value'] },

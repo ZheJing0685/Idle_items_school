@@ -264,7 +264,7 @@ const fetchStats = async () => {
       stats.value.amountToday = orderData.todayAmount || 0;
     }
   } catch (error) {
-    console.error('Error fetching stats:', error);
+    logger.error('Error fetching stats:', error);
     ElMessage.error('获取统计数据失败');
   } finally {
     loading.value = false;

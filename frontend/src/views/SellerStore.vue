@@ -361,7 +361,7 @@ async function loadProfile() {
       error.value = res.message || '卖家不存在';
     }
   } catch (err: unknown) {
-    console.error('加载卖家信息失败', err);
+    logger.error('加载卖家信息失败', err);
     error.value = '加载卖家信息失败';
   } finally {
     loading.value = false;
@@ -380,7 +380,7 @@ async function loadItems(page = 1) {
       items.value = [];
     }
   } catch (err) {
-    console.error('加载商品列表失败', err);
+    logger.error('加载商品列表失败', err);
     items.value = [];
   } finally {
     itemsLoading.value = false;
@@ -399,7 +399,7 @@ async function loadReviews(page = 1) {
       reviews.value = [];
     }
   } catch (err) {
-    console.error('加载评价列表失败', err);
+    logger.error('加载评价列表失败', err);
     reviews.value = [];
   } finally {
     reviewsLoading.value = false;
@@ -424,7 +424,7 @@ async function contactSeller() {
       ElMessage.error('创建聊天失败');
     }
   } catch (err: unknown) {
-    console.error('联系卖家失败', err);
+    logger.error('联系卖家失败', err);
     const apiErr = err as { response?: { data?: { message?: string } } };
     ElMessage.error(apiErr.response?.data?.message || '联系卖家失败，请稍后再试');
   }

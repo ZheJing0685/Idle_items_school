@@ -6,6 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
@@ -20,6 +22,7 @@ public class AdminLogService {
     private final AdminLogRepository adminLogRepository;
     private final ObjectMapper objectMapper;
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void logOperation(Long adminId, String operation, String targetType, Long targetId, Map<String, Object> details, HttpServletRequest request) {
         AdminLog log = new AdminLog();
         log.setAdminId(adminId);

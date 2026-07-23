@@ -71,7 +71,7 @@ const loadNotifications = async () => {
     notifications.value = res.data.content || [];
     total.value = res.data.totalElements || 0;
   } catch (error) {
-    console.error('加载通知失败:', error);
+    logger.error('加载通知失败:', error);
   } finally {
     loading.value = false;
   }
@@ -83,7 +83,7 @@ const markAsRead = async (id: string) => {
     const item = notifications.value.find(n => n.id === id);
     if (item) item.isRead = true;
   } catch (error) {
-    console.error('标记已读失败:', error);
+    logger.error('标记已读失败:', error);
   }
 };
 
@@ -128,7 +128,7 @@ onMounted(() => {
   const userId = userStore.user?.id;
   if (userId) {
     wsManager.connect(String(userId)).catch((err) => {
-      console.error('WebSocket连接失败:', err);
+      logger.error('WebSocket连接失败:', err);
     });
   }
 });

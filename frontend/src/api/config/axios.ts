@@ -97,8 +97,34 @@ instance.interceptors.response.use(
   },
 );
 
-/** 空实现：认证状态现在只以 /auth/me 的服务端校验结果为准，此处保留仅为兼容调用方签名。 */
-export function clearAuthState(): void {}
+/** 
+ * 清除客户端认证相关的所有本地状态。
+ * 注意：HttpOnly Cookie 无法从 JS 端清除，由后端 /auth/logout 接口负责。
+ */
+export function clearAuthState(): void {
+  // 清除重定向路径缓存
+  localStorage.removeItem('redirectPath');
+
+  // 清除应用命名空间下的所有缓存数据
+  try {
+    const keys = Object.keys(localStorage);
+    const namespace = 'app';
+    keys.forEach((key) => {
+      if (key.startsWith(`${namespace}:`)) {
+        localStorage.removeItem(key);
+      }
+    });
+  } catch {
+    // localStorage 可能在隐私模式下不可用
+  }
+
+  // 清除 sessionStorage 中的所有数据
+  try {
+    sessionStorage.clear();
+  } catch {
+    // sessionStorage 可能在隐私模式下不可用
+  }
+}
 
 // 兼容旧调用：认证状态现在只以 /auth/me 的服务端校验结果为准。
 export const clearCookies = clearAuthState;
