@@ -236,6 +236,7 @@ import api from '../api';
 import EmptyState from '../components/user/EmptyState.vue';
 import { useCategoryStore } from '../store/category';
 import type { SellerProfile as SellerProfileType, ReviewItem, ItemSummary } from '../types/api';
+import { logger } from '@/utils/logger';
 
 const route = useRoute();
 const router = useRouter();

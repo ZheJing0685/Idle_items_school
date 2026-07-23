@@ -117,6 +117,7 @@ import { MessageSquare, Image as ImageIcon, Video as VideoIcon } from 'lucide-vu
 import { useUserStore } from '@/store';
 import { wsManager } from '@/utils/websocket';
 import chatApi from '@/api/services/chat';
+import { logger } from '@/utils/logger';
 
 const route = useRoute();
 const userStore = useUserStore();

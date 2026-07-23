@@ -102,6 +102,7 @@ import { ElMessage, type FormInstance } from 'element-plus';
 import { userStore } from '../store';
 import api from '../api';
 import type { CarbonStats } from '../api/services/carbon';
+import { logger } from '@/utils/logger';
 
 const router = useRouter();
 const loading = ref(false);

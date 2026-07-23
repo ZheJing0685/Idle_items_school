@@ -74,6 +74,7 @@ import api from '../api';
 
 // Import child components
 import BreadcrumbNav from '../components/common/BreadcrumbNav.vue';
+import { logger } from '@/utils/logger';
 
 const store = userStore();
 const route = useRoute();

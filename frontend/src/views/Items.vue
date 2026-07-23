@@ -297,6 +297,7 @@ import { useRoute } from 'vue-router';
 import { useItemStore } from '../store';
 import { useCategoryStore } from '../store/category';
 import { getCategoryColorById, getTimeAgo } from '../utils/item-helper';
+import { logger } from '@/utils/logger';
 
 const route = useRoute();
 const store = useItemStore();

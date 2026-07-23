@@ -168,6 +168,7 @@ import OrderStatusPie from './components/OrderStatusPie.vue';
 import { RefreshCw } from 'lucide-vue-next';
 import api from '../../api';
 import { useDictStore } from '../../store/dict.js';
+import { logger } from '@/utils/logger';
 
 const dictStore = useDictStore();
 const loading = ref(false);

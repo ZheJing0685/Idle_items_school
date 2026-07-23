@@ -2,6 +2,7 @@ import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import { nextTick } from 'vue';
 import { userStore } from '../store';
 import { ElMessage } from 'element-plus';
+import { logger } from '@/utils/logger';
 
 function isValidRedirectPath(path: string): boolean {
   if (!path) return false;

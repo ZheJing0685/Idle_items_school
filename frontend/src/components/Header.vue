@@ -144,6 +144,7 @@ import { ElMessage } from 'element-plus';
 import { userStore } from '../store';
 import { useDarkMode } from '../composables/useDarkMode';
 import { Leaf, Search, Bell, MessageSquare, House, Compass, Plus, User, LogOut, Heart, ClipboardList, Package, Moon, Sun } from 'lucide-vue-next';
+import { logger } from '@/utils/logger';
 
 const router = useRouter();
 const store = userStore();

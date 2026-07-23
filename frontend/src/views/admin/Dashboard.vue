@@ -207,6 +207,7 @@ import { ref, onMounted } from 'vue';
 import { ElMessage } from 'element-plus';
 import api from '../../api';
 import { Users, Package, ClipboardList, DollarSign, CheckCircle, ChevronRight, Menu, MessageSquare, TrendingUp, FileText } from 'lucide-vue-next';
+import { logger } from '@/utils/logger';
 
 const loading = ref(false);
 const todoLoading = ref(false);

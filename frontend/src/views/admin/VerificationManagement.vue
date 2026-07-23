@@ -405,6 +405,7 @@ import {
 import api from '../../api';
 import { useDictStore } from '../../store/dict.js';
 import { Users, Clock, CheckCircle, XCircle, RefreshCw, Search, Eye } from 'lucide-vue-next';
+import { logger } from '@/utils/logger';
 
 const dictStore = useDictStore();
 const searchKeyword = ref('');
