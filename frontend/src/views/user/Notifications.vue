@@ -48,6 +48,7 @@ import { useRouter } from 'vue-router';
 import notificationApi from '@/api/services/notification';
 import { wsManager } from '@/utils/websocket';
 import { useUserStore } from '@/store';
+import { logger } from '@/utils/logger';
 import PageHeader from '@/components/user/PageHeader.vue';
 import NotificationCard from '@/components/user/NotificationCard.vue';
 import EmptyState from '@/components/user/EmptyState.vue';

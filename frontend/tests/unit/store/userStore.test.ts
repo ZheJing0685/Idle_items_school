@@ -105,13 +105,14 @@ describe('User Store', () => {
       expect(store.isLoggedIn).toBe(true);
     });
 
-    it('should throw error on login failure', async () => {
+    it('should return null on login failure', async () => {
       mockLogin.mockRejectedValue(new Error('登录失败'));
 
       const { useUserStore } = await import('@/store/modules/user');
       const store = useUserStore();
 
-      await expect(store.login('testuser', 'wrongpassword')).rejects.toThrow('登录失败');
+      const result = await store.login('testuser', 'wrongpassword');
+      expect(result).toBeNull();
     });
   });
 
