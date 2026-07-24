@@ -39,7 +39,7 @@ test.describe('购买完整流程 E2E 测试', () => {
     await expect(page).toHaveURL(/\/items/);
   });
 
-  test('物品列表页显示物品), async ({ page }) => {
+  test('物品列表页显示物品', async ({ page }) => {
     await page.goto('/items', { timeout: 60000 });
     await page.waitForLoadState('domcontentloaded');
 
@@ -47,7 +47,7 @@ test.describe('购买完整流程 E2E 测试', () => {
     await expect(items.first()).toBeVisible();
   });
 
-  test('点击物品进入详详情), async ({ page }) => {
+  test('点击物品进入详详情)', async ({ page }) => {
     await page.goto('/items', { timeout: 60000 });
     await page.waitForLoadState('domcontentloaded');
 
@@ -58,7 +58,7 @@ test.describe('购买完整流程 E2E 测试', () => {
     await expect(page).toHaveURL(/\/item\/\d+/);
   });
 
-  test('物品详情页显示完整信息), async ({ page }) => {
+  test('物品详情页显示完整信息)', async ({ page }) => {
     await page.goto('/items', { timeout: 60000 });
     await page.waitForLoadState('domcontentloaded');
 
@@ -161,7 +161,7 @@ test.describe('购买完整流程 E2E 测试', () => {
     }
   });
 
-  test('底部导航栏存在), async ({ page }) => {
+  test('底部导航栏存在)', async ({ page }) => {
     await page.goto('/items', { timeout: 60000 });
     await page.waitForLoadState('domcontentloaded');
 

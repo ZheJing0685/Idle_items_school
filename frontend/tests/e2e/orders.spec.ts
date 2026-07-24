@@ -2,7 +2,7 @@ import { expect } from '@playwright/test';
 import { mockTest as test } from './fixtures/mock-api';
 
 test.describe('订单流程 E2E 测试', () => {
-  test('订单列表页正确加载), async ({ page }) => {
+  test('订单列表页正确加载', async ({ page }) => {
     await page.goto('/orders', { timeout: 60000 });
     await page.waitForLoadState('domcontentloaded');
 
@@ -13,7 +13,7 @@ test.describe('订单流程 E2E 测试', () => {
     }
   });
 
-  test('订单列表页标题存在), async ({ page }) => {
+  test('订单列表页标题存在', async ({ page }) => {
     await page.goto('/orders', { timeout: 60000 });
     await page.waitForLoadState('domcontentloaded');
 
@@ -24,7 +24,7 @@ test.describe('订单流程 E2E 测试', () => {
     }
   });
 
-  test('订单标签页存在), async ({ page }) => {
+  test('订单标签页存在', async ({ page }) => {
     await page.goto('/orders', { timeout: 60000 });
     await page.waitForLoadState('domcontentloaded');
 
@@ -38,7 +38,7 @@ test.describe('订单流程 E2E 测试', () => {
     }
   });
 
-  test('订单详情页正确加载), async ({ page }) => {
+  test('订单详情页正确加载', async ({ page }) => {
     await page.goto('/orders/1', { timeout: 60000 });
     await page.waitForLoadState('domcontentloaded');
 
@@ -49,7 +49,7 @@ test.describe('订单流程 E2E 测试', () => {
     }
   });
 
-  test('订单状态显示), async ({ page }) => {
+  test('订单状态显示', async ({ page }) => {
     await page.goto('/orders/1', { timeout: 60000 });
     await page.waitForLoadState('domcontentloaded');
 
@@ -62,7 +62,7 @@ test.describe('订单流程 E2E 测试', () => {
 });
 
 test.describe('用户中心 E2E 测试', () => {
-  test('用户中心页正确加载), async ({ page }) => {
+  test('用户中心页正确加载', async ({ page }) => {
     await page.goto('/user', { timeout: 60000 });
     await page.waitForLoadState('domcontentloaded');
 
@@ -103,7 +103,7 @@ test.describe('用户中心 E2E 测试', () => {
 });
 
 test.describe('收藏列表 E2E 测试', () => {
-  test('收藏页正确加载), async ({ page }) => {
+  test('收藏页正确加载', async ({ page }) => {
     await page.goto('/favorites', { timeout: 60000 });
     await page.waitForLoadState('domcontentloaded');
 
@@ -125,7 +125,7 @@ test.describe('收藏列表 E2E 测试', () => {
     }
   });
 
-  test('收藏列表为空时显示空状态), async ({ page }) => {
+  test('收藏列表为空时显示空状态', async ({ page }) => {
     await page.goto('/favorites', { timeout: 60000 });
     await page.waitForLoadState('domcontentloaded');
 

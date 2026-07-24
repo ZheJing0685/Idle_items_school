@@ -1,3 +1,4 @@
+import type { Page, TestType } from '@playwright/test';
 import { test as base } from '@playwright/test';
 
 // Mock data generators
@@ -86,14 +87,14 @@ const createMockSellerProfile = () => ({
   },
 });
 
-export const mockTest = base.extend({
+export const mockTest = base.extend<{ page: Page }>({
   page: async ({ page }, use) => {
     // Intercept ALL /api/* requests before navigation
     await page.route('**/api/**', async (route) => {
       const url = route.request().url();
       const path = new URL(url).pathname;
 
-      let responseData = { code: 200, data: null, message: 'ok' };
+      let responseData: Record<string, unknown> = { code: 200, data: null, message: 'ok' };
 
       if (path.includes('/items') && !path.includes('/seller')) {
         if (url.includes('/hot')) {
@@ -159,7 +160,6 @@ export const mockTest = base.extend({
       } else if (path.includes('/carbon')) {
         responseData = { code: 200, data: null };
       } else {
-        // Default: return empty but successful response
         responseData = { code: 200, data: [] };
       }
 
