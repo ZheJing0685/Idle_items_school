@@ -6,8 +6,8 @@ import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 
-export default defineConfig({
-  base: process.env.VITE_BASE || '/',
+export default defineConfig(({ mode }) => ({
+  base: mode === 'production' ? '/Idle_items_school/' : '/',
   plugins: [
     vue(),
     AutoImport({
@@ -119,4 +119,4 @@ export default defineConfig({
       '@': resolve(__dirname, 'src')
     }
   }
-})
+}))
