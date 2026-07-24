@@ -23,23 +23,39 @@ public class DotEnvEnvironmentPostProcessor implements EnvironmentPostProcessor 
         String[] possiblePaths = {
             "../.env",
             ".env",
-            Paths.get(System.getProperty("user.dir"), "..", ".env").toString()
+            "src/.env",
+            "../../.env",
+            Paths.get(System.getProperty("user.dir"), "..", ".env").toString(),
+            Paths.get(System.getProperty("user.dir"), "src", ".env").toString()
         };
         
+        // 额外尝试基于项目根目录的绝对路径
+        String projectDir = System.getProperty("user.dir");
+        if (projectDir != null && projectDir.contains("backend")) {
+            possiblePaths[4] = Paths.get(projectDir, "..", ".env").toString();
+        }
+        
+        Path envPath = null;
         for (String path : possiblePaths) {
-            Path envPath = Paths.get(path).normalize();
-            if (Files.exists(envPath)) {
-                try (FileInputStream fis = new FileInputStream(envPath.toFile())) {
-                    Properties props = new Properties();
-                    props.load(fis);
-                    for (String key : props.stringPropertyNames()) {
-                        envVars.put(key, props.getProperty(key));
-                    }
-                    break;
-                } catch (IOException e) {
-                    System.err.println("Failed to load .env from " + path + ": " + e.getMessage());
-                }
+            Path candidate = Paths.get(path).normalize();
+            if (Files.exists(candidate)) {
+                envPath = candidate;
+                break;
             }
+        }
+        
+        if (envPath != null) {
+            try (FileInputStream fis = new FileInputStream(envPath.toFile())) {
+                Properties props = new Properties();
+                props.load(fis);
+                for (String key : props.stringPropertyNames()) {
+                    envVars.put(key, props.getProperty(key));
+                }
+            } catch (IOException e) {
+                System.err.println("Failed to load .env from " + envPath + ": " + e.getMessage());
+            }
+        } else {
+            System.err.println(".env file not found in any of the expected locations");
         }
         
         if (!envVars.isEmpty()) {
