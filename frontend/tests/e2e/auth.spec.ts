@@ -1,4 +1,5 @@
-import { test, expect } from '@playwright/test';
+import { expect } from '@playwright/test';
+import { mockTest as test } from '../fixtures/mock-api';
 
 test.describe('认证流程 E2E 测试', () => {
   test.describe.configure({ mode: 'serial' });
