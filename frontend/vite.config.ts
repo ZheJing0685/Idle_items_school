@@ -6,80 +6,82 @@ import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 
-export default defineConfig(({ mode }) => ({
-  base: mode === 'production' ? '/Idle_items_school/' : '/',
-  plugins: [
-    vue(),
-    AutoImport({
-      resolvers: [ElementPlusResolver()],
-      imports: ['vue', 'vue-router', 'vue-i18n'],
-      dts: 'src/auto-imports.d.ts'
-    }),
-    Components({
-      resolvers: [ElementPlusResolver()],
-      dts: 'src/components.d.ts'
-    }),
-    VitePWA({
-      registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg'],
-      manifest: {
-        name: '闲置物品校园交易平台',
-        short_name: '校园闲置',
-        description: '面向在校学生的安全高效闲置物品交易平台',
-        theme_color: '#00b4c3',
-        background_color: '#f5fafc',
-        display: 'standalone',
-        scope: '/',
-        start_url: '/',
-        icons: [
-          {
-            src: 'pwa-192x192.png',
-            sizes: '192x192',
-            type: 'image/png'
-          },
-          {
-            src: 'pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png'
-          },
-          {
-            src: 'pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png',
-            purpose: 'any maskable'
-          }
-        ]
-      },
-      workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,ico,woff,woff2}'],
-        runtimeCaching: [
-          {
-            urlPattern: /^https?:\/\/.*\/api\/.*/i,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'api-cache',
-              expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 60 * 60
+export default defineConfig(({ mode }) => {
+  const isGitHubPages = mode === 'production';
+  return {
+    base: isGitHubPages ? '/Idle_items_school/' : '/',
+    plugins: [
+      vue(),
+      AutoImport({
+        resolvers: [ElementPlusResolver()],
+        imports: ['vue', 'vue-router', 'vue-i18n'],
+        dts: 'src/auto-imports.d.ts'
+      }),
+      Components({
+        resolvers: [ElementPlusResolver()],
+        dts: 'src/components.d.ts'
+      }),
+      !isGitHubPages && VitePWA({
+        registerType: 'autoUpdate',
+        includeAssets: ['favicon.svg'],
+        manifest: {
+          name: '闲置物品校园交易平台',
+          short_name: '校园闲置',
+          description: '面向在校学生的安全高效闲置物品交易平台',
+          theme_color: '#00b4c3',
+          background_color: '#f5fafc',
+          display: 'standalone',
+          scope: '/',
+          start_url: '/',
+          icons: [
+            {
+              src: './pwa-192x192.png',
+              sizes: '192x192',
+              type: 'image/png'
+            },
+            {
+              src: './pwa-512x512.png',
+              sizes: '512x512',
+              type: 'image/png'
+            },
+            {
+              src: './pwa-512x512.png',
+              sizes: '512x512',
+              type: 'image/png',
+              purpose: 'any maskable'
+            }
+          ]
+        },
+        workbox: {
+          globPatterns: ['**/*.{js,css,html,svg,png,ico,woff,woff2}'],
+          runtimeCaching: [
+            {
+              urlPattern: /^https?:\/\/.*\/api\/.*/i,
+              handler: 'NetworkFirst',
+              options: {
+                cacheName: 'api-cache',
+                expiration: {
+                  maxEntries: 100,
+                  maxAgeSeconds: 60 * 60
+                }
+              }
+            },
+            {
+              urlPattern: /^https?:\/\/.*\/uploads\/.*/i,
+              handler: 'CacheFirst',
+              options: {
+                cacheName: 'upload-cache',
+                expiration: {
+                  maxEntries: 50,
+                  maxAgeSeconds: 60 * 60 * 24 * 7
+                }
               }
             }
-          },
-          {
-            urlPattern: /^https?:\/\/.*\/uploads\/.*/i,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'upload-cache',
-              expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 60 * 60 * 24 * 7
-              }
-            }
-          }
-        ]
-      }
-    })
-  ],
-  server: {
+          ]
+        }
+      }),
+    ].filter(Boolean),
+    server: {
     host: '0.0.0.0',
     port: 5173,
     strictPort: true,
@@ -119,4 +121,4 @@ export default defineConfig(({ mode }) => ({
       '@': resolve(__dirname, 'src')
     }
   }
-}))
+}})
