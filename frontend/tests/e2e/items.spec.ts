@@ -7,11 +7,11 @@ test.describe('物品流程 E2E 测试', () => {
     await page.waitForLoadState('domcontentloaded');
   });
 
-  test('物品列表页正确加�?, async ({ page }) => {
+  test('物品列表页正确加载', async ({ page }) => {
     await expect(page).toHaveURL(/\/items/);
   });
 
-  test('物品列表页标题存�?, async ({ page }) => {
+  test('物品列表页标题存在', async ({ page }) => {
     await expect(page.locator('h1, h2').first()).toBeVisible();
   });
 
@@ -20,7 +20,7 @@ test.describe('物品流程 E2E 测试', () => {
     await expect(searchInput).toBeVisible();
   });
 
-  test('分类筛选存�?, async ({ page }) => {
+  test('分类筛选存在', async ({ page }) => {
     const filterBar = page.locator('.filter-bar, .category-filter, [class*="filter"]');
     await expect(filterBar.first()).toBeVisible();
   });
@@ -30,7 +30,7 @@ test.describe('物品流程 E2E 测试', () => {
     await expect(items.first()).toBeVisible();
   });
 
-  test('点击物品卡片跳转详情�?, async ({ page }) => {
+  test('点击物品卡片跳转详情页', async ({ page }) => {
     const itemCard = page.locator('.item-card').first();
     await itemCard.click();
     await page.waitForLoadState('domcontentloaded');
@@ -38,8 +38,8 @@ test.describe('物品流程 E2E 测试', () => {
   });
 });
 
-test.describe('物品详情�?E2E 测试', () => {
-  test('物品详情页正确加�?, async ({ page }) => {
+test.describe('物品详情页E2E 测试', () => {
+  test('物品详情页正确加载', async ({ page }) => {
     await page.goto('/items', { timeout: 60000 });
     await page.waitForLoadState('domcontentloaded');
 
@@ -84,7 +84,7 @@ test.describe('物品详情�?E2E 测试', () => {
     await expect(buyButton).toBeVisible();
   });
 
-  test('返回列表页链�?, async ({ page }) => {
+  test('返回列表页链接', async ({ page }) => {
     await page.goto('/items', { timeout: 60000 });
     await page.waitForLoadState('domcontentloaded');
 
@@ -120,7 +120,7 @@ test.describe('发布物品 E2E 测试', () => {
     }
   });
 
-  test('标题输入框存�?, async ({ page }) => {
+  test('标题输入框存在', async ({ page }) => {
     await page.goto('/publish');
     await page.waitForLoadState('networkidle');
 
@@ -132,7 +132,7 @@ test.describe('发布物品 E2E 测试', () => {
     }
   });
 
-  test('价格输入框存�?, async ({ page }) => {
+  test('价格输入框存在', async ({ page }) => {
     await page.goto('/publish');
     await page.waitForLoadState('networkidle');
 

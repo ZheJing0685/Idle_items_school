@@ -12,13 +12,13 @@ test.describe('认证流程 E2E 测试', () => {
   test('登录页面正确加载', async ({ page }) => {
     await expect(page).toHaveTitle(/闲置物品交易平台/);
     await expect(page.getByPlaceholder('请输入用户名')).toBeVisible();
-    await expect(page.getByPlaceholder('请输入密�?)).toBeVisible();
+    await expect(page.getByPlaceholder('请输入密码')).toBeVisible();
     await expect(page.getByRole('button', { name: '登录' })).toBeVisible();
   });
 
   test('表单输入功能正常', async ({ page }) => {
     const usernameInput = page.getByPlaceholder('请输入用户名');
-    const passwordInput = page.getByPlaceholder('请输入密�?);
+    const passwordInput = page.getByPlaceholder('请输入密码');
 
     await usernameInput.fill('testuser');
     await passwordInput.fill('password123');
@@ -44,7 +44,7 @@ test.describe('认证流程 E2E 测试', () => {
     await expect(page).toHaveURL(/\/login/);
   });
 
-  test('注册链接可正常跳�?, async ({ page }) => {
+  test('注册链接可正常跳转', async ({ page }) => {
     await page.getByText('立即注册').click();
     await expect(page).toHaveURL(/\/register/);
   });
@@ -66,7 +66,7 @@ test.describe('注册流程 E2E 测试', () => {
     await expect(page.getByRole('button', { name: '立即注册' })).toBeVisible();
   });
 
-  test('已有账号链接跳转登录�?, async ({ page }) => {
+  test('已有账号链接跳转登录页', async ({ page }) => {
     await page.getByRole('link', { name: '立即登录' }).click();
     await expect(page).toHaveURL(/\/login/);
   });
