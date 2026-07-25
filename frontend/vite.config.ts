@@ -1,15 +1,18 @@
-import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
-import { VitePWA } from 'vite-plugin-pwa'
-import { resolve } from 'path'
-import AutoImport from 'unplugin-auto-import/vite'
-import Components from 'unplugin-vue-components/vite'
-import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
+import { defineConfig } from 'vite';
+import vue from '@vitejs/plugin-vue';
+import { VitePWA } from 'vite-plugin-pwa';
+import { resolve } from 'path';
+import AutoImport from 'unplugin-auto-import/vite';
+import Components from 'unplugin-vue-components/vite';
+import { ElementPlusResolver } from 'unplugin-vue-components/resolvers';
 
 export default defineConfig(({ mode }) => {
   const isGitHubPages = mode === 'production';
   return {
     base: isGitHubPages ? '/Idle_items_school/' : '/',
+    esbuild: {
+      charset: 'utf8',
+    },
     plugins: [
       vue(),
       AutoImport({
@@ -82,43 +85,52 @@ export default defineConfig(({ mode }) => {
       }),
     ].filter(Boolean),
     server: {
-    host: '0.0.0.0',
-    port: 5173,
-    strictPort: true,
-    allowedHosts: ['.monkeycode-ai.online'],
-    proxy: {
-      '/api': {
-        target: 'http://localhost:7000',
-        changeOrigin: true
-      },
-      '/uploads': {
-        target: 'http://localhost:7000',
-        changeOrigin: true
+      host: '0.0.0.0',
+      port: 5173,
+      strictPort: true,
+      allowedHosts: ['.monkeycode-ai.online'],
+      proxy: {
+        '/api': {
+          target: 'http://localhost:7000',
+          changeOrigin: true
+        },
+        '/uploads': {
+          target: 'http://localhost:7000',
+          changeOrigin: true
+        }
       }
-    }
-  },
-  build: {
-    emptyOutDir: true,
-    rollupOptions: {
-      output: {
-        manualChunks(id: string): string | undefined {
-          if (!id.includes('node_modules')) return;
-          if (/[\\/]node_modules[\\/](vue|vue-router|pinia)[\\/]/.test(id)) {
-            return 'vue-vendor';
-          }
-          if (/[\\/]node_modules[\\/]element-plus[\\/]/.test(id)) {
-            return 'element-plus';
-          }
-          if (/[\\/]node_modules[\\/](echarts|zrender)[\\/]/.test(id)) {
-            return 'echarts';
-          }
+    },
+    build: {
+      emptyOutDir: true,
+      minify: 'esbuild',
+      rollupOptions: {
+        output: {
+          manualChunks(id: string): string | undefined {
+            if (!id.includes('node_modules')) return;
+            if (/[\\/]node_modules[\\/](vue|vue-router|pinia)[\\/]/.test(id)) {
+              return 'vue-vendor';
+            }
+            if (/[\\/]node_modules[\\/](element-plus)[\\/]/.test(id)) {
+              return 'element-plus';
+            }
+            if (/[\\/]node_modules[\\/](echarts|zrender)[\\/]/.test(id)) {
+              return 'echarts';
+            }
+          },
+          assetFileNames: (assetInfo) => {
+            if (assetInfo.name && String(assetInfo.name).endsWith('.css')) {
+              return 'assets/[name]-[hash].css';
+            }
+            return 'assets/[name]-[hash][extname]';
+          },
+          chunkFileNames: 'assets/[name]-[hash].js',
+          entryFileNames: 'assets/[name]-[hash].js',
         },
       },
     },
-  },
-  resolve: {
-    alias: {
-      '@': resolve(__dirname, 'src')
+    resolve: {
+      alias: {
+        '@': resolve(__dirname, 'src')
+      }
     }
-  }
-}})
+  }})
