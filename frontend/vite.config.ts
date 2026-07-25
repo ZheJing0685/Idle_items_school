@@ -8,8 +8,9 @@ import { ElementPlusResolver } from 'unplugin-vue-components/resolvers';
 
 export default defineConfig(({ mode }) => {
   const isGitHubPages = mode === 'production';
+  const base = process.env.VITE_BASE || (isGitHubPages ? '/Idle_items_school/' : '/');
   return {
-    base: isGitHubPages ? '/Idle_items_school/' : '/',
+    base,
     esbuild: {
       charset: 'utf8',
     },
