@@ -10,10 +10,8 @@ import i18n from './locale';
 import './style.css';
 import './styles/dark-mode.css';
 import App from './App.vue';
-// import { setupGlobalErrorHandler } from '@/utils/error/errorHandler';
+import { setupGlobalErrorHandler } from '@/utils/error/errorHandler';
 import CategorySearch from './components/common/CategorySearch.vue';
-
-// setupGlobalErrorHandler();
 
 const app = createApp(App);
 app.use(router);
@@ -24,3 +22,5 @@ app.use(i18n);
 app.component('CategorySearch', CategorySearch);
 
 app.mount('#app');
+
+setupGlobalErrorHandler();
