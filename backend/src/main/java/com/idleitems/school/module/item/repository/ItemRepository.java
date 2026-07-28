@@ -5,6 +5,7 @@ import jakarta.persistence.LockModeType;
 import jakarta.persistence.QueryHint;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
@@ -24,7 +25,9 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
     long countByStatus(Item.ItemStatus status);
     Page<Item> findByUserIdAndStatus(Long userId, Item.ItemStatus status, Pageable pageable);
     long countByUserIdAndStatus(Long userId, Item.ItemStatus status);
+    @EntityGraph(attributePaths = {"images"})
     Page<Item> findByUserId(Long userId, Pageable pageable);
+    @EntityGraph(attributePaths = {"images"})
     Page<Item> findByCategoryIdAndStatus(Long categoryId, Item.ItemStatus status, Pageable pageable);
     Page<Item> findByCategoryIdInAndStatus(List<Long> categoryIds, Item.ItemStatus status, Pageable pageable);
     

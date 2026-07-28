@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +30,7 @@ public class FavoriteCountSyncTask {
      * 确保items表中的favorite_count与favorites表实际数据一致
      */
     @Scheduled(cron = "0 0 3 * * ?")
+    @SchedulerLock(name = "favoriteCountSync", lockAtLeastFor = "PT5S", lockAtMostFor = "PT30S")
     @Transactional
     public void syncFavoriteCounts() {
         log.info("开始同步收藏计数任务");

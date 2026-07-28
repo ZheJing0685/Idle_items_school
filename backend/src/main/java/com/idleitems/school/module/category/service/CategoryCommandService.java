@@ -12,6 +12,7 @@ import com.idleitems.school.shared.cache.CacheService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,6 +37,7 @@ public class CategoryCommandService {
     private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
+    @CacheEvict(value = "categoryTree", allEntries = true)
     public Category createCategory(Category category, Long operatorId) {
         if (category.getName() == null || category.getName().trim().isEmpty()) {
             throw new BusinessException(ErrorCode.BAD_REQUEST, "Category name required");
@@ -73,6 +75,7 @@ public class CategoryCommandService {
     }
 
     @Transactional
+    @CacheEvict(value = "categoryTree", allEntries = true)
     public Category updateCategory(Long id, Category updateData, Long operatorId) {
         Category existing = categoryRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "Category not found"));
@@ -135,6 +138,7 @@ public class CategoryCommandService {
     }
 
     @Transactional
+    @CacheEvict(value = "categoryTree", allEntries = true)
     public void deleteCategory(Long id, Long operatorId) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "Category not found"));

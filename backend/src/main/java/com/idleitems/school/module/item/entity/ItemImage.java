@@ -18,6 +18,10 @@ public class ItemImage {
     @Column(name = "item_id", nullable = false)
     private Long itemId;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "item_id", insertable = false, updatable = false)
+    private Item item;
+
     @Column(name = "image_url", nullable = false, length = 255)
     private String imageUrl;
 

@@ -9,6 +9,7 @@ import com.idleitems.school.module.order.service.OrderAdminService;
 import com.idleitems.school.module.order.service.OrderTimeoutService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -24,6 +25,7 @@ public class OrderTimeoutTask {
     private static final int DEFAULT_TIMEOUT_MINUTES = 30;
 
     @Scheduled(fixedDelayString = "${order.timeout.check-interval:300000}")
+    @SchedulerLock(name = "orderTimeout", lockAtLeastFor = "PT5S", lockAtMostFor = "PT30S")
     public void checkTimeoutOrders() {
         log.info("开始执行订单超时检查任务");
         try {

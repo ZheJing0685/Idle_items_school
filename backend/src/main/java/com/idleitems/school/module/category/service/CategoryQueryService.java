@@ -10,6 +10,7 @@ import com.idleitems.school.module.item.repository.ItemRepository;
 import com.idleitems.school.shared.cache.CacheService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -57,6 +58,7 @@ public class CategoryQueryService {
         return result;
     }
 
+    @Cacheable(value = "categoryTree", key = "'all'")
     @SuppressWarnings("unchecked")
     public List<Map<String, Object>> getCategoryTree() {
         Object cached = cacheService.get("categories:tree");

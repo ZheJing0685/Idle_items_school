@@ -32,6 +32,21 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Value("${websocket.max-buffer-size:524288}")
     private int maxBufferSize;
     
+    @Value("${websocket.broker-type:simple}")
+    private String brokerType;
+    
+    @Value("${websocket.relay-host:localhost}")
+    private String relayHost;
+    
+    @Value("${websocket.relay-port:61613}")
+    private int relayPort;
+    
+    @Value("${websocket.relay-login:guest}")
+    private String relayLogin;
+    
+    @Value("${websocket.relay-passcode:guest}")
+    private String relayPasscode;
+    
     private final JwtUtil jwtUtil;
     private final StompAuthInterceptor stompAuthInterceptor;
     private final WebSocketHandshakeInterceptor webSocketHandshakeInterceptor;
@@ -46,9 +61,19 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
-        config.enableSimpleBroker("/topic", "/queue")
-                .setHeartbeatValue(new long[]{4000, 4000}) // 心跳间隔4秒
-                .setTaskScheduler(webSocketTaskScheduler());
+        if ("relay".equalsIgnoreCase(brokerType)) {
+            config.enableStompBrokerRelay("/topic", "/queue")
+                    .setRelayHost(relayHost)
+                    .setRelayPort(relayPort)
+                    .setClientLogin(relayLogin)
+                    .setClientPasscode(relayPasscode)
+                    .setSystemLogin(relayLogin)
+                    .setSystemPasscode(relayPasscode);
+        } else {
+            config.enableSimpleBroker("/topic", "/queue")
+                    .setHeartbeatValue(new long[]{4000, 4000})
+                    .setTaskScheduler(webSocketTaskScheduler());
+        }
         config.setApplicationDestinationPrefixes("/app");
     }
 

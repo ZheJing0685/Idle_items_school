@@ -7,6 +7,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -104,6 +105,9 @@ public class Item {
 
     @Column(name = "cover_image", length = 500)
     private String coverImage;
+
+    @OneToMany(mappedBy = "item", fetch = FetchType.LAZY)
+    private List<ItemImage> images = new ArrayList<>();
 
     @Version
     @Column(name = "version")

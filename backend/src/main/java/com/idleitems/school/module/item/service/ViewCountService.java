@@ -5,6 +5,7 @@ import com.idleitems.school.shared.cache.CacheService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -70,6 +71,7 @@ public class ViewCountService {
     }
 
     @Scheduled(fixedRate = 300_000)
+    @SchedulerLock(name = "viewCountSync", lockAtLeastFor = "PT5S", lockAtMostFor = "PT30S")
     public void flushAll() {
         Set<String> members = redisTemplate.opsForSet().members(VIEW_FLUSH_QUEUE);
         if (members == null || members.isEmpty()) return;

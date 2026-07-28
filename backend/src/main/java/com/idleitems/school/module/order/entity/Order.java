@@ -1,5 +1,6 @@
 package com.idleitems.school.module.order.entity;
 
+import com.idleitems.school.module.item.entity.Item;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.math.BigDecimal;
@@ -32,6 +33,10 @@ public class Order {
 
     @Column(name = "item_id", nullable = false)
     private Long itemId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "item_id", insertable = false, updatable = false)
+    private Item item;
 
     @Column(name = "item_title", length = 200)
     private String itemTitle;

@@ -9,7 +9,7 @@ spring:
       ddl-auto: none
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.MySQLDialect
+        dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: false
         session:
           events:
@@ -69,11 +69,18 @@ management:
 
 # WebSocket配置
 websocket:
+  broker-type: simple
+  relay-host: localhost
+  relay-port: 61613
+  relay-login: guest
+  relay-passcode: guest
   max-message-size: 131072
   max-buffer-size: 524288
 
 # 日志配置
 logging:
+  file:
+    name: ${LOG_FILE:logs/application.log}
   charset:
     console: UTF-8
     file: UTF-8

@@ -25,4 +25,12 @@ WORKDIR /app
 EXPOSE 7000
 ENV JAVA_HOME=/opt/java/openjdk
 ENV PATH="$JAVA_HOME/bin:$PATH"
+
+RUN addgroup -g 1000 appgroup && adduser -u 1000 -G appgroup -s /bin/sh -D appuser && \
+    mkdir -p /var/log/idle-items-school && chown -R appuser:appgroup /app /var/log/idle-items-school
+USER appuser
+
+HEALTHCHECK --interval=15s --timeout=3s --start-period=30s --retries=3 \
+    CMD wget -qO- http://localhost:7000/actuator/health || exit 1
+
 ENTRYPOINT ["java", "-Xms256m", "-Xmx512m", "-Dfile.encoding=UTF-8", "-Dsun.jnu.encoding=UTF-8", "-jar", "app.jar"]

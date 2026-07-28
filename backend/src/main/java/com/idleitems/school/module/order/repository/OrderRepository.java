@@ -4,6 +4,7 @@ import com.idleitems.school.module.order.entity.Order;
 import jakarta.persistence.QueryHint;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
@@ -21,8 +22,10 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     Optional<Order> findByOrderNo(String orderNo);
 
+    @EntityGraph(attributePaths = {"item"})
     Page<Order> findByBuyerId(Long buyerId, Pageable pageable);
 
+    @EntityGraph(attributePaths = {"item"})
     Page<Order> findBySellerId(Long sellerId, Pageable pageable);
 
     Page<Order> findByOrderStatus(Order.OrderStatus status, Pageable pageable);

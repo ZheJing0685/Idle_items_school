@@ -7,6 +7,7 @@ import com.idleitems.school.module.item.repository.ItemRepository;
 import com.idleitems.school.module.order.repository.OrderRepository;
 import com.idleitems.school.module.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,6 +28,7 @@ public class HomeController {
     private final OrderRepository orderRepository;
 
     @Operation(summary = "获取首页统计", description = "获取首页展示的用户总数、物品总数和完成订单数等统计数据")
+    @Cacheable(value = "homeStats", key = "'stats'")
     @GetMapping("/stats")
     public Result<Map<String, Object>> getHomeStats() {
         Map<String, Object> stats = new HashMap<>();

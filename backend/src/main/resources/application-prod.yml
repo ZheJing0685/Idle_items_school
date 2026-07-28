@@ -2,6 +2,8 @@
 # 生产环境配置
 # =========================================
 spring:
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
   config:
     import: application-common.yml
 
@@ -9,7 +11,7 @@ spring:
     name: idle-items-school-prod
 
   datasource:
-    url: "${DB_URL:jdbc:postgresql://localhost:5432/idle_items_school}"
+    url: "${DB_URL:jdbc:postgresql://localhost:5432/idle_items_school?sslmode=require}"
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
@@ -27,10 +29,12 @@ spring:
   jpa:
     show-sql: false
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
 
   flyway:
-    enabled: false
+    enabled: true
+    validate-on-migrate: true
+    repair-on-migrate: false
 
   data:
     redis:
@@ -66,6 +70,11 @@ cors:
 # WebSocket配置
 websocket:
   allowed-origins: ${CORS_ALLOWED_ORIGINS}
+  broker-type: relay
+  relay-host: ${WS_RELAY_HOST:localhost}
+  relay-port: ${WS_RELAY_PORT:61613}
+  relay-login: ${WS_RELAY_LOGIN:guest}
+  relay-passcode: ${WS_RELAY_PASSCODE:guest}
 
 # 服务器配置
 server:
@@ -80,10 +89,26 @@ server:
     max-swallow-size: 20MB
     connection-timeout: 30000
     uri-encoding: UTF-8
+  shutdown: graceful
 
 # 日志级别
 logging:
   level:
-    com.idleitems.school: WARN
+    com.idleitems.school: INFO
     org.hibernate.SQL: WARN
-    root: WARN
+    root: INFO
+
+# 邮件配置
+spring.mail:
+  host: ${MAIL_HOST}
+  port: ${MAIL_PORT:587}
+  username: ${MAIL_USERNAME}
+  password: ${MAIL_PASSWORD}
+  protocol: smtp
+  properties:
+    mail:
+      smtp:
+        auth: true
+        starttls:
+          enable: true
+          required: true

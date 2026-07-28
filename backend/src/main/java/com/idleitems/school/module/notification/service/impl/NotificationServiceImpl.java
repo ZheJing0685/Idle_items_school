@@ -11,6 +11,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -97,6 +98,7 @@ public class NotificationServiceImpl implements NotificationService {
      * 删除超过90天的已读通知，释放数据库空间
      */
     @Scheduled(cron = "0 0 3 * * ?")
+    @SchedulerLock(name = "notificationCleanup", lockAtLeastFor = "PT5S", lockAtMostFor = "PT30S")
     @Transactional
     public void cleanupOldNotifications() {
         LocalDateTime threshold = LocalDateTime.now().minusDays(RETENTION_DAYS);
